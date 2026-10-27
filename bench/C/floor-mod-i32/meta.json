@@ -1,0 +1,9 @@
+{
+  "id": "floor-mod-i32",
+  "category": "C",
+  "source": "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Math.html#floorMod(int,int)",
+  "description": "Floor modulo (result has the sign of the divisor) from the truncating C remainder",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Same semantics as Java Math.floorMod and Python %; function written by us. clang trunk -O3 -march=skylake: srem + 2 icmp + 2 select + add, 8 IR instructions. Division by zero and INT_MIN % -1 are UB in the source. Related report with a different formulation and int8 operands: llvm/llvm-project#205500. Whether a shorter form exists is unknown."
+}

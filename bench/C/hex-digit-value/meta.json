@@ -1,0 +1,9 @@
+{
+  "id": "hex-digit-value",
+  "category": "C",
+  "source": "handwritten",
+  "description": "Value of an ASCII hex digit (0-9, a-f, A-F), -1 otherwise",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Real-world parsing idiom written by us. clang trunk -O3 -march=skylake keeps two branches and a select: 18 IR instructions. Whether a branchless form is better is unknown."
+}
