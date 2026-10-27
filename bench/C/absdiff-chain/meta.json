@@ -1,9 +1,9 @@
 {
   "id": "absdiff-chain",
   "category": "C",
-  "source": "handwritten",
+  "source": "handwritten combination, related to https://github.com/llvm/llvm-project/issues/234884",
   "description": "Sum of two unsigned absolute differences; clang emits icmp + 2 sub + select per difference",
   "known_solution": false,
   "still_missed_on": "clang trunk (godbolt), 2026-10-27",
-  "notes": "Candidate: umax(a,b)-umin(a,b) is one IR instruction shorter per difference. Not proven, and fewer IR instructions may not mean faster asm."
+  "notes": "Original combination of two unsigned absolute differences, inspired by the abs-diff pattern of llvm/llvm-project#234884. Candidate: umax(a,b)-umin(a,b) is one IR instruction shorter per difference. Not proven, and fewer IR instructions may not mean faster asm."
 }

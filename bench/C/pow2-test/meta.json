@@ -1,9 +1,9 @@
 {
   "id": "pow2-test",
   "category": "C",
-  "source": "handwritten",
+  "source": "https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2",
   "description": "x != 0 && (x & (x-1)) == 0 on u32",
   "known_solution": false,
   "still_missed_on": "clang trunk (godbolt), 2026-10-27 (baseline x86-64)",
-  "notes": "DOUBTFUL: baseline x86-64 keeps a branch + ctpop (7 insts); with -march=skylake clang emits ctpop==1 (3 insts). Category depends on which -march extract.py uses."
+  "notes": "Bit Twiddling Hacks, \"Determining if an integer is a power of 2\". DOUBTFUL: -march=skylake re-check (clang trunk, godbolt, 2026-10-27): baseline x86-64 keeps a branch + ctpop + phi (7 insts); with -march=skylake clang emits ctpop(x) == 1 (3 insts), which looks optimal, so under skylake this entry would become category A (and fall below the 5-instruction minimum). Category depends on the -march used by extract.py; not moved, pending team decision."
 }

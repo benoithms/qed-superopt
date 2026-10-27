@@ -1,9 +1,9 @@
 {
   "id": "avg-floor-u32",
   "category": "A",
-  "source": "handwritten",
+  "source": "Hacker's Delight, 2nd ed. (H. S. Warren), section 2-5 \"Average of Two Integers\"",
   "description": "Overflow-free floor average (a&b)+((a^b)>>1)",
   "known_solution": false,
   "still_missed_on": "clang trunk (godbolt), 2026-10-27: already optimal",
-  "notes": ""
+  "notes": "Well-known overflow-free floor average idiom; function written by us from the idea."
 }
