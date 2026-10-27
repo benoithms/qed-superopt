@@ -36,7 +36,7 @@ The solution goes **only** into `expected.ll` and optionally `meta.json` (`descr
 
 ## 4. Files
 
-`bench/<cat>/<id>/src.c`: the function alone, with the needed includes.
+`bench/<cat>/<id>/src.c`: the function alone, with the needed includes. Write it yourself from the idea: never paste code from the source (especially long excerpts from the Hacker's Delight book). The source is always cited in `meta.json`.
 
 `bench/<cat>/<id>/meta.json`:
 ```json

@@ -30,6 +30,14 @@ Planned modules: `extract.py` (C → `.ll`), `llm.py` (`generate(ir, history) ->
 - **Contamination**: `src.c` is sent as-is to the model. It must contain no trace of the known solution, in code or comments. `expected.ll` must never appear in a prompt, and the generator-side loader reads only `src.c`.
 - A B case that clang trunk already optimizes moves to category A. Flag doubtful cases instead of deciding alone.
 
+## Licenses and hackathon rules
+
+- External tools (LLVM, Alive2, Z3, llama.cpp) are invoked, never vendored into the repo: our MIT license stays unconstrained. Do not copy third-party code into the repo.
+- **LLM Compiler** (Meta LLM Compiler License): accept the license on the Hugging Face model page, including when using a third-party quantized GGUF; never commit the weights; the README must display "Built with LLM Compiler"; never use its outputs to train or improve another LLM.
+- Muse Spark is used under the Meta Model API terms of service.
+- Corpus: write each function yourself (a few lines, the idea is not protected) and always cite the source in `meta.json`. Never paste long excerpts from the Hacker's Delight book.
+- Hackathon rule (disqualification risk): the README and the demo must clearly separate **what we built during the hackathon** (orchestration, loop, prompts, corpus, results) from **what we use** (LLVM, Alive2, Z3, Meta models).
+
 ## Team and repo
 
 - No other AI (Claude, GPT…) **in the optimization loop**, not even for comparison: only Muse Spark (Meta API) and LLM Compiler (local, llama.cpp) generate candidates. Other AIs are only used to build the project.
