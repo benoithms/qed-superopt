@@ -1,0 +1,9 @@
+{
+  "id": "bswap-manual-32",
+  "category": "A",
+  "source": "https://graphics.stanford.edu/~seander/bithacks.html",
+  "description": "Byte swap written with shifts and masks; lowers to llvm.bswap",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": ""
+}

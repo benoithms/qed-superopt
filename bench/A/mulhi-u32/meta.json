@@ -1,0 +1,9 @@
+{
+  "id": "mulhi-u32",
+  "category": "A",
+  "source": "handwritten",
+  "description": "High half of a 32x32 unsigned multiply; lowers to llvm.umulh",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": ""
+}

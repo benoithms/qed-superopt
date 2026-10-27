@@ -1,0 +1,9 @@
+{
+  "id": "clamp-i32",
+  "category": "A",
+  "source": "handwritten",
+  "description": "Clamp with lo checked first; icmp + smin + select (smax(smin) differs when lo > hi)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": ""
+}

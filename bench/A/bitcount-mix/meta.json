@@ -4,6 +4,6 @@
   "source": "handwritten",
   "description": "popcount + ctz + clz with zero-guard ORs; 8 instructions",
   "known_solution": false,
-  "still_missed_on": "clang trunk (godbolt), 2026-10-27: already optimal",
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
   "notes": "Source: genuinely original combination written for this corpus, no external reference."
 }

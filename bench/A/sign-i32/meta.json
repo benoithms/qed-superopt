@@ -1,0 +1,9 @@
+{
+  "id": "sign-i32",
+  "category": "A",
+  "source": "handwritten",
+  "description": "Sign function (x>0)-(x<0); lowers to llvm.scmp",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": ""
+}

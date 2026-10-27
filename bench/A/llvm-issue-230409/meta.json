@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-230409",
+  "category": "A",
+  "source": "https://github.com/llvm/llvm-project/issues/230409",
+  "description": "x < 1 && srem(x, C) > 0 is always false",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": "The issue is a miss at IR level, but clang already optimizes the C version: moved to A per the corpus rule."
+}
