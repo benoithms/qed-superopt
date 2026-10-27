@@ -218,3 +218,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# qed-superopt
+.orca/
+*.ll
+!bench/**/expected.ll
+*.o
+*.s
+*.gguf
