@@ -1,0 +1,9 @@
+{
+  "id": "abs-sum3",
+  "category": "A",
+  "source": "handwritten",
+  "description": "Sum of three absolute values; lowers to 3x llvm.abs + 2 add",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt), 2026-10-27: already optimal",
+  "notes": ""
+}

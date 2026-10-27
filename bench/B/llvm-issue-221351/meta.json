@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-221351",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/221351",
+  "description": "(x & c) + ((x & c) ^ c) not folded to c",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt), 2026-10-27",
+  "notes": "C translated from the IR reproducer in the issue; expected.ll adapted from the issue target to clang's signature, not yet checked with Alive2 by us."
+}

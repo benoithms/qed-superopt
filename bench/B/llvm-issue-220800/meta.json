@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-220800",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/220800",
+  "description": "ctpop(x) <= x not folded to true",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt), 2026-10-27",
+  "notes": "C translated from the IR reproducer in the issue; expected.ll adapted from the issue target to clang's signature, not yet checked with Alive2 by us."
+}

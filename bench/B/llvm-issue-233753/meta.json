@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-233753",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/233753",
+  "description": "(c ? -x : x) == 0 not folded to x == 0 (the != form folds)",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt), 2026-10-27",
+  "notes": "C translated from the IR reproducer in the issue; expected.ll adapted from the issue target to clang's signature, not yet checked with Alive2 by us."
+}

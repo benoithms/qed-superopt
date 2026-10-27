@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-227763",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/227763",
+  "description": "ashr(zext(x ^ C) - 1, 31) not folded to sext(x == C)",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt), 2026-10-27",
+  "notes": "C translated from the IR reproducer in the issue; expected.ll adapted from the issue target to clang's signature, not yet checked with Alive2 by us."
+}

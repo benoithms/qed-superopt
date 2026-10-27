@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-235683",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/235683",
+  "description": "((x - 8) & -8) + 8 not folded to x & -8 when x - 8 has another use",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt), 2026-10-27",
+  "notes": "C translated from the IR reproducer in the issue; expected.ll adapted from the issue target to clang's signature, not yet checked with Alive2 by us."
+}

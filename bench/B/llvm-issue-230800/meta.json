@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-230800",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/230800",
+  "description": "Range check on {-1,0,1} combined with masked equality: only -1 satisfies both",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt), 2026-10-27",
+  "notes": "C translated from the IR reproducer in the issue; expected.ll adapted from the issue target to clang's signature, not yet checked with Alive2 by us."
+}

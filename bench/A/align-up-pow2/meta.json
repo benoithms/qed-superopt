@@ -1,0 +1,9 @@
+{
+  "id": "align-up-pow2",
+  "category": "A",
+  "source": "handwritten",
+  "description": "Round x up to a multiple of 2^k",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt), 2026-10-27: already optimal",
+  "notes": ""
+}

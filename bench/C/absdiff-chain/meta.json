@@ -1,0 +1,9 @@
+{
+  "id": "absdiff-chain",
+  "category": "C",
+  "source": "handwritten",
+  "description": "Sum of two unsigned absolute differences; clang emits icmp + 2 sub + select per difference",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt), 2026-10-27",
+  "notes": "Candidate: umax(a,b)-umin(a,b) is one IR instruction shorter per difference. Not proven, and fewer IR instructions may not mean faster asm."
+}

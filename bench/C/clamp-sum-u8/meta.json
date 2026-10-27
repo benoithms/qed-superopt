@@ -1,0 +1,9 @@
+{
+  "id": "clamp-sum-u8",
+  "category": "C",
+  "source": "handwritten",
+  "description": "Clamp a signed sum to [0,255] and truncate to u8",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt), 2026-10-27",
+  "notes": "Candidate: trunc(umin(smax(s,0),255)) saves one select. Unverified."
+}

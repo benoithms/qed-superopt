@@ -1,0 +1,9 @@
+{
+  "id": "sext-var",
+  "category": "A",
+  "source": "handwritten",
+  "description": "Sign-extend from a variable bit width via shl + ashr",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt), 2026-10-27: already optimal",
+  "notes": ""
+}
