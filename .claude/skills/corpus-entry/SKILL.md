@@ -15,12 +15,14 @@ Reject (and say why) any function that fails one of them:
 - no `for`, `while`, backward `goto` or recursion;
 - types `int8_t`–`int64_t`, `uint*_t` or `bool` (`<stdint.h>`, `<stdbool.h>`), no `float` or `double`;
 - builtins are allowed if they lower to LLVM intrinsics: `__builtin_popcount*`, `__builtin_clz*`, `__builtin_ctz*`, `__builtin_bswap*`, `__builtin_*_overflow`;
-- 5 to 30 IR instructions after `-O3` (estimate, then confirm once the reference toolchain is available).
+- size after `-O3 -march=skylake`: at most 30 IR instructions; at least 5 for category C only (A has no floor, B is kept whatever its size). Estimate, then confirm once the reference toolchain is available.
 
 ## 2. Category
 
 - **A, control**: clang already produces optimal code. A B case that clang trunk now optimizes moves here.
-- **B, known miss**: the better version is known (LLVM issue, Souper). Add `expected.ll` if available.
+- **B, known miss**: the better version is known (LLVM issue, Souper). Add `expected.ll` if available: only its body matters (the header comes from the source), and it will itself be proven by Alive2 against the source.
+- One optimization pattern = one entry: if a C entry's solution is known, it is a B entry (cite the issue in `notes`).
+- An issue that does not reproduce from C: if clang already optimizes it, move it to A; if it was reported at IR level (e.g. from Rust) and the C does not produce the same IR, drop it for now.
 - **C, unknown**: we don't know whether it can be improved. For a bit hack, write the **naive** version in C.
 
 `id`: stable kebab-case, e.g. `llvm-issue-12345`, `hd-turn-off-rightmost-bit`, `bth-sign-extend`.
@@ -50,7 +52,7 @@ The solution goes **only** into `expected.ll` and optionally `meta.json` (`descr
   "notes": ""
 }
 ```
-- `still_missed_on`: state how it was checked. For now, "clang trunk (godbolt)" + date (Compiler Explorer, `x86-64 clang (trunk)`, `-O3 -emit-llvm -S`). Never claim it was checked if it wasn't: use `"unverified"`.
+- `still_missed_on`: state how it was checked. For now, "clang trunk (godbolt)" + date (Compiler Explorer, `x86-64 clang (trunk)`, `-O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S`). Without `-march=skylake` the IR is wrong for our target (e.g. no `ctpop`), and the category may be wrong too. Never claim it was checked if it wasn't: use `"unverified"`.
 - Do not use `/usr/bin/clang` (Apple clang) for this check: it is not the reference compiler.
 
 ## 5. Refinement
