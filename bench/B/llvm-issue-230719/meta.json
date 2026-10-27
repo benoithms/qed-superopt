@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-230719",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/230719",
+  "description": "Known zero bits of a sparse multiplication lost: ((x & 12) * 17) & 48 not folded to 0",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "C translated from the issue's known_zero_bits reproducer; expected.ll from the issue (returns 0). Same KnownBits::mul family as #227280 (power-of-two-or-zero factor), which is not added separately. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-27: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv."
+}
