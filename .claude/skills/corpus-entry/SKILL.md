@@ -15,6 +15,7 @@ Reject (and say why) any function that fails one of them:
 - no `for`, `while`, backward `goto` or recursion;
 - types `int8_t`–`int64_t`, `uint*_t` or `bool` (`<stdint.h>`, `<stdbool.h>`), no `float` or `double`;
 - builtins are allowed if they lower to LLVM intrinsics: `__builtin_popcount*`, `__builtin_clz*`, `__builtin_ctz*`, `__builtin_bswap*`, `__builtin_*_overflow`;
+- `__builtin_assume` and `__builtin_unreachable` are allowed: they only state preconditions (UB when false), which Alive2 takes into account. A candidate cannot abuse them, since adding UB on the target side is rejected;
 - size after `-O3 -march=skylake`: at most 30 IR instructions; at least 5 for category C only (A has no floor, B is kept whatever its size). Estimate, then confirm once the reference toolchain is available.
 
 ## 2. Category

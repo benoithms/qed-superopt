@@ -26,7 +26,7 @@ Planned modules: `extract.py` (C → `.ll`), `llm.py` (`generate(ir, history) ->
 
 ## Corpus (`bench/<A|B|C>/<id>/{src.c, meta.json, expected.ll?}`)
 
-- A single non-`static` function, pure (no pointer, array, global or call), no loop or recursion, `int8_t`–`int64_t` or `bool` integers, no floating point. Builtins lowering to intrinsics are OK (`__builtin_popcount`, `clz`, `ctz`, `bswap`…). Size, after `-O3 -march=skylake`: at most 30 IR instructions; the 5-instruction floor applies to category C only (A has no floor, B is kept whatever its size since a known miss proves there is a gain).
+- A single non-`static` function, pure (no pointer, array, global or call), no loop or recursion, `int8_t`–`int64_t` or `bool` integers, no floating point. Builtins lowering to intrinsics are OK (`__builtin_popcount`, `clz`, `ctz`, `bswap`…), and so are `__builtin_assume` and `__builtin_unreachable`: they only state preconditions (UB when false), which Alive2 takes into account. Size, after `-O3 -march=skylake`: at most 30 IR instructions; the 5-instruction floor applies to category C only (A has no floor, B is kept whatever its size since a known miss proves there is a gain).
 - One optimization pattern = one entry. If a C entry's solution is known, it is a B entry.
 - Every `expected.ll` is itself proven by Alive2 against its source; only its body matters, the header comes from the source.
 - An issue that does not reproduce from C: if clang already optimizes it, it moves to A; if it was reported at IR level (e.g. from Rust) and the C does not produce the same IR, it is dropped for now.
