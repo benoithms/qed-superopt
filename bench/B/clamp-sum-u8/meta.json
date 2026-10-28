@@ -1,9 +1,0 @@
-{
-  "id": "clamp-sum-u8",
-  "category": "B",
-  "source": "handwritten",
-  "description": "Clamp of a signed sum to [0, 255] with a select not folded to trunc(umin(smax(s, 0), 255))",
-  "known_solution": true,
-  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
-  "notes": "Candidate: trunc(umin(smax(s,0),255)) saves one select. Unverified. Source: genuinely original combination written for this corpus, no external reference. Moved from C to B on 2026-10-28 (known solution). expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning (alive2.llvm.org/ce). To be re-checked with the reference toolchain. 6 IR instructions -> 5, one select saved."
-}
