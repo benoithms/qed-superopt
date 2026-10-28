@@ -27,12 +27,14 @@ PROMPT = (
     "The input code has instruction count {n}. [/INST]"
 )
 # Preamble the model itself writes for x86-64; prefilling it saves ~100 tokens per call.
+# The model writes "minsize optsize" in the attributes line; we drop them because we
+# optimize for cycles, not size (same results on bench/B, one more proven entry).
 PREAMBLE = """<code>; ModuleID = '<stdin>'
 source_filename = "-"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
-; Function Attrs: minsize mustprogress nofree norecurse nosync nounwind optsize willreturn \
+; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn \
 memory(none) uwtable
 """
 # "sise" is the model's own spelling; it also keeps a forced " 3" from continuing as "30".
