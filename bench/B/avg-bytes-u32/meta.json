@@ -1,9 +1,0 @@
-{
-  "id": "avg-bytes-u32",
-  "category": "B",
-  "source": "https://virtualdub.org/blog2/entry_116.html",
-  "description": "Per-byte floor average of two packed u32 not folded to (a & b) + (((a ^ b) & 0xfefefefe) >> 1)",
-  "known_solution": true,
-  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
-  "notes": "Found while screening C candidates: the better version is the carry-save averaging trick described in the VirtualDub post (the Hacker's Delight 2-5 average applied per byte). Naive per-byte average (unpack, add, shift, repack) written by us; real-world use: averaging packed RGBA pixels. clang trunk -O3 -march=skylake keeps the four lanes separate: 27 IR instructions. expected.ll: 6 IR instructions. Different pattern from the A entry avg-floor-u32 (one 32-bit average, already optimal). No LLVM issue found for this pattern. Gain estimated by llvm-mca (godbolt llc and llvm-mca trunk, -mcpu=skylake, cycles per 100 iterations): 758 vs 306. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv."
-}

@@ -1,0 +1,9 @@
+{
+  "id": "varint-size-u64",
+  "category": "B",
+  "source": "https://protobuf.dev/programming-guides/encoding/#varints",
+  "description": "Base-128 varint length of a u64 as a chain of range checks not folded to the protobuf formula (log2(x | 1) * 9 + 73) >> 6",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Real-world idiom (protobuf and LEB128 encoders size a varint before writing it); function written by us. clang trunk -O3 -march=skylake keeps 9 compare-and-branch steps into a phi: 21 IR instructions. Candidate: an arithmetic form based on ctlz(x | 1). Unverified. Moved from C to B on 2026-10-28 (known solution). expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning (alive2.llvm.org/ce). To be re-checked with the reference toolchain. expected.ll is the protobuf formula, given by Benoit (2026-10-28): clang -O3 33 x86 instructions, 8.35 llvm-mca cycles; formula 7 instructions, 2.11 cycles. Muse Spark found a close variant ((70 - clz) * 37 >> 8, 8 instructions, 2.35 cycles, proven) while this entry was in C: not a discovery, a known formula clang misses."
+}

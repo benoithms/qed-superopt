@@ -9,7 +9,7 @@ Hackathon window: **Oct 26 – Nov 4, 2026**. Submission: **Wed Nov 4, 21:00 ET*
 - [x] Reference toolchain built and smoke-tested: LLVM `b974545` (clang 24.0.0git) and Alive2 `adacbd5` (Benoit)
 - [x] Python project skeleton with the frozen interfaces `generate()`, `verify()`, `cost()` (Benoit)
 - [x] Meta Model API access validated with `muse-spark-1.3` (Benoit)
-- [x] Corpus: 73 entries (22 A, 40 B, 11 C); the 40 `expected.ll` are proven by Alive2 with the reference toolchain (Jules)
+- [x] Corpus: 103 entries (22 A, 66 B, 15 C). 40 `expected.ll` are proven by Alive2 with the reference toolchain; the 26 added on Oct 28 are proven on alive2.llvm.org and must be re-checked with it, and `absdiff-chain` is not proven yet (online timeout) (Jules)
 - [x] LLM Compiler 7B (Q8 GGUF) running locally with llama.cpp; first loop turn done by hand (Jules)
 
 ## M1: MVP, full loop on one function (Thu Oct 29)
@@ -27,7 +27,8 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 **Jules**
 - [x] LLM Compiler behind `generate(ir, history) -> body` (training prompt format, prefilled module header): `qed/llm_compiler.py`
 - [ ] Reference toolchain built on a second machine, same commits (independent reproduction)
-- [ ] Corpus: ~9 more C entries; `nlz-binsearch-u32` and `clp2-u32` to B once their `expected.ll` is proven; settle `next-same-popcount` with the reference clang; add issues 210131, 227280, 225655 and the `__builtin_assume` / `__builtin_unreachable` issues
+- [x] Corpus: more C entries; `nlz-binsearch-u32` and `clp2-u32` to B; issues 210131, 227280, 225655 and the `__builtin_assume` / `__builtin_unreachable` issues added; variants removed and C entries with a known solution moved to B after review
+- [ ] Corpus: settle `next-same-popcount` with the reference clang (Jules)
 
 ## M2: First results (Fri Oct 30 – Sun Nov 1)
 
