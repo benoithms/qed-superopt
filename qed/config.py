@@ -40,6 +40,9 @@ META_API_KEY = os.environ.get("META_API_KEY", "")
 META_API_BASE = os.environ.get("META_API_BASE", "https://api.meta.ai/v1")
 META_MODEL = os.environ.get("META_MODEL", "muse-spark-1.3")
 
+# LLM Compiler, served locally by llama.cpp (llama-server -m llm-compiler-7b.Q8_0.gguf).
+LLMC_URL = os.environ.get("LLMC_URL", "http://127.0.0.1:8089")
+
 
 def check_toolchain() -> list[str]:
     """Return the missing tools; an empty list means the chain is ready."""
