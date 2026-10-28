@@ -57,6 +57,12 @@ Bonuses once the MVP works. Tasks marked *(can start now)* do not depend on the 
 - [ ] Live demo page of the loop: proposal, Alive2 counterexample, repair, proof, measured gain.
 - [ ] Charts: ablation with vs. without counterexamples, cost per proven optimization, proven rate vs. number of attempts.
 
+**Usefulness: prove it, don't just claim it**
+
+Why it matters: more and more code is written by AI models, and it can only be trusted if something checks it. This project shows the pattern on the harshest ground there is, compiler optimization: the model proposes, a formal proof decides. And a win in the compiler multiplies: one rule added to LLVM improves every program clang compiles.
+- [ ] Count how often our winning patterns occur in real open-source code *(can start now for known B patterns)*.
+- [ ] Test the hypothesis directly: does clang miss more optimizations on AI-written code than on human-written code? Build a corpus of functions written by AI models for common tasks (corpus building, not part of the optimization loop), run the tool on it, compare with human-written entries.
+
 **Engine**
 - [ ] Two-model pipeline: LLM Compiler (free, fast) proposes first, Muse Spark repairs from counterexamples.
 - [ ] Memory of wins: rewrites proven on *other* functions as few-shot examples (never `expected.ll`).
