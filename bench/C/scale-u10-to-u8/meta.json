@@ -1,0 +1,9 @@
+{
+  "id": "scale-u10-to-u8",
+  "category": "C",
+  "source": "handwritten",
+  "description": "Scale a 10-bit value (clamped to 1023) to 8 bits with rounding: (v * 255 + 511) / 1023",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Real-world image and ADC idiom written by us. clang trunk -O3 -march=skylake keeps a umin, a multiplication and a udiv by 1023: 7 IR instructions (the backend expands the udiv into a multiply-high sequence). Whether a cheaper exact form exists is unknown."
+}

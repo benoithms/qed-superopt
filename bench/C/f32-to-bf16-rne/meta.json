@@ -1,0 +1,9 @@
+{
+  "id": "f32-to-bf16-rne",
+  "category": "C",
+  "source": "https://en.wikipedia.org/wiki/Bfloat16_floating-point_format",
+  "description": "float32 bit pattern to bfloat16 with round to nearest even and NaN quieting",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Real-world ML idiom (float32 to bfloat16 conversion in ML runtimes): round to nearest even by adding 0x7fff plus the lowest kept bit, NaN quieted by setting bit 6 of the result, no denormal flush; integers only (bit patterns). Function written by us. clang trunk -O3 -march=skylake keeps the NaN test as a branch: 16 IR instructions. Whether a branchless form is better is unknown."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "fletcher16-update",
+  "category": "C",
+  "source": "https://en.wikipedia.org/wiki/Fletcher%27s_checksum",
+  "description": "One-byte Fletcher-16 update of a packed state (two sums modulo 255)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Per-byte body of the Fletcher-16 checksum with sums modulo 255, as on the Wikipedia page (RFC 1146 defines the same 8-bit algorithm with ones' complement accumulators), with the two sums packed in a u16; function written by us. clang trunk -O3 -march=skylake keeps the first urem by 255 (its operand can reach 510, since the incoming sums are not assumed reduced) and turns the second into a compare and select: 12 IR instructions. Whether a cheaper exact form exists is unknown."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "hex-encode-byte",
+  "category": "C",
+  "source": "handwritten",
+  "description": "Encode a byte as two lowercase ASCII hex digits packed in a u16 (high nibble in the low byte)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Real-world idiom (hex dumps, hex encoders) written by us. It is the encoding direction; the existing C entry hex-digit-value parses one digit. clang trunk -O3 -march=skylake computes each digit with a compare and a select between two offsets: 15 IR instructions. Whether a branchless form that handles both nibbles at once is better is unknown."
+}
