@@ -39,6 +39,13 @@ ALIVE_WALL_TIMEOUT_S = 300  # whole alive-tv run
 META_API_KEY = os.environ.get("META_API_KEY", "")
 META_API_BASE = os.environ.get("META_API_BASE", "https://api.meta.ai/v1")
 META_MODEL = os.environ.get("META_MODEL", "muse-spark-1.3")
+# USD per million tokens. Approximate: check the Usage page of the Meta Model API dashboard.
+META_PRICE_IN = float(os.environ.get("META_PRICE_IN", "1.25"))
+META_PRICE_OUT = float(os.environ.get("META_PRICE_OUT", "4.25"))
+
+# Model answers are cached on disk: the same request is never paid twice.
+CACHE_DIR = REPO / ".cache" / "llm"
+RESULTS_DIR = REPO / "results"
 
 # LLM Compiler, served locally by llama.cpp (llama-server -m llm-compiler-7b.Q8_0.gguf).
 LLMC_URL = os.environ.get("LLMC_URL", "http://127.0.0.1:8089")
