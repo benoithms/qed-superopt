@@ -1,0 +1,9 @@
+{
+  "id": "popcount-bits-u8",
+  "category": "B",
+  "source": "Hacker's Delight, 2nd ed. (H. S. Warren), section 5-1 \"Counting 1-Bits\"",
+  "description": "Naive sum of the 8 bits of a byte not folded to llvm.ctpop",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Found while screening C candidates: the better version is the standard one (popcnt on skylake). Naive bit-by-bit population count written by us. clang trunk -O3 -march=skylake does not form ctpop: the SLP vectorizer turns the shifts and masks into an <8 x i32> lshr, and, and llvm.vector.reduce.add: 7 IR instructions. expected.ll is ctpop of the zero-extended byte: 3 IR instructions. No LLVM issue found for this idiom. Gain estimated by llvm-mca (godbolt llc and llvm-mca trunk, -mcpu=skylake, cycles per 100 iterations): 549 vs 109. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv."
+}

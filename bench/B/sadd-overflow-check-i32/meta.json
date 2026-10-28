@@ -1,0 +1,9 @@
+{
+  "id": "sadd-overflow-check-i32",
+  "category": "B",
+  "source": "https://wiki.sei.cmu.edu/confluence/display/c/INT32-C.+Ensure+that+operations+on+signed+integers+do+not+result+in+overflow",
+  "description": "CERT INT32-C precondition test for signed addition overflow not folded to llvm.sadd.with.overflow",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Found while screening C candidates. The function returns the precondition test of the CERT C compliant solution for addition (true exactly when a + b overflows); written by us. clang trunk -O3 -march=skylake keeps two compare chains and three selects: 10 IR instructions. expected.ll is the overflow bit of llvm.sadd.with.overflow.i32, what __builtin_add_overflow lowers to: 3 IR instructions. No LLVM issue found for this pattern. Gain estimated by llvm-mca (godbolt llc and llvm-mca trunk, -mcpu=skylake, cycles per 100 iterations): 409 vs 110. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv."
+}
