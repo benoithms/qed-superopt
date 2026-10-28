@@ -14,13 +14,15 @@ Hackathon window: **Oct 26 – Nov 4, 2026**. Submission: **Wed Nov 4, 21:00 ET*
 
 ## M1: MVP, full loop on one function (Thu Oct 29)
 
+Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven by Alive2 and runs in 1.48 cycles per call instead of 3.40 for `clang -O3` (4 x86 instructions instead of 11, gain estimated by llvm-mca).
+
 **Benoit**
-- [ ] `extract.py`: reference clang with `-fdiscard-value-names`, single-function extraction, `splice()` of a body under the source header
-- [ ] `verify.py`: `alive-tv` wrapper, strict whitelist (exit code is always 0), `ProvenResult` with files and hashes
-- [ ] Verifier regression suite: wrong rewrites that must be rejected, correct ones that must be accepted
-- [ ] `cost.py`: `llc` + `llvm-mca` for Skylake
-- [ ] `llm.py`: Muse Spark `generate()`, with token (including reasoning tokens) and cost logging
-- [ ] `loop.py`: propose, prove, repair; results written as JSON in `results/<run-id>/`
+- [x] `extract.py`: reference clang with `-fdiscard-value-names`, single-function extraction, `splice()` of a body under the source header
+- [x] `verify.py`: `alive-tv` wrapper, strict whitelist (exit code is always 0), `ProvenResult` with files and hashes
+- [x] Verifier regression suite: 10 wrong rewrites rejected, 7 correct ones proven (`tests/test_verifier_regression.py`)
+- [x] `cost.py`: `llc` + `llvm-mca` for Skylake
+- [x] `llm.py`: Muse Spark `generate()`, with token (including reasoning tokens) and cost logging
+- [x] `loop.py`: propose, prove, repair; results written as JSON in `results/<run-id>/`; strict budget per function, and after a win the first truncated answer ends the search
 
 **Jules**
 - [x] LLM Compiler behind `generate(ir, history) -> body` (training prompt format, prefilled module header): `qed/llm_compiler.py`
@@ -29,9 +31,10 @@ Hackathon window: **Oct 26 – Nov 4, 2026**. Submission: **Wed Nov 4, 21:00 ET*
 
 ## M2: First results (Fri Oct 30 – Sun Nov 1)
 
+- [ ] Anchoring pilot: ~10 random B entries, clang's assembly shown never / from the start / only in feedback; then freeze the prompt and disclose the choice (Benoit)
 - [ ] Full corpus run with Muse Spark (Benoit)
 - [ ] Full corpus run with LLM Compiler (Jules)
-- [ ] Ablation: with vs. without counterexample feedback (Benoit)
+- [ ] Ablation, three arms: independent samples, "rejected" only, full counterexample (Benoit)
 - [ ] Muse Spark vs. LLM Compiler comparison: proven-candidate rate, gains, cost (together)
 - [ ] Triage of real wins: gain on the final assembly, and `opt -O3` must not fold the rewrite back (Benoit)
 
@@ -70,7 +73,7 @@ Why it matters: more and more code is written by AI models, and it can only be t
 - [ ] Peephole rules: generalize wins into rules with symbolic constants, re-proven by Alive2.
 
 **Tooling**
-- [ ] Verifier regression suite: deliberately wrong rewrites that `verify.py` must reject *(can start now)*.
+- [x] Verifier regression suite: deliberately wrong rewrites that `verify.py` must reject (done in M1).
 - [ ] Chart scripts and demo page reading `results/<run-id>/*.json`.
 
 **After the submission**
