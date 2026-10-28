@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-209929",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/209929",
+  "description": "Signed x * 3 / 2 without overflow (nsw mul) not rewritten to a cheaper form",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "C taken from the issue's src2 reproducer (signed version; the unsigned version is already optimized); clang produces the issue's IR: mul nsw + sdiv. The issue's target x + x / 2 saves an instruction on AArch64 and RISC-V but not on x86: godbolt llc trunk (-mcpu=skylake) gives 5 instructions plus ret for both, and llvm-mca trunk gives 190 vs 187 cycles per 100 iterations. expected.ll uses a variant of the same idea that is shorter on x86: since 3x does not overflow, 3x and x have the same sign, so the rounding bias of the signed division can be taken from x: (3x + (x >>u 31)) >>s 1, 4 instructions plus ret, 161 cycles in llvm-mca. The issue's own target is also proven correct by Alive2 against this source. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv."
+}
