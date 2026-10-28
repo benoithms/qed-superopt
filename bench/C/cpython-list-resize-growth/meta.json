@@ -1,0 +1,9 @@
+{
+  "id": "cpython-list-resize-growth",
+  "category": "C",
+  "source": "https://github.com/python/cpython/blob/v3.13.0/Objects/listobject.c#L119-L127",
+  "description": "New capacity of a CPython list resized to n items: n + n/8 + 6 rounded down to a multiple of 4, or n rounded up to a multiple of 4 when the jump from the old size s is large, 0 for n = 0",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "CPython 3.13.0, the over-allocation step of list_resize (Objects/listobject.c): Py_SIZE(self) becomes the parameter s and the function returns new_allocated; the early return when the current allocation already fits, and the reallocation itself, are left out. Written by us from the function. clang trunk -O3 -march=skylake: shifts, adds, masks, one compare and two selects: 13 IR instructions. Whether a shorter form exists is unknown."
+}

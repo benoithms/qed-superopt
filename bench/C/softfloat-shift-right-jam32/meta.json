@@ -1,0 +1,9 @@
+{
+  "id": "softfloat-shift-right-jam32",
+  "category": "C",
+  "source": "https://github.com/ucb-bar/berkeley-softfloat-3/blob/0a5ad290c6b287f6605bb99a35ad0842c1e61aa5/source/include/primitives.h#L71-L75",
+  "description": "Right shift with a sticky bit: shift a right by d and set bit 0 if any 1 bit was shifted out (softfloat_shiftRightJam32)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Berkeley SoftFloat 3 (John R. Hauser), softfloat_shiftRightJam32, inline version (source/include/primitives.h), with uint_fast16_t as uint64_t as on x86-64 glibc. The precondition dist != 0 is only stated in a comment in the source and is not added here. Written by us from the function. clang trunk -O3 -march=skylake keeps a branch on d < 31, a shift pair, a compare and a phi: 16 IR instructions. Whether a shorter form exists is unknown."
+}

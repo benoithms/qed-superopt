@@ -1,0 +1,9 @@
+{
+  "id": "musl-fpclassifyf",
+  "category": "C",
+  "source": "https://git.musl-libc.org/cgit/musl/tree/src/math/__fpclassifyf.c?h=v1.2.5#n4",
+  "description": "Classify a float from its bit pattern as NaN, infinite, zero, subnormal or normal (__fpclassifyf)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "musl 1.2.5, __fpclassifyf (src/math/__fpclassifyf.c). The float argument is replaced by its IEEE-754 bit pattern, which the original reads through a union, so the function is integer-only; musl's values FP_NAN = 0, FP_INFINITE = 1, FP_ZERO = 2, FP_SUBNORMAL = 3 and FP_NORMAL = 4 are inlined. Written by us from the function. clang trunk -O3 -march=skylake: a switch on the exponent byte, two masked compares and a phi: 13 IR instructions. Whether a shorter or branchless form is better is unknown."
+}
