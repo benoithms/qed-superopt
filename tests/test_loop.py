@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from qed import llm, loop
@@ -128,3 +130,66 @@ def test_large_functions_get_twice_the_tokens_and_budget(entry, fake_muse):
         s.max_tokens_after_win_large,
     ]
     assert res["large"] and res["budget_usd"] == 0.70
+
+
+def test_default_budget_gives_every_model_the_same_tokens(entry, fake_muse):
+    fake_muse(RIGHT, f"{NO_IMPROVEMENT}: optimal.")
+    res = loop.run_function(entry, settings=Settings(model="muse-wonder-1.0"), attempts=2)
+    assert res["model"] == "muse-wonder-1.0"
+    assert res["budget_usd"] == pytest.approx(0.35 * 20.00 / 4.25)
+
+
+def test_last_call_is_per_thread():
+    import threading
+
+    seen = {}
+
+    def worker(name):
+        llm.last_call.clear()
+        llm.last_call.update(cost_usd=name)
+        threading.Event().wait(0.05)  # let the other thread write meanwhile
+        seen[name] = llm.last_call.get("cost_usd")
+
+    threads = [threading.Thread(target=worker, args=(n,)) for n in (1, 2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert seen == {1: 1, 2: 2}
+
+
+@pytest.fixture
+def run_env(tmp_path, monkeypatch):
+    """Three corpus entries, results in tmp_path, and a thread-safe fake model that wins
+    on the first attempt (each call costs $0.02) then answers NO_IMPROVEMENT."""
+    entries = []
+    for i in range(3):
+        e = tmp_path / "B" / f"e{i}"
+        e.mkdir(parents=True)
+        (e / "src.c").write_text(SRC_C)
+        entries.append(e)
+    monkeypatch.setattr(loop.config, "RESULTS_DIR", tmp_path / "results")
+
+    def generate(ir, history, **kw):
+        llm.last_call.clear()
+        llm.last_call.update(cost_usd=0.02, finish_reason="stop")
+        return RIGHT if not history else f"{NO_IMPROVEMENT}: optimal."
+
+    monkeypatch.setattr(llm, "generate", generate)
+    return tmp_path, entries
+
+
+def test_jobs_run_every_function(run_env):
+    tmp, entries = run_env
+    loop.main([*map(str, entries), "--run-id", "r", "--jobs", "2"])
+    out = tmp / "results" / "r"
+    assert sorted(p.name for p in out.glob("e*.json")) == ["e0.json", "e1.json", "e2.json"]
+    run = json.loads((out / "run.json").read_text())
+    assert run["cost_usd"] == pytest.approx(3 * 0.04) and run["jobs"] == 2
+
+
+def test_max_total_stops_new_functions(run_env):
+    tmp, entries = run_env
+    loop.main([*map(str, entries), "--run-id", "r", "--max-total", "0.03"])
+    run = json.loads((tmp / "results" / "r" / "run.json").read_text())
+    assert len(run["skipped_by_max_total"]) == 2  # the first function spent $0.04

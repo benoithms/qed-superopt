@@ -5,6 +5,7 @@ import argparse
 import json
 import subprocess
 import sys
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import asdict, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -15,6 +16,7 @@ from qed.extract import ExtractError, body, extract, function, splice
 from qed.verify import Status, sha256, verify
 
 FEEDBACK_TAIL = 25  # lines of an Alive2 error shown to the model
+BASE_MODEL, BASE_BUDGET_USD = "muse-spark-1.3", 0.35  # 5 attempts x 16k tokens
 
 
 def run_function(
@@ -22,10 +24,14 @@ def run_function(
     backend: str = "muse",
     settings: llm.Settings = llm.DEFAULT,
     attempts: int = 5,
-    budget_usd: float = 0.35,
+    budget_usd: float | None = None,
 ) -> dict:
     """Up to `attempts` proposals for one corpus entry; keeps the fastest proven one.
-    Only src.c is read: never expected.ll or meta.json (contamination rule)."""
+    Only src.c is read: never expected.ll or meta.json (contamination rule).
+    Default budget: $0.35 for muse-spark-1.3, scaled by the output price for other models, so
+    every model gets the same number of tokens (a fair comparison)."""
+    if budget_usd is None:
+        budget_usd = BASE_BUDGET_USD * config.price(settings.model)[1] / config.price(BASE_MODEL)[1]
     c_source = (entry / "src.c").read_text()
     src_ll = extract(entry / "src.c")
     base = cost(src_ll)
@@ -88,7 +94,7 @@ def run_function(
         "id": entry.name,
         "category": entry.parent.name,
         "backend": backend,
-        "model": config.META_MODEL if backend == "muse" else "llm-compiler-7b",
+        "model": settings.model if backend == "muse" else "llm-compiler-7b",
         "settings": asdict(settings),
         "src_ll": src_ll,
         "src_sha256": sha256(src_ll),
@@ -108,7 +114,7 @@ def _worst_case_usd(src_ll, history, c_source, base, settings) -> float:
     output at the token limit. The loop only calls the model if this fits the budget."""
     msgs = llm.messages(src_ll, history, c_source, base, settings)
     tokens_in = sum(len(m["content"]) for m in msgs) / 3
-    return (tokens_in * config.META_PRICE_IN + settings.max_tokens * config.META_PRICE_OUT) / 1e6
+    return llm.cost_usd(settings.model, tokens_in, settings.max_tokens)
 
 
 def _check(att, src_ll, base, best, settings, first):
@@ -186,25 +192,36 @@ def main(argv=None):
     ap.add_argument("entries", nargs="+", type=Path, help="bench/<cat>/<id> directories")
     ap.add_argument("--run-id", required=True)
     ap.add_argument("--backend", choices=["muse", "llmc"], default="muse")
+    ap.add_argument("--model", default=config.META_MODEL, choices=sorted(config.PRICES))
     ap.add_argument("--show-asm", choices=["never", "always", "feedback"], default="never")
     ap.add_argument("--feedback", choices=["independent", "verdict", "full"], default="full")
     ap.add_argument("--attempts", type=int, default=5)
     ap.add_argument(
-        "--budget", type=float, default=0.35, help="USD cap per function (5 x 16k tokens)"
+        "--budget", type=float, help="USD cap per function (default: 5 x 16k tokens at the price)"
+    )
+    ap.add_argument("--jobs", type=int, default=1, help="functions run in parallel (API only)")
+    ap.add_argument(
+        "--max-total",
+        type=float,
+        help="USD: no new function starts once this is spent "
+        "(running ones finish, so it can be exceeded by up to jobs x the per-function budget)",
     )
     args = ap.parse_args(argv)
+    jobs = 1 if args.backend == "llmc" else args.jobs  # one local llama-server
 
-    settings = llm.Settings(show_asm=args.show_asm, feedback=args.feedback)
+    settings = llm.Settings(model=args.model, show_asm=args.show_asm, feedback=args.feedback)
     out = config.RESULTS_DIR / args.run_id
     out.mkdir(parents=True, exist_ok=True)
     run = {
         "run_id": args.run_id,
         "started": datetime.now(UTC).isoformat(),
         "backend": args.backend,
-        "model": config.META_MODEL if args.backend == "muse" else "llm-compiler-7b",
+        "model": settings.model if args.backend == "muse" else "llm-compiler-7b",
         "settings": asdict(settings),
         "attempts": args.attempts,
         "budget_usd_per_function": args.budget,
+        "jobs": jobs,
+        "max_total_usd": args.max_total,
         "system_prompt": llm.SYSTEM if args.backend == "muse" else llm_compiler.PROMPT,
         "toolchain": {
             "llvm": _git_head(config.TOOLCHAIN / "llvm-project"),
@@ -215,19 +232,37 @@ def main(argv=None):
         },
         "entries": [str(e) for e in args.entries],
     }
-    total = 0.0
-    for e in args.entries:
-        res = run_function(e, args.backend, settings, args.attempts, args.budget)
-        (out / f"{e.name}.json").write_text(json.dumps(res, indent=1))
-        total += res["cost_usd"]
-        best = res["best"]
-        verdict = f"x{best['speedup']:.2f} (try {best['n']})" if best else "-"
-        checks = " ".join(a["check"] for a in res["attempts"])
-        print(f"{e.name:28} {verdict:16} {checks}  ${res['cost_usd']:.4f}", flush=True)
+
+    total, todo, skipped = 0.0, list(args.entries), []
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        running = {}
+        while todo or running:
+            while todo and len(running) < jobs:
+                if args.max_total is not None and total >= args.max_total:
+                    skipped, todo = todo, []
+                    break
+                e = todo.pop(0)
+                running[
+                    pool.submit(run_function, e, args.backend, settings, args.attempts, args.budget)
+                ] = e
+            if not running:
+                break
+            done, _ = wait(running, return_when=FIRST_COMPLETED)
+            for fut in done:
+                e = running.pop(fut)
+                res = fut.result()
+                (out / f"{e.name}.json").write_text(json.dumps(res, indent=1))
+                total += res["cost_usd"]
+                best = res["best"]
+                verdict = f"x{best['speedup']:.2f} (try {best['n']})" if best else "-"
+                checks = " ".join(a["check"] for a in res["attempts"])
+                print(f"{e.name:28} {verdict:16} {checks}  ${res['cost_usd']:.4f}", flush=True)
+
     run["finished"] = datetime.now(UTC).isoformat()
     run["cost_usd"] = total
+    run["skipped_by_max_total"] = [str(e) for e in skipped]
     (out / "run.json").write_text(json.dumps(run, indent=1))
-    print(f"total ${total:.4f} -> {out}")
+    print(f"total ${total:.4f} -> {out}" + (f" ({len(skipped)} skipped)" if skipped else ""))
 
 
 if __name__ == "__main__":
