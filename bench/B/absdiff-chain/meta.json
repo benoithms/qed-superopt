@@ -1,0 +1,9 @@
+{
+  "id": "absdiff-chain",
+  "category": "B",
+  "source": "handwritten combination, related to https://github.com/llvm/llvm-project/issues/234884",
+  "description": "Sum of two unsigned absolute differences: select of two subs not folded to umax - umin",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Original combination of two unsigned absolute differences, inspired by the abs-diff pattern of llvm/llvm-project#234884. Candidate: umax(a,b)-umin(a,b) is one IR instruction shorter per difference. Not proven, and fewer IR instructions may not mean faster asm. Moved from C to B on 2026-10-28 (known solution). expected.ll (umax - umin for each difference) NOT YET PROVEN: alive2.llvm.org timed out twice on 2026-10-28. Must be proven with the reference toolchain (longer timeout) before the corpus is frozen; if it cannot be proven, drop the entry."
+}
