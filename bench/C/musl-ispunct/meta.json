@@ -5,5 +5,5 @@
   "description": "ASCII punctuation test: a printable non-space character that is neither a letter nor a digit (ispunct)",
   "known_solution": false,
   "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
-  "notes": "musl 1.2.5, ispunct (src/ctype/ispunct.c), with isgraph, isalnum, isalpha and isdigit inlined from their own files in src/ctype (each a single range test). Written by us from the functions. clang trunk -O3 -march=skylake keeps a branch on the isgraph range test, then two range compares, a select and a zext: 13 IR instructions. Whether a shorter form exists is unknown."
+  "notes": "musl 1.2.5, ispunct (src/ctype/ispunct.c), with isgraph, isalnum, isalpha and isdigit inlined from their own files in src/ctype (each a single range test). Written by us from the functions. clang trunk -O3 -march=skylake keeps a branch on the isgraph range test, then two range compares, a select, a zext and a phi: 13 IR instructions. Whether a shorter form exists is unknown."
 }
