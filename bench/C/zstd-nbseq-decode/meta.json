@@ -1,0 +1,9 @@
+{
+  "id": "zstd-nbseq-decode",
+  "category": "C",
+  "source": "https://github.com/facebook/zstd/blob/v1.5.6/lib/decompress/zstd_decompress_block.c#L707-L719",
+  "description": "Decode the number of sequences of a zstd compressed block from its 1- to 3-byte header",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "zstd 1.5.6, the SeqHead part of ZSTD_decodeSeqHeaders (lib/decompress/zstd_decompress_block.c): one byte below 0x80, two bytes as ((b0 - 0x80) << 8) + b1, or 0xFF followed by a 16-bit little-endian value plus LONGNBSEQ (0x7F00). The three header bytes are parameters; the bounds checks against the end of the input and the pointer updates are dropped. Written by us from the function. clang trunk -O3 -march=skylake keeps two branches and a phi: 18 IR instructions. Whether a shorter form exists is unknown."
+}

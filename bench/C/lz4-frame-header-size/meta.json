@@ -1,0 +1,9 @@
+{
+  "id": "lz4-frame-header-size",
+  "category": "C",
+  "source": "https://github.com/lz4/lz4/blob/v1.10.0/lib/lz4frame.c#L1444-L1468",
+  "description": "Size of an LZ4 frame header from its magic number and FLG byte: 8 for skippable frames, an error code for an unknown magic",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "LZ4 1.10.0, LZ4F_headerSize (lib/lz4frame.c). The little-endian magic word (LZ4F_readLE32(src)) and the FLG byte (src[4]) are parameters; the NULL pointer and srcSize checks are dropped. Constants: LZ4F_MAGIC_SKIPPABLE_START = 0x184D2A50, LZ4F_MAGICNUMBER = 0x184D2204, minFHSize = 7, and RETURN_ERROR(frameType_unknown) returns (size_t)-13. Written by us from the function. clang trunk -O3 -march=skylake: two compare-and-branch steps and a phi: 15 IR instructions. Whether a shorter form exists is unknown."
+}

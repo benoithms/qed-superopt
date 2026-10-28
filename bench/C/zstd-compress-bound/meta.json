@@ -1,0 +1,9 @@
+{
+  "id": "zstd-compress-bound",
+  "category": "C",
+  "source": "https://github.com/facebook/zstd/blob/v1.5.6/lib/zstd.h#L231-L232",
+  "description": "Worst-case compressed size of an n-byte input (ZSTD_COMPRESSBOUND), 0 when n exceeds the maximum input size",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "zstd 1.5.6, ZSTD_COMPRESSBOUND macro (lib/zstd.h), the formula behind ZSTD_compressBound, with a 64-bit size_t (ZSTD_MAX_INPUT_SIZE = 0xFF00FF00FF00FF00). Written by us from the macro. clang trunk -O3 -march=skylake keeps a branch for the size limit, then a shift, a select for the small-input margin ((128 KiB - n) >> 11) and two adds: 12 IR instructions. Whether a shorter form exists is unknown."
+}
