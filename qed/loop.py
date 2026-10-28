@@ -22,7 +22,7 @@ def run_function(
     backend: str = "muse",
     settings: llm.Settings = llm.DEFAULT,
     attempts: int = 5,
-    budget_usd: float = 0.20,
+    budget_usd: float = 0.35,
 ) -> dict:
     """Up to `attempts` proposals for one corpus entry; keeps the fastest proven one.
     Only src.c is read: never expected.ll or meta.json (contamination rule)."""
@@ -183,10 +183,12 @@ def main(argv=None):
     ap.add_argument("entries", nargs="+", type=Path, help="bench/<cat>/<id> directories")
     ap.add_argument("--run-id", required=True)
     ap.add_argument("--backend", choices=["muse", "llmc"], default="muse")
-    ap.add_argument("--show-asm", choices=["never", "always", "feedback"], default="always")
+    ap.add_argument("--show-asm", choices=["never", "always", "feedback"], default="never")
     ap.add_argument("--feedback", choices=["independent", "verdict", "full"], default="full")
     ap.add_argument("--attempts", type=int, default=5)
-    ap.add_argument("--budget", type=float, default=0.20, help="USD cap per function")
+    ap.add_argument(
+        "--budget", type=float, default=0.35, help="USD cap per function (5 x 16k tokens)"
+    )
     args = ap.parse_args(argv)
 
     settings = llm.Settings(show_asm=args.show_asm, feedback=args.feedback)

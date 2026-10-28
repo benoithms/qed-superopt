@@ -41,7 +41,9 @@ never new numbers.
 
 @dataclass(frozen=True)
 class Settings:
-    show_asm: str = "always"  # "never" | "always" | "feedback": when the source's asm is shown
+    # When clang's asm is shown: "never" | "always" | "feedback". "never" was frozen after the
+    # anchoring pilot (results/pilot-anchor-*): same wins, cheapest, no anchoring risk.
+    show_asm: str = "never"
     feedback: str = "full"  # "independent" | "verdict" | "full": what the model sees of history
     max_tokens: int = 16_000  # until a first proven win
     # After a win, the model tends to search at length before admitting the code is optimal:
