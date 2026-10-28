@@ -1,0 +1,9 @@
+{
+  "id": "linux-reciprocal-divide",
+  "category": "C",
+  "source": "https://github.com/torvalds/linux/blob/v6.11/include/linux/reciprocal_div.h#L33-L37",
+  "description": "Divide by a runtime-invariant divisor with a precomputed reciprocal: t = mulhi(a, m), then (t + ((a - t) >> sh1)) >> sh2 (reciprocal_divide)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Linux kernel v6.11, reciprocal_divide (include/linux/reciprocal_div.h); the fields of struct reciprocal_value (u32 m, u8 sh1, u8 sh2) become parameters. Written by us from the function. clang trunk -O3 -march=skylake: llvm.umulh, a sub, two variable lshr and an add: 8 IR instructions. The high multiply is only the first step, unlike the A entry mulhi-u32. reciprocal_value() only produces sh1 in {0, 1}, which is not visible here, so the shift amounts are arbitrary (UB at 32 or more). Whether a shorter form exists is unknown."
+}

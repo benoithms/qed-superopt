@@ -1,0 +1,9 @@
+{
+  "id": "linux-array3-size",
+  "category": "C",
+  "source": "https://github.com/torvalds/linux/blob/v6.11/include/linux/overflow.h#L340",
+  "description": "Size of a three-dimensional array a * b * c, saturating to SIZE_MAX on overflow (array3_size)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Linux kernel v6.11, array3_size macro, i.e. size_mul(size_mul(a, b), c), with size_mul (include/linux/overflow.h, lines 266-274) inlined, size_t = uint64_t, and check_mul_overflow spelled __builtin_mul_overflow as in the kernel. Written by us from the macro. clang trunk -O3 -march=skylake: two llvm.umul.with.overflow, their extractvalues and two selects: 9 IR instructions. SIZE_MAX * 0 = 0, so an overflow of a * b does not always saturate the result. Whether a shorter form exists is unknown."
+}
