@@ -1,0 +1,9 @@
+{
+  "id": "libcxx-days-from-civil",
+  "category": "C",
+  "source": "https://github.com/llvm/llvm-project/blob/llvmorg-19.1.0/libcxx/include/__chrono/year_month_day.h#L91-L104",
+  "description": "Days since 1970-01-01 of a proleptic Gregorian year/month/day (Howard Hinnant's days_from_civil)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "libc++ (LLVM 19.1.0), year_month_day::__to_days (include/__chrono/year_month_day.h), libc++'s implementation of Howard Hinnant's days_from_civil (https://howardhinnant.github.io/date_algorithms.html#days_from_civil). The year, month and day objects are replaced by the integer types they store (short, unsigned char, unsigned char). Written by us from the algorithm, with neutral variable names. clang trunk -O3 -march=skylake: an sdiv by 400 for the 400-year era, udivs by 5 and 100, multiplications by 153, 365, -400 and 146097: 29 IR instructions. Whether a shorter form exists is unknown."
+}

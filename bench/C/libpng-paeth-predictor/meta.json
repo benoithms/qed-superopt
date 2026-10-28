@@ -1,0 +1,9 @@
+{
+  "id": "libpng-paeth-predictor",
+  "category": "C",
+  "source": "https://github.com/pnggroup/libpng/blob/v1.6.44/pngrutil.c#L3991-L4040",
+  "description": "PNG Paeth filter reconstruction of one byte: choose the left, upper or upper-left byte by the smallest of three absolute differences, then add the filtered byte",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "libpng 1.6.44, png_read_filter_row_paeth_1byte_pixel (pngrutil.c). One iteration of its per-byte loop as a pure function: a = reconstructed byte to the left, b = byte above, c = byte above-left, x = filtered byte; returns the reconstructed byte. Written by us from libpng's formulation (p = b - c, q = a - c, distances |p|, |q| and |p + q|, ties favor a then b), with abs() spelled as a conditional negation as in the default build (no PNG_USE_ABS). clang trunk -O3 -march=skylake: three llvm.abs, a umin, two compares and two selects: 16 IR instructions. Whether a shorter form exists is unknown."
+}
