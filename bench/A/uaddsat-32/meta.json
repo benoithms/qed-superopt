@@ -1,0 +1,9 @@
+{
+  "id": "uaddsat-32",
+  "category": "A",
+  "source": "handwritten",
+  "description": "Unsigned saturating add; lowers to llvm.uadd.sat",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": ""
+}

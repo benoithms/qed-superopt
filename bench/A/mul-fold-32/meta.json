@@ -1,0 +1,9 @@
+{
+  "id": "mul-fold-32",
+  "category": "A",
+  "source": "handwritten",
+  "description": "64-bit product, low half xor high half",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": "Source: genuinely original combination written for this corpus, no external reference."
+}

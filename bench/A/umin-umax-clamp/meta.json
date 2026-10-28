@@ -1,0 +1,9 @@
+{
+  "id": "umin-umax-clamp",
+  "category": "A",
+  "source": "handwritten",
+  "description": "Combination of umin/umax around a third value",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": "Source: genuinely original combination written for this corpus, no external reference."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "median3-i32",
+  "category": "C",
+  "source": "handwritten",
+  "description": "Median of three signed integers with nested comparisons (median-of-three pivot)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Real-world idiom (quicksort pivot selection) written by us. clang trunk -O3 -march=skylake keeps three branches and two smin: 12 IR instructions. Candidate: branchless smax(smin(a, b), smin(smax(a, b), c)). Unverified."
+}

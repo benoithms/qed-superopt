@@ -1,0 +1,9 @@
+{
+  "id": "cmp3-weighted",
+  "category": "A",
+  "source": "handwritten",
+  "description": "Signed and unsigned three-way compares combined; lowers to scmp/ucmp",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": "Source: genuinely original combination written for this corpus, no external reference."
+}

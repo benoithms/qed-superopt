@@ -1,0 +1,9 @@
+{
+  "id": "rgb565-to-rgb888",
+  "category": "C",
+  "source": "handwritten",
+  "description": "Expand an RGB565 pixel to RGB888 by replicating the top bits of each channel",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Real-world graphics idiom written by us. clang trunk -O3 -march=skylake: 19 IR instructions of shifts, masks and disjoint ors. Whether fewer instructions are possible (for example with multiplications) is unknown."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "nlz-binsearch-u32",
+  "category": "C",
+  "source": "Hacker's Delight, 2nd ed. (H. S. Warren), section 5-3 \"Counting Leading 0's\"",
+  "description": "Leading zero count by binary search on masked halves, 32 for x = 0",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Binary-search nlz written with masks instead of the book's comparisons; function written by us from the idea. clang trunk -O3 -march=skylake turns the steps into select chains behind a branch on x == 0: 27 IR instructions. Candidate: llvm.ctlz.i32 with a defined result at zero (lzcnt on skylake). Unverified."
+}

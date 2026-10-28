@@ -1,0 +1,9 @@
+{
+  "id": "varint-size-u64",
+  "category": "C",
+  "source": "https://protobuf.dev/programming-guides/encoding/#varints",
+  "description": "Number of bytes of a base-128 varint encoding of a u64 (1 to 10), as a chain of range checks",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Real-world idiom (protobuf and LEB128 encoders size a varint before writing it); function written by us. clang trunk -O3 -march=skylake keeps 9 compare-and-branch steps into a phi: 21 IR instructions. Candidate: an arithmetic form based on ctlz(x | 1). Unverified."
+}

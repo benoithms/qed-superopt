@@ -1,0 +1,9 @@
+{
+  "id": "next-same-popcount",
+  "category": "C",
+  "source": "Hacker's Delight, 2nd ed. (H. S. Warren), section 2-1 \"Manipulating Rightmost Bits\"",
+  "description": "Next higher number with the same number of 1 bits (snoob, Gosper's hack)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Same idea as Bit Twiddling Hacks #NextBitPermutation; function written by us from the idea. clang trunk -O3 -march=skylake already replaces the division by the lowest set bit with a shift by cttz: 9 IR instructions. Division by zero at x = 0 is UB in the source. Whether a shorter form exists is unknown."
+}

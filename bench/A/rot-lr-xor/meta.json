@@ -1,0 +1,9 @@
+{
+  "id": "rot-lr-xor",
+  "category": "A",
+  "source": "handwritten",
+  "description": "Rotate left xor rotate right; lowers to fshl + fshr + xor",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": ""
+}

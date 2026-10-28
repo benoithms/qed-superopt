@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-230343",
+  "category": "A",
+  "source": "https://github.com/llvm/llvm-project/issues/230343",
+  "description": "Low-bit select of a bool folded to and",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": "The issue is a miss at IR level, but clang already optimizes the C version: moved to A per the corpus rule."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "swap-two-bits",
+  "category": "C",
+  "source": "https://graphics.stanford.edu/~seander/bithacks.html#SwappingBitsXOR",
+  "description": "Swap bits i and j of x: extract both, clear both, reinsert crossed",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Naive version written by us (extract, clear, reinsert), not the xor-based version from Bit Twiddling Hacks. clang trunk -O3 -march=skylake keeps it as written: 14 IR instructions. Candidate: t = ((x >> i) ^ (x >> j)) & 1; x ^ ((t << i) | (t << j)). Unverified."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clp2-u32",
+  "category": "C",
+  "source": "Hacker's Delight, 2nd ed. (H. S. Warren), section 3-2 \"Rounding Up/Down to the Next Power of 2\"",
+  "description": "Round up to the next power of 2 by smearing x - 1 right with or-shifts, then adding 1",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Classic or-shift smear (also Bit Twiddling Hacks #RoundUpPowerOf2); function written by us from the idea. clang trunk -O3 -march=skylake keeps the 5 shift/or pairs: 13 IR instructions. Candidate: a ctlz-based form, but it must keep the results at x = 0 and x > 2^31 (both 0 here), which the bit_ceil form of llvm/llvm-project#61644 does not. Unverified."
+}
