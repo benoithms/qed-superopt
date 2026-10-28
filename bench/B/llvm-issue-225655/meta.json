@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-225655",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/225655",
+  "description": "n == 16 not folded to false under (n & 15) != 0 from the enclosing condition",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "C translated from the issue's reduced OpenSSL reproducer (cts128_cs2_encrypt). The function must be pure, so the special-case call is replaced by returning a value; clang then turns both branches into nested selects, and the inner select on n == 16 survives although it is only reached when (n & 15) != 0. expected.ll follows the issue target (the n == 16 case is removed). Close to llvm-issue-231586 (a comparison implied by a masked equality inside an and), but here the ruling-out condition comes from the enclosing branch. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv."
+}

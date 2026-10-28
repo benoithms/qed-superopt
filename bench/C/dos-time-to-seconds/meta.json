@@ -1,0 +1,9 @@
+{
+  "id": "dos-time-to-seconds",
+  "category": "C",
+  "source": "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-dosdatetimetofiletime",
+  "description": "Seconds since midnight from an MS-DOS/FAT packed time (hour:5, minute:6, seconds/2:5)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Real-world date/time idiom (FAT directory entries, ZIP headers); function written by us from the documented bit layout. clang trunk -O3 -march=skylake: two multiplications (3600 and 60), masks and adds: 11 IR instructions. A variant that factors out the 60 (((t >> 5) - 4 * (t >> 11)) * 60 + 2 * (t & 31)) was tried by hand: proven correct by Alive2 but no gain in llvm-mca (309 vs 310 cycles per 100 iterations). Whether a shorter form exists is unknown."
+}

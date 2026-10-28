@@ -1,0 +1,9 @@
+{
+  "id": "genmask-u32",
+  "category": "B",
+  "source": "https://github.com/torvalds/linux/blob/master/include/linux/bits.h",
+  "description": "Mask of bits lo..hi built with a select for hi = 31 not folded to (~0 << lo) & (~0 >> (31 - hi))",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Found while screening C candidates: the better version is the shift-only form of the Linux kernel GENMASK macro. Naive contiguous mask written by us, with the precondition lo <= hi <= 31 stated with __builtin_assume. clang trunk -O3 -march=skylake keeps the select for hi = 31: 9 IR instructions (the assume compares included). expected.ll: 7 IR instructions, assumes kept. No LLVM issue found for this pattern. Gain estimated by llvm-mca (godbolt llc and llvm-mca trunk, -mcpu=skylake, cycles per 100 iterations): 259 vs 209. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv."
+}

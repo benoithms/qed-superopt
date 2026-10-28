@@ -1,0 +1,9 @@
+{
+  "id": "crc32-nibble-update",
+  "category": "C",
+  "source": "https://www.rfc-editor.org/rfc/rfc1952#section-8",
+  "description": "CRC-32 update with 4 data bits, bit-serial with the reflected polynomial 0xedb88320, unrolled",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Bit-serial step of the gzip/zlib CRC-32 sample code (RFC 1952 section 8), unrolled for one nibble instead of one byte so that it fits the 30-instruction cap (the 8-step byte version is 43 IR instructions); function written by us. Table-free nibble-wise CRC updates are common in embedded code. clang trunk -O3 -march=skylake keeps the four and/icmp/lshr/xor/select steps: 24 IR instructions. Whether a shorter table-free form exists is unknown."
+}

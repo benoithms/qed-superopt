@@ -1,0 +1,9 @@
+{
+  "id": "nlz-binsearch-u32",
+  "category": "B",
+  "source": "Hacker's Delight, 2nd ed. (H. S. Warren), section 5-3 \"Counting Leading 0's\"",
+  "description": "Leading zero count by binary search on masked halves (32 for x = 0) not folded to llvm.ctlz",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Binary-search nlz written with masks instead of the book's comparisons; function written by us from the idea. Moved from C to B: the better version is llvm.ctlz.i32(x, false), defined as 32 at x = 0 (lzcnt on skylake). No LLVM issue found for this idiom. clang trunk -O3 -march=skylake keeps a branch on x == 0 and select chains: 27 IR instructions; expected.ll has 2. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv. Negative control: the same body with ctlz(x, true) is rejected (poison at x = 0)."
+}

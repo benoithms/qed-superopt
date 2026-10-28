@@ -60,6 +60,10 @@ The solution goes **only** into `expected.ll` and optionally `meta.json` (`descr
 
 Two versions that differ only on inputs where the source has UB (signed overflow, shift ≥ bit width, division by zero, `INT_MIN / -1`) are not wrong: Alive2 accepts this refinement. Account for it before categorizing a case.
 
-## 6. Doubtful cases
+## 6. Cycle check (B)
+
+A miss in the IR is not always a miss in the assembly: `llc` sometimes recovers the optimization by itself. Once `expected.ll` is proven, compile the source IR and `expected.ll` with the reference `llc` (`-O3 -mtriple=x86_64-unknown-linux-gnu -mcpu=skylake`) and compare `llvm-mca -mcpu=skylake` cycles (`qed/cost.py` does both). Record the result in `notes`. If `expected.ll` is not faster, keep the entry in B for the IR-level miss, but say in `notes` that it has no assembly gain on Skylake: it cannot produce a win and is excluded from pilots.
+
+## 7. Doubtful cases
 
 Don't decide alone: at the end, list doubtful entries (uncertain category, borderline size, subtle UB, unverified solution) with a one-line explanation each, for Benoit and Jules to decide.

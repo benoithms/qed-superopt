@@ -1,0 +1,9 @@
+{
+  "id": "q15-mul-round-sat",
+  "category": "C",
+  "source": "https://www.itu.int/rec/T-REC-G.191",
+  "description": "Q15 fixed-point multiply with rounding and saturation",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Same semantics as the mult_r basic operator of the ITU-T G.191 Software Tool Library and as Arm SQRDMULH on one 16-bit lane; function written by us. clang trunk -O3 -march=skylake already drops the lower clamp (unreachable) and keeps one smin: 8 IR instructions. Only a = b = -32768 saturates. Whether a shorter form exists is unknown."
+}
