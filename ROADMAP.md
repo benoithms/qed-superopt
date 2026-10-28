@@ -48,6 +48,28 @@ Hackathon window: **Oct 26 – Nov 4, 2026**. Submission: **Wed Nov 4, 21:00 ET*
 - [ ] Demo video (together)
 - [ ] Submission (Benoit)
 
+## Ideas
+
+Bonuses once the MVP works. Tasks marked *(can start now)* do not depend on the loop.
+
+**To win**
+- [ ] Report every proven, new win upstream as an LLVM issue (C, IR, Alive2 proof). Selective: only proven, previously unreported cases.
+- [ ] Live demo page of the loop: proposal, Alive2 counterexample, repair, proof, measured gain.
+- [ ] Charts: ablation with vs. without counterexamples, cost per proven optimization, proven rate vs. number of attempts.
+
+**Engine**
+- [ ] Two-model pipeline: LLM Compiler (free, fast) proposes first, Muse Spark repairs from counterexamples.
+- [ ] Memory of wins: rewrites proven on *other* functions as few-shot examples (never `expected.ll`).
+- [ ] Corpus from real code: automatically extract small pure integer functions from open-source projects *(can start now)*.
+- [ ] Peephole rules: generalize wins into rules with symbolic constants, re-proven by Alive2.
+
+**Tooling**
+- [ ] Verifier regression suite: deliberately wrong rewrites that `verify.py` must reject *(can start now)*.
+- [ ] Chart scripts and demo page reading `results/<run-id>/*.json`.
+
+**After the submission**
+- [ ] Paper: a precise, formal and reproducible write-up of the approach (refinement, the counterexample-guided loop, corpus, results, threats to validity).
+
 ## Key decisions
 
 - **One toolchain, one target.** Every step, from `clang -O3` to `llvm-mca`, uses the pinned reference build and `--target=x86_64-unknown-linux-gnu -march=skylake`. The target changes the IR produced by `-O3`, so mixing targets would create fake missed optimizations.
