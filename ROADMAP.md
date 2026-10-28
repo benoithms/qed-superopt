@@ -76,14 +76,14 @@ Why it matters: more and more code is written by AI models, and it can only be t
 **After the submission**
 - [ ] Paper: a precise, formal and reproducible write-up of the approach (refinement, the counterexample-guided loop, corpus, results, threats to validity).
 
-## Open decisions (proposed by Jules, to settle with Benoit)
+## Decisions (Oct 28, Benoit and Jules)
 
 First signal (provisional: godbolt IR, online Alive2, IR instruction count, not llvm-mca): LLM Compiler alone, up to 5 attempts, on the 40 B entries: 23 proven, 15 shorter than `clang -O3`. Extra attempts added no win: the hard cases need a model that can read counterexamples.
 
-1. **Headline: new wins, not a model race.** Aim for "N previously unreported missed optimizations in clang trunk, proven by Alive2, faster on real x86, filed upstream". B entries then calibrate the tool (known answers); new wins can only come from C. A Muse vs. LLM Compiler table stays secondary.
-2. **Two-model pipeline as the core.** LLM Compiler proposes first (free, ~2 s per candidate); when Alive2 rejects, Muse Spark repairs from the counterexample. Report proven wins per dollar at a fixed budget for three arms: LLM Compiler alone, Muse alone, pipeline. Must not delay M1.
-3. **Grow C to 60–100 entries** (Jules, with kiro): variants of known patterns (bit widths, signedness, operand order, combined idioms) and small functions from well-known projects.
-4. **Second reference toolchain build: keep it, low priority.** M4 promises a reproduction on a second machine; `make verify-all` on one machine may be enough if time runs short.
+1. **Headline: new wins, not a model race.** Aim for "N previously unreported missed optimizations in clang trunk, proven by Alive2, faster on real x86, filed upstream". New wins come from C, and also from B entries where we beat `expected.ll`. A Muse vs. LLM Compiler table stays secondary.
+2. **Two-model pipeline, after the MVP.** LLM Compiler proposes first (free, ~2 s per candidate); when Alive2 rejects, Muse Spark repairs from the counterexample. Report proven wins per dollar at a fixed budget for three arms: LLM Compiler alone, Muse alone, pipeline.
+3. **Grow C to 60–100 entries with small functions from real projects** (Jules). No variants of known patterns: a known pattern is a B entry, and a variant breaks "one pattern = one entry".
+4. **Second reference toolchain build: low priority.**
 
 Evaluation rules that go with them:
 - Freeze prompts and corpus before the official run; disclose that the LLM Compiler prompt was tuned while looking at B.
