@@ -1,0 +1,9 @@
+{
+  "id": "absdiff-chain",
+  "category": "C",
+  "source": "handwritten combination, related to https://github.com/llvm/llvm-project/issues/234884",
+  "description": "Sum of two unsigned absolute differences; clang emits icmp + 2 sub + select per difference",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Original combination of two unsigned absolute differences, inspired by the abs-diff pattern of llvm/llvm-project#234884. A shorter IR form is known and proven correct (refinement) by Alive2 (%4 = call i32 @llvm.umax.i32(i32 %0, i32 %1) %5 = call i32 @llvm.umin.i32(i32 %0, i32 %1) %6 = sub i32 %4, %5 %7 = call i32 @llvm.umax.i32(i32 %1, i32 %2) %8 = call i32 @llvm.umin.i32(i32 %1, i32 %2) %9 = sub i32 %7, %8 %10 = add i32 %6, %9), but it is SLOWER than clang -O3 in llvm-mca on Skylake: 2.85 -> 3.09 cycles (Benoit, reference toolchain, 2026-10-28). No faster version is known, so the entry is C (moved B -> C on 2026-10-28, expected.ll removed)."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clamp-sum-u8",
+  "category": "C",
+  "source": "handwritten",
+  "description": "Clamp a signed sum to [0,255] and truncate to u8",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "Original combination written for this corpus, no external reference. A shorter IR form is known and proven correct (refinement) by Alive2 (%3 = add nsw i32 %1, %0 %4 = call i32 @llvm.smax.i32(i32 %3, i32 0) %5 = call i32 @llvm.umin.i32(i32 %4, i32 255) %6 = trunc nuw i32 %5 to i8), but it is SLOWER than clang -O3 in llvm-mca on Skylake: 2.11 -> 2.34 cycles (Benoit, reference toolchain, 2026-10-28). No faster version is known, so the entry is C (moved B -> C on 2026-10-28, expected.ll removed)."
+}
