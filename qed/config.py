@@ -19,11 +19,22 @@ ALIVE_TV = TOOLCHAIN / "alive2" / "build" / "alive-tv"
 
 TRIPLE = "x86_64-unknown-linux-gnu"
 CPU = "skylake"
-CLANG_FLAGS = ["-O3", f"--target={TRIPLE}", f"-march={CPU}", "-S", "-emit-llvm", "-g0"]
+# -fdiscard-value-names: our clang is an assertions build and would otherwise keep
+# source names (%x, %entry); numbered values match what the models produce.
+CLANG_FLAGS = [
+    "-O3",
+    f"--target={TRIPLE}",
+    f"-march={CPU}",
+    "-S",
+    "-emit-llvm",
+    "-g0",
+    "-fdiscard-value-names",
+]
 LLC_FLAGS = ["-O3", f"-mtriple={TRIPLE}", f"-mcpu={CPU}"]
 MCA_FLAGS = [f"-mtriple={TRIPLE}", f"-mcpu={CPU}"]
 
-ALIVE_TIMEOUT_MS = 60_000
+ALIVE_TIMEOUT_MS = 60_000  # per SMT query
+ALIVE_WALL_TIMEOUT_S = 300  # whole alive-tv run
 
 META_API_KEY = os.environ.get("META_API_KEY", "")
 META_API_BASE = os.environ.get("META_API_BASE", "https://api.meta.ai/v1")
