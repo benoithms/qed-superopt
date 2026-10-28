@@ -1,0 +1,9 @@
+{
+  "id": "brotli-copy-length-code",
+  "category": "C",
+  "source": "https://github.com/google/brotli/blob/v1.1.0/c/enc/command.h#L50-L61",
+  "description": "Brotli copy-length code of a match length: direct for short lengths, then logarithmic buckets, 23 above 2117 (GetCopyLengthCode)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Brotli 1.1.0, GetCopyLengthCode (c/enc/command.h), with size_t as uint64_t and Log2FloorNonZero written as 31 ^ __builtin_clz, the BROTLI_BSR32 definition used with GCC and clang (c/enc/fast_log.h, c/common/platform.h). Written by us from the function. clang trunk -O3 -march=skylake: three compare-and-branch steps, two ctlz, shifts and a phi: 29 IR instructions. The sibling GetInsertLengthCode has the same structure with two more ranges and is 33 IR instructions, so it is not included. Whether a shorter form exists is unknown."
+}

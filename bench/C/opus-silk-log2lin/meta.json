@@ -1,0 +1,9 @@
+{
+  "id": "opus-silk-log2lin",
+  "category": "C",
+  "source": "https://github.com/xiph/opus/blob/v1.5.2/silk/log2lin.c#L36-L58",
+  "description": "Fixed-point approximation of 2^(x / 128) with a parabolic correction of the fractional part, 0 for x < 0 and INT32_MAX from x = 3967 (silk_log2lin)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Opus 1.5.2, silk_log2lin (silk/log2lin.c), with silk_SMULBB, the 64-bit silk_SMLAWB selected on x86-64 by OPUS_FAST_INT64 (celt/arch.h), silk_MLA and the shift macros inlined. Written by us from the function. clang trunk -O3 -march=skylake: two range checks, the correction term, and the two size-dependent scalings computed and selected: 22 IR instructions. Whether a shorter form exists is unknown."
+}

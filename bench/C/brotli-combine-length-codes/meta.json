@@ -1,0 +1,9 @@
+{
+  "id": "brotli-combine-length-codes",
+  "category": "C",
+  "source": "https://github.com/google/brotli/blob/v1.1.0/c/enc/command.h#L63-L82",
+  "description": "Combine Brotli insert-length and copy-length codes into a command prefix code, with a packed constant table for the cell offset (CombineLengthCodes)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Brotli 1.1.0, CombineLengthCodes (c/enc/command.h), with BROTLI_BOOL as int. Written by us from the function. clang trunk -O3 -march=skylake: a branch on the short-code case, a variable shift of the 0x520D40 constant, masks, adds and ors: 29 IR instructions. Whether a shorter form exists is unknown."
+}
