@@ -116,3 +116,15 @@ def test_truncation_before_a_win_keeps_searching(entry, fake_muse):
     fake_muse(None, RIGHT)
     res = loop.run_function(entry, attempts=2)
     assert [a["check"] for a in res["attempts"]] == ["truncated", "proven"]
+
+
+def test_large_functions_get_twice_the_tokens_and_budget(entry, fake_muse):
+    fake_muse(WRONG, RIGHT, f"{NO_IMPROVEMENT}: optimal.")
+    s = Settings(large_insts=1)  # every function counts as large
+    res = loop.run_function(entry, settings=s, attempts=3, budget_usd=0.35)
+    assert fake_muse.max_tokens == [
+        s.max_tokens_large,
+        s.max_tokens_large,
+        s.max_tokens_after_win_large,
+    ]
+    assert res["large"] and res["budget_usd"] == 0.70

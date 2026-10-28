@@ -49,6 +49,12 @@ class Settings:
     # After a win, the model tends to search at length before admitting the code is optimal:
     # a lower cap, with room above the ~7k tokens a clean NO_IMPROVEMENT took (smoke-2).
     max_tokens_after_win: int = 10_000
+    # Large functions (>= large_insts IR instructions) get twice the reasoning: in the C pilot
+    # (results/pilot-anchor-c-*), 21 of 30 attempts hit the 16k cap and a winning attempt used
+    # 15,394 tokens. Same 10/16 ratio after a win.
+    large_insts: int = 10
+    max_tokens_large: int = 32_000
+    max_tokens_after_win_large: int = 20_000
 
 
 DEFAULT = Settings()

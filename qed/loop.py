@@ -29,14 +29,15 @@ def run_function(
     c_source = (entry / "src.c").read_text()
     src_ll = extract(entry / "src.c")
     base = cost(src_ll)
+    large = base.ir_insts >= settings.large_insts
+    if large:
+        budget_usd *= 2  # each attempt may cost twice as much
+    first_cap = settings.max_tokens_large if large else settings.max_tokens
+    win_cap = settings.max_tokens_after_win_large if large else settings.max_tokens_after_win
     history, log, best, spent, stop = [], [], None, 0.0, "attempts"
 
     for n in range(1, attempts + 1):
-        call = (
-            settings
-            if best is None
-            else replace(settings, max_tokens=settings.max_tokens_after_win)
-        )
+        call = replace(settings, max_tokens=first_cap if best is None else win_cap)
         if (
             backend == "muse"
             and spent + _worst_case_usd(src_ll, history, c_source, base, call) > budget_usd
@@ -96,6 +97,8 @@ def run_function(
         "best": best,
         "stop": stop,
         "cost_usd": spent,
+        "large": large,
+        "budget_usd": budget_usd,
         "verified_by": "alive-tv, reference toolchain",
     }
 
