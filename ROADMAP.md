@@ -76,6 +76,24 @@ Why it matters: more and more code is written by AI models, and it can only be t
 **After the submission**
 - [ ] Paper: a precise, formal and reproducible write-up of the approach (refinement, the counterexample-guided loop, corpus, results, threats to validity).
 
+## Open decisions (proposed by Jules, to settle with Benoit)
+
+First signal (provisional: godbolt IR, online Alive2, IR instruction count, not llvm-mca): LLM Compiler alone, up to 5 attempts, on the 40 B entries: 23 proven, 15 shorter than `clang -O3`. Extra attempts added no win: the hard cases need a model that can read counterexamples.
+
+1. **Headline: new wins, not a model race.** Aim for "N previously unreported missed optimizations in clang trunk, proven by Alive2, faster on real x86, filed upstream". B entries then calibrate the tool (known answers); new wins can only come from C. A Muse vs. LLM Compiler table stays secondary.
+2. **Two-model pipeline as the core.** LLM Compiler proposes first (free, ~2 s per candidate); when Alive2 rejects, Muse Spark repairs from the counterexample. Report proven wins per dollar at a fixed budget for three arms: LLM Compiler alone, Muse alone, pipeline. Must not delay M1.
+3. **Grow C to 60–100 entries** (Jules, with kiro): variants of known patterns (bit widths, signedness, operand order, combined idioms) and small functions from well-known projects.
+4. **Second reference toolchain build: keep it, low priority.** M4 promises a reproduction on a second machine; `make verify-all` on one machine may be enough if time runs short.
+
+Evaluation rules that go with them:
+- Freeze prompts and corpus before the official run; disclose that the LLM Compiler prompt was tuned while looking at B.
+- "Faster" means fewer llvm-mca cycles, and `opt -O3` must not fold the rewrite back; run all N candidates and keep the best proven one instead of stopping at the first proof.
+- Count comparable units across models: Alive2 checks, tokens, seconds, dollars.
+- Contamination table: issue date vs. each model's training cutoff (LLM Compiler: mid-2024).
+- Show zero false wins on A; give confidence intervals and per-entry paired comparisons (only 40 B entries).
+- Ablation with three arms: independent samples, history with "rejected" only, history with the counterexample.
+- Cut if time is short: paper, AI-written-code hypothesis, peephole generalization, automatic real-code extraction, live demo page (replay one recorded trace instead).
+
 ## Key decisions
 
 - **One toolchain, one target.** Every step, from `clang -O3` to `llvm-mca`, uses the pinned reference build and `--target=x86_64-unknown-linux-gnu -march=skylake`. The target changes the IR produced by `-O3`, so mixing targets would create fake missed optimizations.
