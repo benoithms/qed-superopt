@@ -39,9 +39,19 @@ ALIVE_WALL_TIMEOUT_S = 300  # whole alive-tv run
 META_API_KEY = os.environ.get("META_API_KEY", "")
 META_API_BASE = os.environ.get("META_API_BASE", "https://api.meta.ai/v1")
 META_MODEL = os.environ.get("META_MODEL", "muse-spark-1.3")
-# USD per million tokens. Approximate: check the Usage page of the Meta Model API dashboard.
-META_PRICE_IN = float(os.environ.get("META_PRICE_IN", "1.25"))
-META_PRICE_OUT = float(os.environ.get("META_PRICE_OUT", "4.25"))
+# USD per million tokens (input, output), from the Models page of the Meta Model API
+# dashboard (Oct 28, 2026). Cached input is cheaper; ignoring it slightly overestimates costs.
+PRICES = {
+    "muse-spark-1.3": (1.25, 4.25),
+    "muse-wonder-1.0": (4.00, 20.00),
+}
+
+
+def price(model: str) -> tuple[float, float]:
+    if model not in PRICES:
+        raise KeyError(f"no price for {model}: add it to config.PRICES")
+    return PRICES[model]
+
 
 # Model answers are cached on disk: the same request is never paid twice.
 CACHE_DIR = REPO / ".cache" / "llm"

@@ -3,6 +3,7 @@ qed/llm_compiler.py). Both expose generate(ir, history) -> body."""
 
 import hashlib
 import json
+import threading
 import time
 from dataclasses import dataclass
 
@@ -41,6 +42,7 @@ never new numbers.
 
 @dataclass(frozen=True)
 class Settings:
+    model: str = config.META_MODEL
     # When clang's asm is shown: "never" | "always" | "feedback". "never" was frozen after the
     # anchoring pilot (results/pilot-anchor-*): same wins, cheapest, no anchoring risk.
     show_asm: str = "never"
@@ -59,8 +61,45 @@ class Settings:
 
 DEFAULT = Settings()
 
-# Tokens, cost and time of the last generate() call.
-last_call: dict = {}
+
+class _PerThread:
+    """A dict per thread: with --jobs, functions run in parallel threads, and a shared dict
+    would let one call overwrite another call's tokens and cost."""
+
+    def __init__(self):
+        self._local = threading.local()
+
+    def _d(self) -> dict:
+        if not hasattr(self._local, "d"):
+            self._local.d = {}
+        return self._local.d
+
+    def clear(self):
+        self._d().clear()
+
+    def update(self, *args, **kw):
+        self._d().update(*args, **kw)
+
+    def items(self):
+        return self._d().items()
+
+    def get(self, key, default=None):
+        return self._d().get(key, default)
+
+    def __getitem__(self, key):
+        return self._d()[key]
+
+    def __setitem__(self, key, value):
+        self._d()[key] = value
+
+
+# Tokens, cost and time of the last generate() call in the current thread.
+last_call = _PerThread()
+
+
+def cost_usd(model: str, tokens_in: float, tokens_out: float) -> float:
+    price_in, price_out = config.price(model)
+    return (tokens_in * price_in + tokens_out * price_out) / 1e6
 
 
 def client() -> OpenAI:
@@ -106,7 +145,7 @@ def generate(ir: str, history: list, *, c_source=None, baseline=None, settings=D
     costs). Returns the model's answer: a function BODY (possibly in a ```llvm block), which
     the caller splices under the source header, or a NO_IMPROVEMENT sentence."""
     msgs = messages(ir, history, c_source, baseline, settings)
-    request = {"model": config.META_MODEL, "messages": msgs, "max_tokens": settings.max_tokens}
+    request = {"model": settings.model, "messages": msgs, "max_tokens": settings.max_tokens}
     if settings.feedback == "independent":
         request["n_attempt"] = len(history)  # distinct cache key per independent sample
     key = hashlib.sha256(json.dumps(request, sort_keys=True).encode()).hexdigest()
@@ -128,10 +167,7 @@ def generate(ir: str, history: list, *, c_source=None, baseline=None, settings=D
             "tokens_in": u.prompt_tokens,
             "tokens_out": u.completion_tokens,
             "tokens_reasoning": (details.reasoning_tokens or 0) if details else 0,
-            "cost_usd": (
-                u.prompt_tokens * config.META_PRICE_IN + u.completion_tokens * config.META_PRICE_OUT
-            )
-            / 1e6,
+            "cost_usd": cost_usd(settings.model, u.prompt_tokens, u.completion_tokens),
             "seconds": time.monotonic() - start,
             "cached": False,
         }
