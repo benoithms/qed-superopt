@@ -23,7 +23,7 @@ Hackathon window: **Oct 26 – Nov 4, 2026**. Submission: **Wed Nov 4, 21:00 ET*
 - [ ] `loop.py`: propose, prove, repair; results written as JSON in `results/<run-id>/`
 
 **Jules**
-- [ ] LLM Compiler behind `generate(ir, history) -> body` (training prompt format, prefilled module header)
+- [x] LLM Compiler behind `generate(ir, history) -> body` (training prompt format, prefilled module header): `qed/llm_compiler.py`
 - [ ] Reference toolchain built on a second machine, same commits (independent reproduction)
 - [ ] Corpus: ~9 more C entries; `nlz-binsearch-u32` and `clp2-u32` to B once their `expected.ll` is proven; settle `next-same-popcount` with the reference clang; add issues 210131, 227280, 225655 and the `__builtin_assume` / `__builtin_unreachable` issues
 
