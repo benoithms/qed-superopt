@@ -1,0 +1,188 @@
+{
+ "id": "llvm-issue-214956",
+ "category": "B",
+ "backend": "muse",
+ "model": "muse-spark-1.3",
+ "settings": {
+  "model": "muse-spark-1.3",
+  "show_asm": "never",
+  "feedback": "full",
+  "max_tokens": 16000,
+  "max_tokens_after_win": 10000,
+  "large_insts": 10,
+  "max_tokens_large": 32000,
+  "max_tokens_after_win_large": 20000
+ },
+ "src_ll": "; ModuleID = 'bench/B/llvm-issue-214956/src.c'\nsource_filename = \"bench/B/llvm-issue-214956/src.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\n; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable\ndefine dso_local noundef i8 @f(i8 noundef zeroext %0, i8 noundef zeroext %1) local_unnamed_addr #0 {\n  %3 = icmp ugt i8 %0, %1\n  br i1 %3, label %4, label %6\n\n4:                                                ; preds = %2\n  %5 = udiv i8 %0, %1\n  br label %8\n\n6:                                                ; preds = %2\n  %7 = udiv i8 %1, %0\n  br label %8\n\n8:                                                ; preds = %6, %4\n  %9 = phi i8 [ %5, %4 ], [ %7, %6 ]\n  ret i8 %9\n}\n\nattributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable \"min-legal-vector-width\"=\"0\" \"no-trapping-math\"=\"true\" \"stack-protector-buffer-size\"=\"8\" \"target-cpu\"=\"skylake\" \"target-features\"=\"+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+crc32,+cx16,+cx8,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves\" }\n\n!llvm.module.flags = !{!0, !1, !2}\n!llvm.ident = !{!3}\n!llvm.errno.tbaa = !{!4}\n\n!0 = !{i32 8, !\"PIC Level\", i32 2}\n!1 = !{i32 7, !\"PIE Level\", i32 2}\n!2 = !{i32 7, !\"uwtable\", i32 2}\n!3 = !{!\"clang version 24.0.0git (https://github.com/llvm/llvm-project.git b97454582dfbe2d5ebe7b7b1533de947bef16942)\"}\n!4 = !{!5, !6, i64 0}\n!5 = !{!\"__libc_errno\", !6, i64 0}\n!6 = !{!\"int\", !7, i64 0}\n!7 = !{!\"omnipotent char\", !8, i64 0}\n!8 = !{!\"Simple C/C++ TBAA\"}\n",
+ "src_sha256": "c03cc402366733ff79516decb477e1548399b5331cb72ac40cb76df1a1bbf81b",
+ "baseline": {
+  "ir_insts": 8,
+  "asm_insts": 8,
+  "mca_cycles": 20.2,
+  "asm": "f:                                      # @f\n\t.cfi_startproc\n# %bb.0:\n\tcmpb\t%sil, %dil\n\tjbe\t.LBB0_2\n# %bb.1:\n\tmovzbl\t%dil, %eax\n\tdivb\t%sil\n\tretq\n.LBB0_2:\n\tmovzbl\t%sil, %eax\n\tdivb\t%dil\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      800\nTotal Cycles:      2020\nTotal uOps:        1200\n\nDispatch Width:    6\nuOps Per Cycle:    0.59\nIPC:               0.40\nBlock RThroughput: 20.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        cmpb\t%sil, %dil\n 1      1     0.50                        jbe\t.LBB0_2\n 1      1     0.25                        movzbl\t%dil, %eax\n 1      25    10.00                 U     divb\t%sil\n 3      7     1.00                  U     retq\n 1      1     0.25                        movzbl\t%sil, %eax\n 1      25    10.00                 U     divb\t%dil\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n20.00   -     3.16   2.00   1.00   1.00    -     2.02   2.82    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.04   0.84    -      -      -     0.11   0.01    -     cmpb\t%sil, %dil\n -      -     0.19    -      -      -      -      -     0.81    -     jbe\t.LBB0_2\n -      -     0.85   0.05    -      -      -     0.10    -      -     movzbl\t%dil, %eax\n10.00   -     1.00    -      -      -      -      -      -      -     divb\t%sil\n -      -      -     0.10    -     1.00    -     0.90   1.00    -     retq\n -      -     0.04   0.90    -      -      -     0.06    -      -     movzbl\t%sil, %eax\n10.00   -     1.00    -      -      -      -      -      -      -     divb\t%dil\n -      -     0.04   0.11   1.00    -      -     0.85   1.00    -     retq\n"
+ },
+ "attempts": [
+  {
+   "n": 1,
+   "model": "muse-spark-1.3",
+   "response": "```llvm\n  %t1 = zext i8 %0 to i32\n  %t2 = zext i8 %1 to i32\n  %t3 = icmp ugt i32 %t1, %t2\n  %t4 = select i1 %t3, i32 %t1, i32 %t2\n  %t5 = select i1 %t3, i32 %t2, i32 %t1\n  %t6 = uitofp i32 %t4 to float\n  %t7 = uitofp i32 %t5 to float\n  %t8 = fdiv float %t6, %t7\n  %t9 = fptoui float %t8 to i8\n  ret i8 %t9\n```",
+   "finish_reason": "stop",
+   "tokens_in": 627,
+   "tokens_out": 10252,
+   "tokens_reasoning": 10070,
+   "cost_usd": 0.04435475,
+   "seconds": 44.052945916999306,
+   "cached": false,
+   "body": "  %t1 = zext i8 %0 to i32\n  %t2 = zext i8 %1 to i32\n  %t3 = icmp ugt i32 %t1, %t2\n  %t4 = select i1 %t3, i32 %t1, i32 %t2\n  %t5 = select i1 %t3, i32 %t2, i32 %t1\n  %t6 = uitofp i32 %t4 to float\n  %t7 = uitofp i32 %t5 to float\n  %t8 = fdiv float %t6, %t7\n  %t9 = fptoui float %t8 to i8\n  ret i8 %t9",
+   "tgt_ll": "; ModuleID = 'bench/B/llvm-issue-214956/src.c'\nsource_filename = \"bench/B/llvm-issue-214956/src.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\n; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable\ndefine dso_local noundef i8 @f(i8 noundef zeroext %0, i8 noundef zeroext %1) local_unnamed_addr #0 {\n  %t1 = zext i8 %0 to i32\n  %t2 = zext i8 %1 to i32\n  %t3 = icmp ugt i32 %t1, %t2\n  %t4 = select i1 %t3, i32 %t1, i32 %t2\n  %t5 = select i1 %t3, i32 %t2, i32 %t1\n  %t6 = uitofp i32 %t4 to float\n  %t7 = uitofp i32 %t5 to float\n  %t8 = fdiv float %t6, %t7\n  %t9 = fptoui float %t8 to i8\n  ret i8 %t9\n}\n\nattributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable \"min-legal-vector-width\"=\"0\" \"no-trapping-math\"=\"true\" \"stack-protector-buffer-size\"=\"8\" \"target-cpu\"=\"skylake\" \"target-features\"=\"+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+crc32,+cx16,+cx8,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves\" }\n\n!llvm.module.flags = !{!0, !1, !2}\n!llvm.ident = !{!3}\n!llvm.errno.tbaa = !{!4}\n\n!0 = !{i32 8, !\"PIC Level\", i32 2}\n!1 = !{i32 7, !\"PIE Level\", i32 2}\n!2 = !{i32 7, !\"uwtable\", i32 2}\n!3 = !{!\"clang version 24.0.0git (https://github.com/llvm/llvm-project.git b97454582dfbe2d5ebe7b7b1533de947bef16942)\"}\n!4 = !{!5, !6, i64 0}\n!5 = !{!\"__libc_errno\", !6, i64 0}\n!6 = !{!\"int\", !7, i64 0}\n!7 = !{!\"omnipotent char\", !8, i64 0}\n!8 = !{!\"Simple C/C++ TBAA\"}\n",
+   "tgt_sha256": "e8ba58267676ca532b7c73fa5eaa33fe5d1b58036badaaa306f051650eac2fdd",
+   "check": "proven",
+   "alive2_output": "\n----------------------------------------\ndefine i8 @f(i8 noundef zeroext %#0, i8 noundef zeroext %#1) nofree noundef willreturn memory(none) {\n#2:\n  %#6 = icmp ugt i8 noundef zeroext %#0, noundef zeroext %#1\n  br i1 %#6, label %#4, label %#3\n\n#3:\n  %#7 = udiv i8 noundef zeroext %#1, noundef zeroext %#0\n  br label %#5\n\n#4:\n  %#8 = udiv i8 noundef zeroext %#0, noundef zeroext %#1\n  br label %#5\n\n#5:\n  %#9 = phi i8 [ %#8, %#4 ], [ %#7, %#3 ]\n  ret i8 %#9\n}\n=>\ndefine i8 @f(i8 noundef zeroext %#0, i8 noundef zeroext %#1) nofree noundef willreturn memory(none) {\n#2:\n  %t1 = zext i8 noundef zeroext %#0 to i32\n  %t2 = zext i8 noundef zeroext %#1 to i32\n  %t3 = icmp ugt i32 %t1, %t2\n  %t4 = select i1 %t3, i32 %t1, i32 %t2\n  %t5 = select i1 %t3, i32 %t2, i32 %t1\n  %t6 = uitofp i32 %t4 to float\n  %t7 = uitofp i32 %t5 to float\n  %t8 = fdiv float %t6, %t7\n  %t9 = fptoui float %t8 to i8\n  ret i8 %t9\n}\nTransformation seems to be correct!\n\nSummary:\n  1 correct transformations\n  0 incorrect transformations\n  0 failed-to-prove transformations\n  0 Alive2 errors\n",
+   "alive2_seconds": 10.658996582998952,
+   "cost": {
+    "ir_insts": 10,
+    "asm_insts": 9,
+    "mca_cycles": 4.44,
+    "asm": "f:                                      # @f\n\t.cfi_startproc\n# %bb.0:\n\tcmpl\t%esi, %edi\n\tmovl\t%esi, %eax\n\tcmoval\t%edi, %eax\n\tcmoval\t%esi, %edi\n\tvcvtsi2ss\t%eax, %xmm15, %xmm0\n\tvcvtsi2ss\t%edi, %xmm15, %xmm1\n\tvdivss\t%xmm1, %xmm0, %xmm0\n\tvcvttss2si\t%xmm0, %eax\n                                        # kill: def $al killed $al killed $eax\n\tretq\n.Lfunc_end0:",
+    "mca_output": "Iterations:        100\nInstructions:      900\nTotal Cycles:      444\nTotal uOps:        1600\n\nDispatch Width:    6\nuOps Per Cycle:    3.60\nIPC:               2.03\nBlock RThroughput: 3.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        cmpl\t%esi, %edi\n 1      1     0.25                        movl\t%esi, %eax\n 2      2     1.00                        cmoval\t%edi, %eax\n 2      2     1.00                        cmoval\t%esi, %edi\n 2      5     1.00                        vcvtsi2ss\t%eax, %xmm15, %xmm0\n 2      5     1.00                        vcvtsi2ss\t%edi, %xmm15, %xmm1\n 1      11    3.00                        vdivss\t%xmm1, %xmm0, %xmm0\n 2      6     1.00                        vcvttss2si\t%xmm0, %eax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -     3.00   4.13   3.41   0.50   0.50    -     3.29   4.17    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.31   0.04    -      -      -     0.36   0.29    -     cmpl\t%esi, %edi\n -      -     0.01   0.24    -      -      -     0.73   0.02    -     movl\t%esi, %eax\n -      -     0.62    -      -      -      -      -     1.38    -     cmoval\t%edi, %eax\n -      -     0.52    -      -      -      -      -     1.48    -     cmoval\t%esi, %edi\n -      -     0.17   0.83    -      -      -     1.00    -      -     vcvtsi2ss\t%eax, %xmm15, %xmm0\n -      -     0.05   0.95    -      -      -     1.00    -      -     vcvtsi2ss\t%edi, %xmm15, %xmm1\n -     3.00   1.00    -      -      -      -      -      -      -     vdivss\t%xmm1, %xmm0, %xmm0\n -      -     1.00   1.00    -      -      -      -      -      -     vcvttss2si\t%xmm0, %eax\n -      -     0.45   0.35   0.50   0.50    -     0.20   1.00    -     retq\n"
+   },
+   "faster": true,
+   "feedback": "Proven correct. Cost: 4.44 cycles per call, clang: 20.20.\nCan you make it even faster? If you believe this version is optimal, answer NO_IMPROVEMENT and one sentence why."
+  },
+  {
+   "n": 2,
+   "model": "muse-spark-1.3",
+   "response": "",
+   "finish_reason": "length",
+   "tokens_in": 857,
+   "tokens_out": 10000,
+   "tokens_reasoning": 9998,
+   "cost_usd": 0.04357125,
+   "seconds": 44.17485962500359,
+   "cached": false,
+   "check": "truncated"
+  }
+ ],
+ "best": {
+  "n": 1,
+  "ir_insts": 10,
+  "asm_insts": 9,
+  "mca_cycles": 4.44,
+  "asm": "f:                                      # @f\n\t.cfi_startproc\n# %bb.0:\n\tcmpl\t%esi, %edi\n\tmovl\t%esi, %eax\n\tcmoval\t%edi, %eax\n\tcmoval\t%esi, %edi\n\tvcvtsi2ss\t%eax, %xmm15, %xmm0\n\tvcvtsi2ss\t%edi, %xmm15, %xmm1\n\tvdivss\t%xmm1, %xmm0, %xmm0\n\tvcvttss2si\t%xmm0, %eax\n                                        # kill: def $al killed $al killed $eax\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      900\nTotal Cycles:      444\nTotal uOps:        1600\n\nDispatch Width:    6\nuOps Per Cycle:    3.60\nIPC:               2.03\nBlock RThroughput: 3.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        cmpl\t%esi, %edi\n 1      1     0.25                        movl\t%esi, %eax\n 2      2     1.00                        cmoval\t%edi, %eax\n 2      2     1.00                        cmoval\t%esi, %edi\n 2      5     1.00                        vcvtsi2ss\t%eax, %xmm15, %xmm0\n 2      5     1.00                        vcvtsi2ss\t%edi, %xmm15, %xmm1\n 1      11    3.00                        vdivss\t%xmm1, %xmm0, %xmm0\n 2      6     1.00                        vcvttss2si\t%xmm0, %eax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -     3.00   4.13   3.41   0.50   0.50    -     3.29   4.17    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.31   0.04    -      -      -     0.36   0.29    -     cmpl\t%esi, %edi\n -      -     0.01   0.24    -      -      -     0.73   0.02    -     movl\t%esi, %eax\n -      -     0.62    -      -      -      -      -     1.38    -     cmoval\t%edi, %eax\n -      -     0.52    -      -      -      -      -     1.48    -     cmoval\t%esi, %edi\n -      -     0.17   0.83    -      -      -     1.00    -      -     vcvtsi2ss\t%eax, %xmm15, %xmm0\n -      -     0.05   0.95    -      -      -     1.00    -      -     vcvtsi2ss\t%edi, %xmm15, %xmm1\n -     3.00   1.00    -      -      -      -      -      -      -     vdivss\t%xmm1, %xmm0, %xmm0\n -      -     1.00   1.00    -      -      -      -      -      -     vcvttss2si\t%xmm0, %eax\n -      -     0.45   0.35   0.50   0.50    -     0.20   1.00    -     retq\n",
+  "speedup": 4.549549549549549,
+  "model": "muse-spark-1.3"
+ },
+ "stop": "truncated_after_win",
+ "cost_usd": 0.7873859999999999,
+ "large": false,
+ "budget_usd": 0.35,
+ "verified_by": "alive-tv, reference toolchain",
+ "primary_best": {
+  "n": 1,
+  "ir_insts": 10,
+  "asm_insts": 9,
+  "mca_cycles": 4.44,
+  "asm": "f:                                      # @f\n\t.cfi_startproc\n# %bb.0:\n\tcmpl\t%esi, %edi\n\tmovl\t%esi, %eax\n\tcmoval\t%edi, %eax\n\tcmoval\t%esi, %edi\n\tvcvtsi2ss\t%eax, %xmm15, %xmm0\n\tvcvtsi2ss\t%edi, %xmm15, %xmm1\n\tvdivss\t%xmm1, %xmm0, %xmm0\n\tvcvttss2si\t%xmm0, %eax\n                                        # kill: def $al killed $al killed $eax\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      900\nTotal Cycles:      444\nTotal uOps:        1600\n\nDispatch Width:    6\nuOps Per Cycle:    3.60\nIPC:               2.03\nBlock RThroughput: 3.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        cmpl\t%esi, %edi\n 1      1     0.25                        movl\t%esi, %eax\n 2      2     1.00                        cmoval\t%edi, %eax\n 2      2     1.00                        cmoval\t%esi, %edi\n 2      5     1.00                        vcvtsi2ss\t%eax, %xmm15, %xmm0\n 2      5     1.00                        vcvtsi2ss\t%edi, %xmm15, %xmm1\n 1      11    3.00                        vdivss\t%xmm1, %xmm0, %xmm0\n 2      6     1.00                        vcvttss2si\t%xmm0, %eax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -     3.00   4.13   3.41   0.50   0.50    -     3.29   4.17    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.31   0.04    -      -      -     0.36   0.29    -     cmpl\t%esi, %edi\n -      -     0.01   0.24    -      -      -     0.73   0.02    -     movl\t%esi, %eax\n -      -     0.62    -      -      -      -      -     1.38    -     cmoval\t%edi, %eax\n -      -     0.52    -      -      -      -      -     1.48    -     cmoval\t%esi, %edi\n -      -     0.17   0.83    -      -      -     1.00    -      -     vcvtsi2ss\t%eax, %xmm15, %xmm0\n -      -     0.05   0.95    -      -      -     1.00    -      -     vcvtsi2ss\t%edi, %xmm15, %xmm1\n -     3.00   1.00    -      -      -      -      -      -      -     vdivss\t%xmm1, %xmm0, %xmm0\n -      -     1.00   1.00    -      -      -      -      -      -     vcvttss2si\t%xmm0, %eax\n -      -     0.45   0.35   0.50   0.50    -     0.20   1.00    -     retq\n",
+  "speedup": 4.549549549549549,
+  "model": "muse-spark-1.3"
+ },
+ "fallback_policy": "always",
+ "fallback": {
+  "id": "llvm-issue-214956",
+  "category": "B",
+  "backend": "muse",
+  "model": "muse-wonder-1.0",
+  "settings": {
+   "model": "muse-wonder-1.0",
+   "show_asm": "never",
+   "feedback": "full",
+   "max_tokens": 16000,
+   "max_tokens_after_win": 10000,
+   "large_insts": 10,
+   "max_tokens_large": 32000,
+   "max_tokens_after_win_large": 20000
+  },
+  "src_ll": "; ModuleID = 'bench/B/llvm-issue-214956/src.c'\nsource_filename = \"bench/B/llvm-issue-214956/src.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\n; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable\ndefine dso_local noundef i8 @f(i8 noundef zeroext %0, i8 noundef zeroext %1) local_unnamed_addr #0 {\n  %3 = icmp ugt i8 %0, %1\n  br i1 %3, label %4, label %6\n\n4:                                                ; preds = %2\n  %5 = udiv i8 %0, %1\n  br label %8\n\n6:                                                ; preds = %2\n  %7 = udiv i8 %1, %0\n  br label %8\n\n8:                                                ; preds = %6, %4\n  %9 = phi i8 [ %5, %4 ], [ %7, %6 ]\n  ret i8 %9\n}\n\nattributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable \"min-legal-vector-width\"=\"0\" \"no-trapping-math\"=\"true\" \"stack-protector-buffer-size\"=\"8\" \"target-cpu\"=\"skylake\" \"target-features\"=\"+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+crc32,+cx16,+cx8,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves\" }\n\n!llvm.module.flags = !{!0, !1, !2}\n!llvm.ident = !{!3}\n!llvm.errno.tbaa = !{!4}\n\n!0 = !{i32 8, !\"PIC Level\", i32 2}\n!1 = !{i32 7, !\"PIE Level\", i32 2}\n!2 = !{i32 7, !\"uwtable\", i32 2}\n!3 = !{!\"clang version 24.0.0git (https://github.com/llvm/llvm-project.git b97454582dfbe2d5ebe7b7b1533de947bef16942)\"}\n!4 = !{!5, !6, i64 0}\n!5 = !{!\"__libc_errno\", !6, i64 0}\n!6 = !{!\"int\", !7, i64 0}\n!7 = !{!\"omnipotent char\", !8, i64 0}\n!8 = !{!\"Simple C/C++ TBAA\"}\n",
+  "src_sha256": "c03cc402366733ff79516decb477e1548399b5331cb72ac40cb76df1a1bbf81b",
+  "baseline": {
+   "ir_insts": 8,
+   "asm_insts": 8,
+   "mca_cycles": 20.2,
+   "asm": "f:                                      # @f\n\t.cfi_startproc\n# %bb.0:\n\tcmpb\t%sil, %dil\n\tjbe\t.LBB0_2\n# %bb.1:\n\tmovzbl\t%dil, %eax\n\tdivb\t%sil\n\tretq\n.LBB0_2:\n\tmovzbl\t%sil, %eax\n\tdivb\t%dil\n\tretq\n.Lfunc_end0:",
+   "mca_output": "Iterations:        100\nInstructions:      800\nTotal Cycles:      2020\nTotal uOps:        1200\n\nDispatch Width:    6\nuOps Per Cycle:    0.59\nIPC:               0.40\nBlock RThroughput: 20.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        cmpb\t%sil, %dil\n 1      1     0.50                        jbe\t.LBB0_2\n 1      1     0.25                        movzbl\t%dil, %eax\n 1      25    10.00                 U     divb\t%sil\n 3      7     1.00                  U     retq\n 1      1     0.25                        movzbl\t%sil, %eax\n 1      25    10.00                 U     divb\t%dil\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n20.00   -     3.16   2.00   1.00   1.00    -     2.02   2.82    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.04   0.84    -      -      -     0.11   0.01    -     cmpb\t%sil, %dil\n -      -     0.19    -      -      -      -      -     0.81    -     jbe\t.LBB0_2\n -      -     0.85   0.05    -      -      -     0.10    -      -     movzbl\t%dil, %eax\n10.00   -     1.00    -      -      -      -      -      -      -     divb\t%sil\n -      -      -     0.10    -     1.00    -     0.90   1.00    -     retq\n -      -     0.04   0.90    -      -      -     0.06    -      -     movzbl\t%sil, %eax\n10.00   -     1.00    -      -      -      -      -      -      -     divb\t%dil\n -      -     0.04   0.11   1.00    -      -     0.85   1.00    -     retq\n"
+  },
+  "attempts": [
+   {
+    "n": 1,
+    "model": "muse-wonder-1.0",
+    "response": "",
+    "finish_reason": "length",
+    "tokens_in": 627,
+    "tokens_out": 16000,
+    "tokens_reasoning": 15998,
+    "cost_usd": 0.322508,
+    "seconds": 193.30465695900057,
+    "cached": false,
+    "check": "truncated",
+    "feedback": "You ran out of tokens before answering. Answer directly: a faster body, or NO_IMPROVEMENT if you believe the best version so far is optimal."
+   },
+   {
+    "n": 2,
+    "model": "muse-wonder-1.0",
+    "response": "```llvm\n  %t1 = zext i8 %0 to i32\n  %t2 = zext i8 %1 to i32\n  %t3 = icmp ugt i32 %t1, %t2\n  %t4 = select i1 %t3, i32 %t1, i32 %t2\n  %t5 = select i1 %t3, i32 %t2, i32 %t1\n  %t6 = sitofp i32 %t4 to float\n  %t7 = sitofp i32 %t5 to float\n  %t8 = fdiv float %t6, %t7\n  %t9 = fptoui float %t8 to i32\n  %t10 = trunc i32 %t9 to i8\n  ret i8 %t10\n```",
+    "finish_reason": "stop",
+    "tokens_in": 669,
+    "tokens_out": 8531,
+    "tokens_reasoning": 8334,
+    "cost_usd": 0.173296,
+    "seconds": 104.03322024999943,
+    "cached": false,
+    "body": "  %t1 = zext i8 %0 to i32\n  %t2 = zext i8 %1 to i32\n  %t3 = icmp ugt i32 %t1, %t2\n  %t4 = select i1 %t3, i32 %t1, i32 %t2\n  %t5 = select i1 %t3, i32 %t2, i32 %t1\n  %t6 = sitofp i32 %t4 to float\n  %t7 = sitofp i32 %t5 to float\n  %t8 = fdiv float %t6, %t7\n  %t9 = fptoui float %t8 to i32\n  %t10 = trunc i32 %t9 to i8\n  ret i8 %t10",
+    "tgt_ll": "; ModuleID = 'bench/B/llvm-issue-214956/src.c'\nsource_filename = \"bench/B/llvm-issue-214956/src.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\n; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable\ndefine dso_local noundef i8 @f(i8 noundef zeroext %0, i8 noundef zeroext %1) local_unnamed_addr #0 {\n  %t1 = zext i8 %0 to i32\n  %t2 = zext i8 %1 to i32\n  %t3 = icmp ugt i32 %t1, %t2\n  %t4 = select i1 %t3, i32 %t1, i32 %t2\n  %t5 = select i1 %t3, i32 %t2, i32 %t1\n  %t6 = sitofp i32 %t4 to float\n  %t7 = sitofp i32 %t5 to float\n  %t8 = fdiv float %t6, %t7\n  %t9 = fptoui float %t8 to i32\n  %t10 = trunc i32 %t9 to i8\n  ret i8 %t10\n}\n\nattributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable \"min-legal-vector-width\"=\"0\" \"no-trapping-math\"=\"true\" \"stack-protector-buffer-size\"=\"8\" \"target-cpu\"=\"skylake\" \"target-features\"=\"+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+crc32,+cx16,+cx8,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves\" }\n\n!llvm.module.flags = !{!0, !1, !2}\n!llvm.ident = !{!3}\n!llvm.errno.tbaa = !{!4}\n\n!0 = !{i32 8, !\"PIC Level\", i32 2}\n!1 = !{i32 7, !\"PIE Level\", i32 2}\n!2 = !{i32 7, !\"uwtable\", i32 2}\n!3 = !{!\"clang version 24.0.0git (https://github.com/llvm/llvm-project.git b97454582dfbe2d5ebe7b7b1533de947bef16942)\"}\n!4 = !{!5, !6, i64 0}\n!5 = !{!\"__libc_errno\", !6, i64 0}\n!6 = !{!\"int\", !7, i64 0}\n!7 = !{!\"omnipotent char\", !8, i64 0}\n!8 = !{!\"Simple C/C++ TBAA\"}\n",
+    "tgt_sha256": "47dd8188171f26bee9100d2d568be33ac1d3123c50230ec61f593bd2acc95de5",
+    "check": "proven",
+    "alive2_output": "\n----------------------------------------\ndefine i8 @f(i8 noundef zeroext %#0, i8 noundef zeroext %#1) nofree noundef willreturn memory(none) {\n#2:\n  %#6 = icmp ugt i8 noundef zeroext %#0, noundef zeroext %#1\n  br i1 %#6, label %#4, label %#3\n\n#3:\n  %#7 = udiv i8 noundef zeroext %#1, noundef zeroext %#0\n  br label %#5\n\n#4:\n  %#8 = udiv i8 noundef zeroext %#0, noundef zeroext %#1\n  br label %#5\n\n#5:\n  %#9 = phi i8 [ %#8, %#4 ], [ %#7, %#3 ]\n  ret i8 %#9\n}\n=>\ndefine i8 @f(i8 noundef zeroext %#0, i8 noundef zeroext %#1) nofree noundef willreturn memory(none) {\n#2:\n  %t1 = zext i8 noundef zeroext %#0 to i32\n  %t2 = zext i8 noundef zeroext %#1 to i32\n  %t3 = icmp ugt i32 %t1, %t2\n  %t4 = select i1 %t3, i32 %t1, i32 %t2\n  %t5 = select i1 %t3, i32 %t2, i32 %t1\n  %t6 = sitofp i32 %t4 to float\n  %t7 = sitofp i32 %t5 to float\n  %t8 = fdiv float %t6, %t7\n  %t9 = fptoui float %t8 to i32\n  %t10 = trunc i32 %t9 to i8\n  ret i8 %t10\n}\nTransformation seems to be correct!\n\nSummary:\n  1 correct transformations\n  0 incorrect transformations\n  0 failed-to-prove transformations\n  0 Alive2 errors\n",
+    "alive2_seconds": 9.51184650000505,
+    "cost": {
+     "ir_insts": 11,
+     "asm_insts": 9,
+     "mca_cycles": 4.5,
+     "asm": "f:                                      # @f\n\t.cfi_startproc\n# %bb.0:\n\tcmpl\t%esi, %edi\n\tmovl\t%esi, %eax\n\tcmoval\t%edi, %eax\n\tcmoval\t%esi, %edi\n\tvcvtsi2ss\t%eax, %xmm15, %xmm0\n\tvcvtsi2ss\t%edi, %xmm15, %xmm1\n\tvdivss\t%xmm1, %xmm0, %xmm0\n\tvcvttss2si\t%xmm0, %rax\n                                        # kill: def $al killed $al killed $rax\n\tretq\n.Lfunc_end0:",
+     "mca_output": "Iterations:        100\nInstructions:      900\nTotal Cycles:      450\nTotal uOps:        1700\n\nDispatch Width:    6\nuOps Per Cycle:    3.78\nIPC:               2.00\nBlock RThroughput: 3.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        cmpl\t%esi, %edi\n 1      1     0.25                        movl\t%esi, %eax\n 2      2     1.00                        cmoval\t%edi, %eax\n 2      2     1.00                        cmoval\t%esi, %edi\n 2      5     1.00                        vcvtsi2ss\t%eax, %xmm15, %xmm0\n 2      5     1.00                        vcvtsi2ss\t%edi, %xmm15, %xmm1\n 1      11    3.00                        vdivss\t%xmm1, %xmm0, %xmm0\n 3      7     1.00                        vcvttss2si\t%xmm0, %rax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -     3.00   4.28   3.71   0.50   0.50    -     3.77   4.24    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.27   0.44    -      -      -     0.02   0.27    -     cmpl\t%esi, %edi\n -      -      -     0.69    -      -      -     0.30   0.01    -     movl\t%esi, %eax\n -      -     1.04    -      -      -      -      -     0.96    -     cmoval\t%edi, %eax\n -      -      -      -      -      -      -      -     2.00    -     cmoval\t%esi, %edi\n -      -     0.67   0.33    -      -      -     1.00    -      -     vcvtsi2ss\t%eax, %xmm15, %xmm0\n -      -     0.23   0.77    -      -      -     1.00    -      -     vcvtsi2ss\t%edi, %xmm15, %xmm1\n -     3.00   1.00    -      -      -      -      -      -      -     vdivss\t%xmm1, %xmm0, %xmm0\n -      -     1.00   1.00    -      -      -     1.00    -      -     vcvttss2si\t%xmm0, %rax\n -      -     0.07   0.48   0.50   0.50    -     0.45   1.00    -     retq\n"
+    },
+    "faster": true,
+    "feedback": "Proven correct. Cost: 4.50 cycles per call, clang: 20.20.\nCan you make it even faster? If you believe this version is optimal, answer NO_IMPROVEMENT and one sentence why."
+   },
+   {
+    "n": 3,
+    "model": "muse-wonder-1.0",
+    "response": "",
+    "finish_reason": "length",
+    "tokens_in": 914,
+    "tokens_out": 10000,
+    "tokens_reasoning": 9998,
+    "cost_usd": 0.203656,
+    "seconds": 130.10505062500306,
+    "cached": false,
+    "check": "truncated"
+   }
+  ],
+  "best": {
+   "n": 2,
+   "ir_insts": 11,
+   "asm_insts": 9,
+   "mca_cycles": 4.5,
+   "asm": "f:                                      # @f\n\t.cfi_startproc\n# %bb.0:\n\tcmpl\t%esi, %edi\n\tmovl\t%esi, %eax\n\tcmoval\t%edi, %eax\n\tcmoval\t%esi, %edi\n\tvcvtsi2ss\t%eax, %xmm15, %xmm0\n\tvcvtsi2ss\t%edi, %xmm15, %xmm1\n\tvdivss\t%xmm1, %xmm0, %xmm0\n\tvcvttss2si\t%xmm0, %rax\n                                        # kill: def $al killed $al killed $rax\n\tretq\n.Lfunc_end0:",
+   "mca_output": "Iterations:        100\nInstructions:      900\nTotal Cycles:      450\nTotal uOps:        1700\n\nDispatch Width:    6\nuOps Per Cycle:    3.78\nIPC:               2.00\nBlock RThroughput: 3.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        cmpl\t%esi, %edi\n 1      1     0.25                        movl\t%esi, %eax\n 2      2     1.00                        cmoval\t%edi, %eax\n 2      2     1.00                        cmoval\t%esi, %edi\n 2      5     1.00                        vcvtsi2ss\t%eax, %xmm15, %xmm0\n 2      5     1.00                        vcvtsi2ss\t%edi, %xmm15, %xmm1\n 1      11    3.00                        vdivss\t%xmm1, %xmm0, %xmm0\n 3      7     1.00                        vcvttss2si\t%xmm0, %rax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -     3.00   4.28   3.71   0.50   0.50    -     3.77   4.24    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.27   0.44    -      -      -     0.02   0.27    -     cmpl\t%esi, %edi\n -      -      -     0.69    -      -      -     0.30   0.01    -     movl\t%esi, %eax\n -      -     1.04    -      -      -      -      -     0.96    -     cmoval\t%edi, %eax\n -      -      -      -      -      -      -      -     2.00    -     cmoval\t%esi, %edi\n -      -     0.67   0.33    -      -      -     1.00    -      -     vcvtsi2ss\t%eax, %xmm15, %xmm0\n -      -     0.23   0.77    -      -      -     1.00    -      -     vcvtsi2ss\t%edi, %xmm15, %xmm1\n -     3.00   1.00    -      -      -      -      -      -      -     vdivss\t%xmm1, %xmm0, %xmm0\n -      -     1.00   1.00    -      -      -     1.00    -      -     vcvttss2si\t%xmm0, %rax\n -      -     0.07   0.48   0.50   0.50    -     0.45   1.00    -     retq\n",
+   "speedup": 4.488888888888889
+  },
+  "stop": "truncated_after_win",
+  "cost_usd": 0.69946,
+  "large": false,
+  "budget_usd": 1.6470588235294117,
+  "verified_by": "alive-tv, reference toolchain"
+ }
+}
