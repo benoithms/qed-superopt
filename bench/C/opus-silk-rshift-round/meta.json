@@ -1,0 +1,9 @@
+{
+  "id": "opus-silk-rshift-round",
+  "category": "C",
+  "source": "https://github.com/xiph/opus/blob/v1.5.2/silk/SigProc_FIX.h#L531",
+  "description": "Arithmetic right shift by a variable amount with rounding (round half up), written to avoid overflow (silk_RSHIFT_ROUND)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Opus 1.5.2, silk_RSHIFT_ROUND macro (silk/SigProc_FIX.h), with an opus_int32 value and a variable shift. The shift == 1 case is special-cased in the macro because the general form would compute (a >> 0) + 1, which overflows at INT32_MAX. Written by us from the macro. clang trunk -O3 -march=skylake keeps a branch on shift == 1 and a phi: 13 IR instructions. Shift amounts outside [1, 32] are UB in the source (the macro requires shift > 0). Whether a shorter form exists is unknown."
+}

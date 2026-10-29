@@ -1,0 +1,9 @@
+{
+  "id": "musl-iswprint",
+  "category": "C",
+  "source": "https://git.musl-libc.org/cgit/musl/tree/src/ctype/iswprint.c?h=v1.2.5#n10",
+  "description": "Wide-character printable test: every code point except controls, U+2028/U+2029, surrogates, U+FFF9..U+FFFB, U+xFFFE/U+xFFFF and values above U+10FFFF (iswprint)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "musl 1.2.5, iswprint (src/ctype/iswprint.c), with wint_t as uint32_t. Written by us from the function. clang trunk -O3 -march=skylake: two branches, seven range or mask compares, a phi and a zext: 23 IR instructions. Whether a shorter form exists is unknown."
+}

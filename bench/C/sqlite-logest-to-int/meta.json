@@ -1,0 +1,9 @@
+{
+  "id": "sqlite-logest-to-int",
+  "category": "C",
+  "source": "https://github.com/sqlite/sqlite/blob/version-3.46.1/src/util.c#L1773-L1781",
+  "description": "Convert a LogEst (about 10 * log2 of a row estimate, stored in an i16) back to an integer (sqlite3LogEstToInt)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "SQLite 3.46.1, sqlite3LogEstToInt (src/util.c), with LogEst = int16_t and LARGEST_INT64 = 0x7fffffffffffffff. Written by us from the function. clang trunk -O3 -march=skylake: sdiv and srem by 10, selects for the mantissa adjustment, branches for the overflow cap and for the shift direction: 25 IR instructions. A negative remainder converts to a large u64 as in SQLite, and large negative inputs make the right-shift amount exceed 63 (UB in the source). Whether a shorter form exists is unknown."
+}

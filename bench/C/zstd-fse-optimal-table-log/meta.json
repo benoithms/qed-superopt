@@ -1,0 +1,9 @@
+{
+  "id": "zstd-fse-optimal-table-log",
+  "category": "C",
+  "source": "https://github.com/facebook/zstd/blob/v1.5.6/lib/compress/fse_compress.c#L348-L369",
+  "description": "FSE table log for a block: the requested maximum (default 11), bounded by the source size, the alphabet size and the FSE limits 5 and 12",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "zstd 1.5.6, FSE_optimalTableLog_internal with FSE_minTableLog inlined (lib/compress/fse_compress.c). ZSTD_highbit32 is written as 31 - __builtin_clz, as in lib/common/bits.h; FSE_DEFAULT_TABLELOG = 11, FSE_MIN_TABLELOG = 5 and FSE_MAX_TABLELOG = 12 (default memory usage settings). The srcSize > 1 asserts are dropped as in release builds, and clz of zero stays UB. Written by us from the functions. clang trunk -O3 -march=skylake: three ctlz and a chain of umin/umax: 17 IR instructions. Whether a shorter form exists is unknown."
+}

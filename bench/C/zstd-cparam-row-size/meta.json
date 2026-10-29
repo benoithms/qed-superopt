@@ -1,0 +1,9 @@
+{
+  "id": "zstd-cparam-row-size",
+  "category": "C",
+  "source": "https://github.com/facebook/zstd/blob/v1.5.6/lib/compress/zstd_compress.c#L7047-L7065",
+  "description": "Size used to pick zstd compression parameters from a source size hint, a dictionary size and the parameter mode",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "zstd 1.5.6, ZSTD_getCParamRowSize (lib/compress/zstd_compress.c). The ZSTD_cParamMode_e mode is passed as its integer value (ZSTD_cpm_attachDict = 1 ignores the dictionary); the assert(0) of the default case is a no-op in release builds; ZSTD_CONTENTSIZE_UNKNOWN is (0ULL - 1). Written by us from the function. clang trunk -O3 -march=skylake: compares, two selects and a branch on 'unknown size hint and no dictionary': 14 IR instructions. Whether a shorter form exists is unknown."
+}

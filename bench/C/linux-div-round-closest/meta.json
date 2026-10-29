@@ -1,0 +1,9 @@
+{
+  "id": "linux-div-round-closest",
+  "category": "C",
+  "source": "https://github.com/torvalds/linux/blob/v6.11/include/linux/math.h#L86-L96",
+  "description": "Signed division rounded to the nearest integer, halves away from zero (DIV_ROUND_CLOSEST)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Linux kernel v6.11, DIV_ROUND_CLOSEST macro (include/linux/math.h), instantiated with an int dividend and an int divisor: the macro's unsigned-type tests are then false, and the dividend is moved by d / 2 toward the sign of the quotient before the truncating division. Written by us from the macro. clang trunk -O3 -march=skylake branches to compute d / 2 or d / -2, then one add and one sdiv: 12 IR instructions. Division by zero and INT_MIN / -1 are UB in the source. Whether a shorter form exists is unknown."
+}
