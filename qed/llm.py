@@ -47,19 +47,19 @@ class Settings:
     # anchoring pilot (results/pilot-anchor-*): same wins, cheapest, no anchoring risk.
     show_asm: str = "never"
     feedback: str = "full"  # "independent" | "verdict" | "full": what the model sees of history
-    max_tokens: int = 16_000  # until a first proven win
-    # After a win, the model tends to search at length before admitting the code is optimal:
-    # a lower cap, with room above the ~7k tokens a clean NO_IMPROVEMENT took (smoke-2).
-    max_tokens_after_win: int = 10_000
-    # Large functions (>= large_insts IR instructions) get twice the reasoning: in the C pilot
-    # (results/pilot-anchor-c-*), 21 of 30 attempts hit the 16k cap and a winning attempt used
-    # 15,394 tokens. Same 10/16 ratio after a win.
-    large_insts: int = 10
-    max_tokens_large: int = 32_000
-    max_tokens_after_win_large: int = 20_000
-    # A truncated answer loses all its reasoning (the API returns only the final answer), so a
-    # retry restarts the same search from scratch. With a high cap, stop instead of retrying.
-    stop_on_truncation: bool = False
+    # One high cap for every call. Earlier caps (16k/10k after a win, 32k/20k for large
+    # functions) wasted 75% of the spend on truncated answers, and a retry restarts the same
+    # search from scratch since the API returns no reasoning. At 64k (results/highcap-cascade)
+    # muse-spark-1.3 was never truncated, answered in up to 44k tokens and matched or beat the
+    # old muse-wonder-1.0 results. The four fields stay separate to reproduce earlier runs.
+    max_tokens: int = 64_000  # until a first proven win
+    max_tokens_after_win: int = 64_000
+    large_insts: int = 10  # functions with at least this many IR instructions are "large"
+    max_tokens_large: int = 64_000
+    max_tokens_after_win_large: int = 64_000
+    # A truncated answer loses all its reasoning, so a retry restarts the same search from
+    # scratch: with a high cap, a truncation means the model is going in circles. Stop.
+    stop_on_truncation: bool = True
 
 
 DEFAULT = Settings()

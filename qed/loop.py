@@ -17,7 +17,8 @@ from qed.extract import ExtractError, body, extract, function, splice
 from qed.verify import Status, sha256, verify
 
 FEEDBACK_TAIL = 25  # lines of an Alive2 error shown to the model
-BASE_MODEL, BASE_BUDGET_USD = "muse-spark-1.3", 0.35  # 5 attempts x 16k tokens
+# ~5 worst-case calls at 64k tokens (results/highcap-cascade); earlier runs used $0.35 at 16k.
+BASE_MODEL, BASE_BUDGET_USD = "muse-spark-1.3", 1.50
 
 # When to call the fallback model, from the primary model's result only. Candidates of the
 # fallback policy, compared offline by scripts/replay_fallback.py (see ROADMAP).
@@ -284,7 +285,9 @@ def main(argv=None):
     ap.add_argument("--feedback", choices=["independent", "verdict", "full"], default="full")
     ap.add_argument("--attempts", type=int, default=5)
     ap.add_argument(
-        "--budget", type=float, help="USD cap per function (default: 5 x 16k tokens at the price)"
+        "--budget",
+        type=float,
+        help="USD cap per function (default: ~5 calls at 64k tokens, scaled by the price)",
     )
     ap.add_argument("--jobs", type=int, default=1, help="functions run in parallel (API only)")
     ap.add_argument(

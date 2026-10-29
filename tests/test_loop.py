@@ -7,6 +7,7 @@ from qed.llm import NO_IMPROVEMENT, Settings, messages
 
 SRC_C = "#include <stdbool.h>\n#include <stdint.h>\nbool f(int64_t x) { return x % 250 != x; }\n"
 WRONG = "```llvm\n  ret i1 true\n```"
+RETRY = Settings(stop_on_truncation=False)  # the behavior of runs before results/highcap-cascade
 RIGHT = "```llvm\n  %t1 = add i64 %0, -250\n  %t2 = icmp ult i64 %t1, -499\n  ret i1 %t2\n```"
 
 
@@ -78,7 +79,7 @@ def test_budget_counts_the_worst_case_of_the_next_call(entry, fake_muse):
 
 def test_truncated_answer_is_recorded_and_the_model_is_told(entry, fake_muse):
     seen = fake_muse(None, RIGHT)
-    res = loop.run_function(entry, attempts=2)
+    res = loop.run_function(entry, settings=RETRY, attempts=2)
     assert [a["check"] for a in res["attempts"]] == ["truncated", "proven"]
     assert "ran out of tokens" in seen[1][0]["feedback"]
 
@@ -113,7 +114,7 @@ def test_lower_token_cap_after_a_win(entry, fake_muse):
 
 def test_truncation_after_a_win_ends_the_search(entry, fake_muse):
     fake_muse(RIGHT, None, RIGHT)
-    res = loop.run_function(entry, attempts=3)
+    res = loop.run_function(entry, settings=RETRY, attempts=3)
     assert [a["check"] for a in res["attempts"]] == ["proven", "truncated"]
     assert res["stop"] == "truncated_after_win"
     assert res["best"]["n"] == 1
@@ -121,7 +122,7 @@ def test_truncation_after_a_win_ends_the_search(entry, fake_muse):
 
 def test_truncation_before_a_win_keeps_searching(entry, fake_muse):
     fake_muse(None, RIGHT)
-    res = loop.run_function(entry, attempts=2)
+    res = loop.run_function(entry, settings=RETRY, attempts=2)
     assert [a["check"] for a in res["attempts"]] == ["truncated", "proven"]
 
 
@@ -141,7 +142,7 @@ def test_default_budget_gives_every_model_the_same_tokens(entry, fake_muse):
     fake_muse(RIGHT, f"{NO_IMPROVEMENT}: optimal.")
     res = loop.run_function(entry, settings=Settings(model="muse-wonder-1.0"), attempts=2)
     assert res["model"] == "muse-wonder-1.0"
-    assert res["budget_usd"] == pytest.approx(0.35 * 20.00 / 4.25)
+    assert res["budget_usd"] == pytest.approx(1.50 * 20.00 / 4.25)
 
 
 def test_last_call_is_per_thread():
