@@ -43,14 +43,15 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 - [ ] Triage of real wins: gain on the final assembly, and `opt -O3` must not fold the rewrite back (Benoit)
   - [x] Fold-back check: `scripts/fold_back.py` runs `opt -O3` on every win and re-measures it (Jules). On `llmc-full-az4` it catches `cmp3-i64` (A, x1.17: `opt -O3` re-forms `llvm.scmp`, a backend lowering issue)
   - [x] Minimum gain: 5% (`--min-speedup 1.05`), fixed before the Muse Spark run and applied the same way to both models. llvm-mca is deterministic: 0.01 cycle per call is below its resolution (1 simulated cycle in 100 iterations), not noise (Jules and Benoit, Oct 29)
-  - [ ] Measurement: llvm-mca chains 100 calls, so a register reused as a temporary creates a false dependency on the next call's argument (zero-idiom test: zstd-fse-optimal-table-log x1.43 -> x1.00, 230424 x1.85 -> x1.00). It also reads both sides of a branch in a straight line, which favors branch-free rewrites. Proposal: a win counts only if it holds both chained and with independent calls; wins we put forward are confirmed on the i7-9700K. Changes what `cost()` means: to decide together (Benoit and Jules)
+  - [x] Measurement rule (Benoit and Jules, Oct 29): a win counts when llvm-mca's Block RThroughput is better by more than 5% and one call (`-iterations=1`) is not slower. The chained figure (100 calls back to back, what `cost()` reports) is kept for the record only: a register reused as a temporary there delays the next call's argument (zstd-fse-optimal-table-log x1.43 -> x1.00). llvm-mca reads both sides of a branch in a straight line, so a win with a branch in clang's or the rewrite's assembly is marked "confirm on CPU". `scripts/fold_back.py` applies all of it. On `llmc-full-az4`: 21 of 30 wins kept (15 B, 6 C); 11 B without any branch, 10 to confirm on the i7-9700K
+  - [ ] Re-check every B `expected.ll` and earlier Muse Spark runs with the same rule (the B rule "faster in cycles" used the chained figure)
   - [ ] No numbers announced (README, demo, LLVM issues) before the measurement is settled
   - [ ] The 7 C wins kept on `llmc-full-az4` (zstd-fse-optimal-table-log x1.43, zstd-cparam-row-size x1.23, median3-i32 x1.21 after opt, opus-silk-rshift-round x1.17, lua-shiftl x1.14, linux-ewma-add x1.11, zstd-compress-bound x1.07): search existing LLVM issues before calling any of them new, then measure on the i7-9700K (Jules)
 
 ## M3: Confirmation on real hardware (Mon Nov 2)
 
 - [ ] x86 microbenchmark harness: separate object, no inlining, latency and throughput (Benoit)
-- [ ] Measurements from the same `.s`: i7-9700K, reference (Jules); i7-12700H (Benoit)
+- [ ] Measurements from the same `.s`: i7-9700K, reference (Jules); i7-12700H (Benoit). Now the priority: no C win is confirmed without it. Every win with a branch is measured with predictable and with random inputs, and the report says in which case it holds
 - [ ] Stretch: generalize wins into peephole rules, re-proven by Alive2 (Benoit)
 
 ## M4: Submission (Tue Nov 3 – Wed Nov 4)
