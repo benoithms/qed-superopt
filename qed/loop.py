@@ -153,7 +153,8 @@ def run_function(
         "category": entry.parent.name,
         "backend": backend,
         "model": settings.model if backend == "muse" else "llm-compiler-7b",
-        "settings": asdict(settings),
+        # LLM Compiler uses none of them: no tokens to cap, and it never reads the feedback.
+        "settings": asdict(settings) if backend == "muse" else None,
         "src_ll": src_ll,
         "src_sha256": sha256(src_ll),
         "baseline": _cost_record(base),
@@ -162,7 +163,7 @@ def run_function(
         "stop": stop,
         "cost_usd": spent,
         "large": large,
-        "budget_usd": budget_usd,
+        "budget_usd": budget_usd if backend == "muse" else None,
         "verified_by": "alive-tv, reference toolchain",
     }
 
@@ -368,7 +369,7 @@ def main(argv=None):
         "started": datetime.now(UTC).isoformat(),
         "backend": args.backend,
         "model": settings.model if args.backend == "muse" else "llm-compiler-7b",
-        "settings": asdict(settings),
+        "settings": asdict(settings) if args.backend == "muse" else None,
         "attempts": args.attempts,
         "budget_usd_per_function": args.budget,
         "jobs": jobs,

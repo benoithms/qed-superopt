@@ -309,3 +309,24 @@ def test_an_error_on_one_entry_does_not_stop_the_run(entry, fake_muse, monkeypat
     run = json.loads((tmp_path / "results" / "t" / "run.json").read_text())
     assert list(run["errors"]) == [str(broken)]
     assert (tmp_path / "results" / "t" / "srem-range.json").exists()
+
+
+def test_llmc_run_records_no_muse_settings(entry, monkeypatch, tmp_path):
+    from qed import llm_compiler
+
+    def generate(ir, history):
+        llm_compiler.last_call.clear()
+        llm_compiler.last_call.update(model="llm-compiler-7b", completion_tokens=10)
+        return RIGHT
+
+    monkeypatch.setattr(llm_compiler, "generate", generate)
+    monkeypatch.setattr(llm_compiler, "server", lambda: {"llama_cpp": "test"})
+    monkeypatch.setattr(loop.config, "LLMC_MODEL_SHA256", "0" * 64)
+    monkeypatch.setattr(loop.config, "LLMC_MACHINE", "test")
+    monkeypatch.setattr(loop.config, "RESULTS_DIR", tmp_path)
+    loop.main([str(entry), "--run-id", "t", "--backend", "llmc", "--attempts", "1"])
+    run = json.loads((tmp_path / "t" / "run.json").read_text())
+    res = json.loads((tmp_path / "t" / "srem-range.json").read_text())
+    assert run["settings"] is None and run["model"] == "llm-compiler-7b"
+    assert res["settings"] is None and res["budget_usd"] is None
+    assert res["best"] is not None
