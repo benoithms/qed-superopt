@@ -1,0 +1,9 @@
+{
+  "id": "abs-i32",
+  "category": "A",
+  "source": "handwritten",
+  "description": "Absolute value; lowers to llvm.abs",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": ""
+}

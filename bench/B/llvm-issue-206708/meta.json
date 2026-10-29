@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-206708",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/206708",
+  "description": "a ? 2 : 1 not folded to a + 1 when a is known to be 0 or 1",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "C taken from the issue's src reproducer; clang produces the issue's IR (icmp + select). expected.ll from the issue's tgt function (add nuw nsw a, 1), with the assume kept. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv."
+}

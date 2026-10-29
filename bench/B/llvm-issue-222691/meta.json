@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-222691",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/222691",
+  "description": "!umul_overflow(x, 3) && x * 3 <u 41 not folded to x <u 14",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "C translated from the IR reproducer in the issue, using __builtin_mul_overflow on the sign-extended value; expected.ll from the issue target. The proof module declares llvm.umul.with.overflow.i64 by hand (struct return type). expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-27: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv."
+}

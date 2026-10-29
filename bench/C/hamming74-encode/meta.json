@@ -1,0 +1,9 @@
+{
+  "id": "hamming74-encode",
+  "category": "C",
+  "source": "https://en.wikipedia.org/wiki/Hamming(7,4)",
+  "description": "Hamming(7,4) encoder: three parity bits and four data bits in the standard bit order",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Real-world error-correcting code; function written by us from the definition (bit order p1 p2 d1 p3 d2 d3 d4 from bit 0). clang trunk -O3 -march=skylake extracts every bit and combines them with xors, shifts and disjoint ors: 25 IR instructions. Whether a shorter form exists is unknown."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "cmp3-i64",
+  "category": "A",
+  "source": "handwritten",
+  "description": "Three-way compare of i64; lowers to llvm.scmp",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": ""
+}

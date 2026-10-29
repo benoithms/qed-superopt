@@ -1,0 +1,9 @@
+{
+  "id": "sext-field-12",
+  "category": "B",
+  "source": "https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend",
+  "description": "Sign extension of a 12-bit field by a conditional subtract not folded to shl + ashr",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Found while screening C candidates: the better version is the classic shift pair (Bit Twiddling Hacks, 'Sign extending from a constant bit-width'). Naive conditional-subtract sign extension of bits 4..15 written by us (real-world use: packed sensor and audio samples). clang trunk -O3 -march=skylake keeps an and, a compare and a select: 7 IR instructions. expected.ll is shl 16 then ashr 20: 3 IR instructions. The variable-width shift form is already optimal (A entry sext-var). No LLVM issue found for this pattern. Gain estimated by llvm-mca (godbolt llc and llvm-mca trunk, -mcpu=skylake, cycles per 100 iterations): 276 vs 110. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv."
+}

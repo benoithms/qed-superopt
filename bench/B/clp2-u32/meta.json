@@ -1,0 +1,9 @@
+{
+  "id": "clp2-u32",
+  "category": "B",
+  "source": "Hacker's Delight, 2nd ed. (H. S. Warren), section 3-2 \"Rounding Up/Down to the Next Power of 2\"",
+  "description": "Round up to the next power of 2 by or-shift smearing of x - 1 not folded to a ctlz-based shift",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Classic or-shift smear (also Bit Twiddling Hacks #RoundUpPowerOf2); function written by us from the idea. Moved from C to B: the better version is (2^32 >> ctlz(x - 1, false)) computed in i64 and truncated, which keeps the source's result 0 at x = 0 and x > 2^31; clang trunk itself emits this form for a C version written with __builtin_clzg. The bit_ceil form of llvm/llvm-project#61644 (shl 1, -ctlz(x - 1) & 31) returns 1 at those inputs and is rejected by Alive2 against this source. clang trunk -O3 -march=skylake keeps the 5 shift/or pairs: 13 IR instructions; expected.ll has 6. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-28: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, -O3 --target=x86_64-unknown-linux-gnu -march=skylake -emit-llvm -S -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv."
+}

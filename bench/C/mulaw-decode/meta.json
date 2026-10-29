@@ -1,0 +1,9 @@
+{
+  "id": "mulaw-decode",
+  "category": "C",
+  "source": "https://www.itu.int/rec/T-REC-G.711",
+  "description": "G.711 mu-law decode of one byte to a 16-bit linear sample",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Real-world telephony audio codec; function written by us from the G.711 expansion rule (invert, add the 0x84 bias to the mantissa, shift by the segment number, remove the bias, apply the sign). clang trunk -O3 -march=skylake: 13 IR instructions, with a variable shift and a final select between t - 0x84 and 0x84 - t. Whether a shorter form exists is unknown."
+}

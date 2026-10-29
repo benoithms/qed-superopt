@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-230793",
+  "category": "B",
+  "source": "https://github.com/llvm/llvm-project/issues/230793",
+  "description": "Select of 0 when nonpositive value <u 3 is redundant",
+  "known_solution": true,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27",
+  "notes": "C translated from the IR reproducer in the issue; expected.ll adapted from the issue target to clang's signature. expected.ll proven correct (refinement) by Alive2 alive-tv, 2026-10-27: src = clang trunk -O3 IR of src.c (godbolt cclang_trunk, x86_64-unknown-linux-gnu, -g0) renamed @src, tgt = expected.ll renamed @tgt, identical signature; output 'Transformation seems to be correct!' with no warning. Run on Alive2's own Compiler Explorer instance (alive2.llvm.org/ce, compiler id 'alive'), since godbolt.org does not host alive-tv. IR identical with -march=skylake."
+}

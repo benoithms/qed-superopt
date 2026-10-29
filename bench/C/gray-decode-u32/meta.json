@@ -1,0 +1,9 @@
+{
+  "id": "gray-decode-u32",
+  "category": "C",
+  "source": "Hacker's Delight, 2nd ed. (H. S. Warren), section 13-1 \"Gray Code\"",
+  "description": "Gray code to binary conversion by a prefix-xor shift cascade",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Standard non-loop Gray-to-binary conversion (also on the Wikipedia 'Gray code' page); function written by us from the idea. clang trunk -O3 -march=skylake keeps the five lshr/xor pairs: 11 IR instructions. Whether a shorter form exists is unknown."
+}

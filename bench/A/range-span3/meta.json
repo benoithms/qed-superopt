@@ -1,0 +1,9 @@
+{
+  "id": "range-span3",
+  "category": "A",
+  "source": "handwritten",
+  "description": "max(a,b,c) - min(a,b,c) on i64; 4x smin/smax + sub",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
+  "notes": "Source: genuinely original combination written for this corpus, no external reference."
+}

@@ -1,0 +1,9 @@
+{
+  "id": "bitfield-insert-u32",
+  "category": "C",
+  "source": "https://gitlab.com/qemu-project/qemu/-/blob/master/include/qemu/bitops.h (deposit32)",
+  "description": "Deposit a bit field of variable position and length into a u32 (QEMU deposit32)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "QEMU deposit32(value, start, length, fieldval), rewritten by us; its assert(start >= 0 && length > 0 && length <= 32 - start) becomes __builtin_assume. clang trunk -O3 -march=skylake: 13 IR instructions (assume compares included). Whether clang's form is optimal is unknown."
+}
