@@ -4,10 +4,11 @@
 A proven rewrite only counts if the normal pipeline keeps it: clang runs `opt -O3` on the IR
 before `llc`, so a rewrite that `opt -O3` turns back into clang's form is no gain in practice
 (e.g. cmp3-i64: InstCombine re-forms llvm.scmp). Each winning tgt.ll goes through the reference
-`opt -O3`, then llc + llvm-mca again. A win is kept when, against clang -O3:
-- throughput: llvm-mca's Block RThroughput is better by more than --min-speedup (5%, the
-  threshold fixed for both models). It has no dependency between calls;
-- latency: one call (llvm-mca -iterations=1) is not slower.
+`opt -O3`, then llc + llvm-mca again, in two measures against clang -O3:
+- throughput: llvm-mca's Block RThroughput, with no dependency between calls;
+- latency: one call (llvm-mca -iterations=1).
+A win is kept when one of them is better by more than --min-speedup (5%, the threshold fixed
+for both models) and the other is not worse: a real caller may need either.
 The chained figure (llvm-mca's default, 100 calls back to back, what cost() reports) is shown
 for the record but decides nothing: a register reused as a temporary there delays the next
 call's argument, a dependency no real caller has.
@@ -77,6 +78,11 @@ def winning_attempt(res: dict) -> dict:
     return next(a for a in run["attempts"] if a["n"] == best["n"] and a["check"] == "proven")
 
 
+def holds(throughput: float, latency: float, min_speedup: float) -> bool:
+    """Speedups over clang -O3: one beats the threshold, neither is a slowdown."""
+    return max(throughput, latency) > min_speedup and min(throughput, latency) >= 1.0
+
+
 def check(res: dict, min_speedup: float) -> dict:
     src, tgt = res["src_ll"], winning_attempt(res)["tgt_ll"]
     base, folded = cost(src), opt_o3(tgt)
@@ -92,7 +98,7 @@ def check(res: dict, min_speedup: float) -> dict:
         "throughput": throughput,
         "latency": latency,
         "back_to_clang": back_to_src,
-        "kept": not back_to_src and throughput > min_speedup and latency >= 1.0,
+        "kept": not back_to_src and holds(throughput, latency, min_speedup),
         "branch": has_branch(base.asm) or has_branch(c.asm),
     }
 
@@ -116,8 +122,8 @@ def main(argv=None):
     for r in sorted(rows, key=lambda r: (r["category"], r["id"])):
         if r["back_to_clang"]:
             verdict = "folded back to clang"
-        elif r["latency"] < 1.0:
-            verdict = "slower call"
+        elif min(r["throughput"], r["latency"]) < 1.0:
+            verdict = "slower on one measure"
         elif not r["kept"]:
             verdict = "below threshold"
         else:
