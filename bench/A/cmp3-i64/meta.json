@@ -5,5 +5,5 @@
   "description": "Three-way compare of i64; lowers to llvm.scmp",
   "known_solution": false,
   "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: already optimal",
-  "notes": ""
+  "notes": "Optimal IR (llvm.scmp), but x86 lowers scmp to cmp/setl/setg/sub/movsx: the proven body icmp slt + icmp sgt + zext + select gives cmp/setg/cmov, 1.61 vs 1.88 llvm-mca cycles (results/llmc-full-az4). opt -O3 folds it back to llvm.scmp, so the gain never reaches a normal build: a backend lowering issue, not a missed IR optimization, and no win for this corpus."
 }
