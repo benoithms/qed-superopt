@@ -4,11 +4,13 @@
 A proven rewrite only counts if the normal pipeline keeps it: clang runs `opt -O3` on the IR
 before `llc`, so a rewrite that `opt -O3` turns back into clang's form is no gain in practice
 (e.g. cmp3-i64: InstCombine re-forms llvm.scmp). Each winning tgt.ll goes through the reference
-`opt -O3`, then llc + llvm-mca again, in two measures that must both beat clang -O3 by more than
---min-speedup (5%, the threshold fixed for both models):
-- chained: llvm-mca's default, 100 calls back to back (what cost() reports). A register reused
-  as a temporary then delays the next call's argument, a dependency no real caller has;
-- one call: llvm-mca -iterations=1, independent of the next call.
+`opt -O3`, then llc + llvm-mca again. A win is kept when, against clang -O3:
+- throughput: llvm-mca's Block RThroughput is better by more than --min-speedup (5%, the
+  threshold fixed for both models). It has no dependency between calls;
+- latency: one call (llvm-mca -iterations=1) is not slower.
+The chained figure (llvm-mca's default, 100 calls back to back, what cost() reports) is shown
+for the record but decides nothing: a register reused as a temporary there delays the next
+call's argument, a dependency no real caller has.
 llvm-mca reads a function as one straight line, both sides of a branch included, which favors
 branch-free code: a win with a branch in clang's or the rewrite's assembly is marked "confirm on
 CPU" (i7-9700K, predictable and random inputs). Read-only: prints a table and writes nothing."""
@@ -38,6 +40,10 @@ def opt_o3(ll: str) -> str:
     if p.returncode:
         raise RuntimeError(f"opt: {p.stderr.strip()}")
     return p.stdout
+
+
+def block_rthroughput(mca_output: str) -> float:
+    return float(re.search(r"^Block RThroughput:\s+([\d.]+)", mca_output, re.M).group(1))
 
 
 def one_call_cycles(ll: str) -> int:
@@ -73,20 +79,21 @@ def winning_attempt(res: dict) -> dict:
 
 def check(res: dict, min_speedup: float) -> dict:
     src, tgt = res["src_ll"], winning_attempt(res)["tgt_ll"]
-    base = res["baseline"]["mca_cycles"]
-    folded = opt_o3(tgt)
+    base, folded = cost(src), opt_o3(tgt)
     c = cost(folded)
     back_to_src = _norm(folded) == _norm(opt_o3(src))
-    chained, one_call = base / c.mca_cycles, one_call_cycles(src) / one_call_cycles(folded)
+    throughput = block_rthroughput(base.mca_output) / block_rthroughput(c.mca_output)
+    latency = one_call_cycles(src) / one_call_cycles(folded)
     return {
         "id": res["id"],
         "category": res["category"],
         "speedup": res["best"]["speedup"],
-        "chained": chained,
-        "one_call": one_call,
+        "chained": base.mca_cycles / c.mca_cycles,
+        "throughput": throughput,
+        "latency": latency,
         "back_to_clang": back_to_src,
-        "kept": not back_to_src and chained > min_speedup and one_call > min_speedup,
-        "branch": has_branch(res["baseline"]["asm"]) or has_branch(c.asm),
+        "kept": not back_to_src and throughput > min_speedup and latency >= 1.0,
+        "branch": has_branch(base.asm) or has_branch(c.asm),
     }
 
 
@@ -105,22 +112,24 @@ def main(argv=None):
         if res["best"]:
             rows.append(check(res, args.min_speedup))
 
-    print(f"{'cat':4}{'function':30}{'loop':>8}{'chained':>9}{'one call':>10}  verdict")
+    print(f"{'cat':4}{'function':30}{'loop':>8}{'chained':>9}{'thruput':>9}{'latency':>9}  verdict")
     for r in sorted(rows, key=lambda r: (r["category"], r["id"])):
         if r["back_to_clang"]:
             verdict = "folded back to clang"
+        elif r["latency"] < 1.0:
+            verdict = "slower call"
         elif not r["kept"]:
             verdict = "below threshold"
         else:
             verdict = "kept, confirm on CPU (branch)" if r["branch"] else "kept"
         print(
             f"{r['category']:4}{r['id']:30}{r['speedup']:>7.2f}x{r['chained']:>8.2f}x"
-            f"{r['one_call']:>9.2f}x  {verdict}"
+            f"{r['throughput']:>8.2f}x{r['latency']:>8.2f}x  {verdict}"
         )
     kept = [r for r in rows if r["kept"]]
     solid = [r for r in kept if not r["branch"]]
     by_cat = {c: sum(r["category"] == c for r in kept) for c in "ABC"}
-    print(f"\n{len(kept)} of {len(rows)} wins kept in both measures {by_cat}")
+    print(f"\n{len(kept)} of {len(rows)} wins kept {by_cat}")
     print(f"{len(solid)} without any branch; {len(kept) - len(solid)} to confirm on the i7-9700K")
     return 0
 

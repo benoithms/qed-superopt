@@ -39,7 +39,7 @@ def test_a_rewrite_that_opt_folds_back_is_not_kept(tmp_path):
     assert res["best"]["speedup"] > 1.1  # the win the loop recorded
     r = fold_back.check(res, 1.0)
     assert r["back_to_clang"] and not r["kept"]
-    assert r["chained"] == 1.0 and r["one_call"] == 1.0
+    assert r["throughput"] == 1.0 and r["latency"] == 1.0
 
 
 def test_branches_are_detected_in_the_assembly():
