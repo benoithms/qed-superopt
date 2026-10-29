@@ -56,14 +56,16 @@ def check(res: dict, min_speedup: float) -> dict:
         "speedup": res["best"]["speedup"],
         "speedup_after_opt": base / after,
         "back_to_clang": back_to_src,
-        "kept": not back_to_src and base / after >= min_speedup,
+        "kept": not back_to_src and base / after > min_speedup,
     }
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("run_dir", type=Path)
-    ap.add_argument("--min-speedup", type=float, default=1.0, help="kept only above this")
+    ap.add_argument(
+        "--min-speedup", type=float, default=1.0, help="kept only above this (default: any gain)"
+    )
     args = ap.parse_args(argv)
     rows = []
     for p in sorted(args.run_dir.glob("*.json")):
