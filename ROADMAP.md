@@ -29,7 +29,7 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 - [x] Reference toolchain built on a second machine, same commits (independent reproduction): WSL2 Ubuntu 24.04, GCC, i7-9700K (Jules, Oct 29)
 - [x] Corpus: more C entries; `nlz-binsearch-u32` and `clp2-u32` to B; issues 210131, 227280, 225655 and the `__builtin_assume` / `__builtin_unreachable` issues added; variants removed and C entries with a known solution moved to B after review
 - [x] Corpus: settle `next-same-popcount` with the reference clang: stays C (Jules, Oct 29)
-- [ ] Corpus freeze: tag `corpus-v1` once `next-same-popcount` is settled; both full runs use that tag (Jules proposes, Benoit to confirm)
+- [x] Corpus freeze: tag `corpus-v1` (134 entries); both full runs use it. Sources are frozen; only the category of a few B entries may change once the measurement is settled (Jules and Benoit, Oct 29)
 
 ## M2: First results (Fri Oct 30 – Sun Nov 1)
 
@@ -42,7 +42,9 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 - [ ] Muse Spark vs. LLM Compiler comparison: proven-candidate rate, gains, cost (together)
 - [ ] Triage of real wins: gain on the final assembly, and `opt -O3` must not fold the rewrite back (Benoit)
   - [x] Fold-back check: `scripts/fold_back.py` runs `opt -O3` on every win and re-measures it (Jules). On `llmc-full-az4` it catches `cmp3-i64` (A, x1.17: `opt -O3` re-forms `llvm.scmp`, a backend lowering issue)
-  - [ ] Minimum gain: proposed 5% (`--min-speedup 1.05`); below it, llvm-mca differences of 0.01 cycle per call are 1 simulated cycle in 100 iterations (Jules proposes, Benoit to confirm)
+  - [x] Minimum gain: 5% (`--min-speedup 1.05`), fixed before the Muse Spark run and applied the same way to both models. llvm-mca is deterministic: 0.01 cycle per call is below its resolution (1 simulated cycle in 100 iterations), not noise (Jules and Benoit, Oct 29)
+  - [ ] Measurement: llvm-mca chains 100 calls, so a register reused as a temporary creates a false dependency on the next call's argument (zero-idiom test: zstd-fse-optimal-table-log x1.43 -> x1.00, 230424 x1.85 -> x1.00). It also reads both sides of a branch in a straight line, which favors branch-free rewrites. Proposal: a win counts only if it holds both chained and with independent calls; wins we put forward are confirmed on the i7-9700K. Changes what `cost()` means: to decide together (Benoit and Jules)
+  - [ ] No numbers announced (README, demo, LLVM issues) before the measurement is settled
   - [ ] The 7 C wins kept on `llmc-full-az4` (zstd-fse-optimal-table-log x1.43, zstd-cparam-row-size x1.23, median3-i32 x1.21 after opt, opus-silk-rshift-round x1.17, lua-shiftl x1.14, linux-ewma-add x1.11, zstd-compress-bound x1.07): search existing LLVM issues before calling any of them new, then measure on the i7-9700K (Jules)
 
 ## M3: Confirmation on real hardware (Mon Nov 2)
