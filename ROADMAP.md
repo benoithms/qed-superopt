@@ -9,7 +9,7 @@ Hackathon window: **Oct 26 – Nov 4, 2026**. Submission: **Wed Nov 4, 21:00 ET*
 - [x] Reference toolchain built and smoke-tested: LLVM `b974545` (clang 24.0.0git) and Alive2 `adacbd5` (Benoit)
 - [x] Python project skeleton with the frozen interfaces `generate()`, `verify()`, `cost()` (Benoit)
 - [x] Meta Model API access validated with `muse-spark-1.3` (Benoit)
-- [x] Corpus: 103 entries (24 A, 61 B, 18 C); the 103 compile and the 61 `expected.ll` are proven by Alive2 with the reference toolchain (Jules, re-checked by Benoit)
+- [x] Corpus: 134 entries (24 A, 61 B, 49 C, of which 31 from real projects); the 134 compile and the 61 `expected.ll` are proven by Alive2 with the reference toolchain (Jules, re-checked by Benoit)
 - [x] LLM Compiler 7B (Q8 GGUF) running locally with llama.cpp; first loop turn done by hand (Jules)
 
 ## M1: MVP, full loop on one function (Thu Oct 29)
@@ -26,7 +26,7 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 
 **Jules**
 - [x] LLM Compiler behind `generate(ir, history) -> body` (training prompt format, prefilled module header): `qed/llm_compiler.py`
-- [ ] Reference toolchain built on a second machine, same commits (independent reproduction)
+- [x] Reference toolchain built on a second machine, same commits (independent reproduction): WSL2 Ubuntu 24.04, GCC, i7-9700K (Jules, Oct 29)
 - [x] Corpus: more C entries; `nlz-binsearch-u32` and `clp2-u32` to B; issues 210131, 227280, 225655 and the `__builtin_assume` / `__builtin_unreachable` issues added; variants removed and C entries with a known solution moved to B after review
 - [ ] Corpus: settle `next-same-popcount` with the reference clang (Jules)
 
@@ -36,7 +36,7 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 - [x] Model choice (Benoit, Oct 28–29): Muse Spark vs. Muse Wonder on 15 entries (`results/pilot-wonder`); a Spark → Wonder fallback policy picked on that pilot did not hold on 14 unseen entries (1 real gain for $17, `results/validation-fallback`); 75% of all spend went to truncated answers, whose reasoning is lost. With one 64k cap and no retry after a truncation (`results/highcap-cascade`), Muse Spark matched or beat the old Muse Wonder results at a fraction of the cost, with a median of 9 s to its first proven win. **Decision: Muse Spark alone, 64k tokens, for the corpus.** Muse Wonder needs more than 64k tokens and 10 minutes per call on our largest functions: kept for a later experiment on truly large functions
 - [x] Spending controls: hard cap per run checked before every call (worst case reserved, cached answers free), streamed calls, no hidden client retries (Benoit)
 - [ ] Full corpus run with Muse Spark (Benoit)
-- [ ] Full corpus run with LLM Compiler (Jules)
+- [ ] Full corpus run with LLM Compiler (Jules), on one machine: RTX 4070 Ti (CUDA, 56 tokens/s vs. 7 on the M1 Mac mini). On 40 B entries × 3 attempts, CUDA and Metal wrote the same candidate 85% of the time and found the same 13 faster proven rewrites; the gap is a limitation to state in the paper. `run.json` records the llama.cpp build, GGUF sha256, quantization, GPU and generation settings
 - [ ] Ablation, three arms: independent samples, "rejected" only, full counterexample (Benoit)
 - [ ] Muse Spark vs. LLM Compiler comparison: proven-candidate rate, gains, cost (together)
 - [ ] Triage of real wins: gain on the final assembly, and `opt -O3` must not fold the rewrite back (Benoit)
@@ -51,7 +51,7 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 
 - [ ] Results in the README, demo page (together)
 - [x] `scripts/verify_all.py`: re-checks the corpus and re-runs Alive2 on every recorded proof, with hash checks (Benoit; Oct 29: 103 entries and 142 proofs, 0 problems)
-- [ ] The same check reproduced on a second machine (together)
+- [x] The same check reproduced on a second machine: WSL2 Ubuntu 24.04 built with GCC, 103 entries and 142 proofs, then 134 entries with real-code, 0 problems (Jules, Oct 29)
 - [ ] Demo video (together)
 - [ ] Submission (Benoit)
 

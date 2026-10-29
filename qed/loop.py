@@ -357,6 +357,10 @@ def main(argv=None):
             )
         return run_function(e, args.backend, settings, args.attempts, args.budget)
 
+    if args.backend == "llmc" and not (config.LLMC_MODEL_SHA256 and config.LLMC_MACHINE):
+        ap.error(
+            "set LLMC_MODEL_SHA256 and LLMC_MACHINE: a run must say which model and GPU answered"
+        )
     out = config.RESULTS_DIR / args.run_id
     out.mkdir(parents=True, exist_ok=True)
     run = {
@@ -377,6 +381,8 @@ def main(argv=None):
             "budget_usd_per_function": fallback_budget,
         },
         "system_prompt": llm.SYSTEM if args.backend == "muse" else llm_compiler.PROMPT,
+        "llm_compiler": args.backend == "llmc"
+        and {**llm_compiler.server(), "generation": llm_compiler.GENERATION},
         "toolchain": {
             "llvm": _git_head(config.TOOLCHAIN / "llvm-project"),
             "alive2": _git_head(config.TOOLCHAIN / "alive2"),
