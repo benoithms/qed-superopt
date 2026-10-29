@@ -4,8 +4,7 @@
     PYTHONPATH=. python scripts/pilot_sample.py --category C --n 5 --min-insts 10
     PYTHONPATH=. python scripts/pilot_sample.py --seed 20261029 --exclude-run results/pilot-wonder
 
-Excluded: entries where llc already recovers the optimization (no asm gain on Skylake), and
-C entries Jules moved to B (their solution is known).
+Excluded: C entries Jules moved to B (their solution is known).
 The draw depends on the corpus at the time: the exact entries of a past run are in its run.json."""
 
 import argparse
@@ -16,7 +15,7 @@ from qed.cost import ir_instructions
 from qed.extract import extract, function
 
 SEED = 20261028
-EXCLUDED = {"llvm-issue-230022", "llvm-issue-230719", "clp2-u32", "nlz-binsearch-u32"}
+EXCLUDED = {"clp2-u32", "nlz-binsearch-u32"}
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--category", default="B")

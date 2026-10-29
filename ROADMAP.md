@@ -9,7 +9,7 @@ Hackathon window: **Oct 26 – Nov 4, 2026**. Submission: **Wed Nov 4, 21:00 ET*
 - [x] Reference toolchain built and smoke-tested: LLVM `b974545` (clang 24.0.0git) and Alive2 `adacbd5` (Benoit)
 - [x] Python project skeleton with the frozen interfaces `generate()`, `verify()`, `cost()` (Benoit)
 - [x] Meta Model API access validated with `muse-spark-1.3` (Benoit)
-- [x] Corpus: 103 entries (22 A, 63 B, 18 C); the 103 compile and the 63 `expected.ll` are proven by Alive2 with the reference toolchain (Jules, re-checked by Benoit)
+- [x] Corpus: 103 entries (24 A, 61 B, 18 C); the 103 compile and the 61 `expected.ll` are proven by Alive2 with the reference toolchain (Jules, re-checked by Benoit)
 - [x] LLM Compiler 7B (Q8 GGUF) running locally with llama.cpp; first loop turn done by hand (Jules)
 
 ## M1: MVP, full loop on one function (Thu Oct 29)

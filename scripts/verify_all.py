@@ -3,9 +3,9 @@
     PYTHONPATH=. python scripts/verify_all.py --corpus   # corpus only
 
 Corpus: each entry against the CLAUDE.md rules (meta, size, category), and every expected.ll
-proven by Alive2 and faster than clang -O3 in llvm-mca cycles (or noted as having no assembly
-gain). Results: every attempt recorded as proven in results/*/*.json is proven again by Alive2,
-and the stored hashes must match the stored files. Exits with 1 on the first kind of failure."""
+proven by Alive2 and faster than clang -O3 in llvm-mca cycles. Results: every attempt
+recorded as proven in results/*/*.json is proven again by Alive2, and the stored hashes must
+match the stored files. Exits with 1 on the first kind of failure."""
 
 import argparse
 import json
@@ -38,10 +38,8 @@ def check_corpus() -> list[str]:
             r = verify(src, tgt)
             if r.status is not Status.PROVEN:
                 problems.append(f"{e}: expected.ll {r.status.value}")
-            elif cost(tgt).mca_cycles >= cost(src).mca_cycles and (
-                "no assembly gain" not in meta.get("notes", "").lower()
-            ):
-                problems.append(f"{e}: expected.ll not faster and not noted")
+            elif cost(tgt).mca_cycles >= cost(src).mca_cycles:
+                problems.append(f"{e}: expected.ll not faster")
     return problems
 
 

@@ -1,0 +1,9 @@
+{
+  "id": "llvm-issue-230022",
+  "category": "A",
+  "source": "https://github.com/llvm/llvm-project/issues/230022",
+  "description": "urem by 48 kept although only the low 4 bits are used",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-27: missed in the IR, but llc recovers it",
+  "notes": "C translated from the issue's urem_low_bits reproducer. The miss is real in the IR, but llc already recovers it: the issue's form `%2 = and i32 %0, 15` + `ret i32 %2` (no urem by 48) is proven correct (refinement) by Alive2 and gives the same llvm-mca cycles on Skylake as the source (measured by Benoit with the reference toolchain, 2026-10-28). No assembly gain, so it is an A entry (moved from B, 2026-10-29)."
+}
