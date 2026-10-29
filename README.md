@@ -40,7 +40,7 @@ flowchart LR
 1. **Extract** a function's IR as produced by `clang -O3`: the baseline to beat.
 2. **Propose**: a Meta model (Muse Spark via the Meta Model API) rewrites it.
 3. **Prove**: Alive2 checks the rewrite against the original with an SMT solver (Z3). If it is wrong, Alive2 produces a concrete input that breaks it, which goes back to the model.
-4. **Measure**: the proven rewrite is lowered to x86-64 assembly and scored with `llvm-mca`, then confirmed with a microbenchmark on real hardware.
+4. **Measure**: the proven rewrite is lowered to x86-64 assembly and scored with `llvm-mca` (Skylake). Confirmation with a microbenchmark on real hardware is in progress.
 
 ## Why you can trust the results
 
@@ -51,7 +51,7 @@ A superoptimizer is only as good as its proofs, so rigor is the core of the proj
 - **Strict reading of the prover**: only Alive2's exact success message counts. Timeouts, unsupported features and approximations count as *not proven*.
 - **No sleight of hand**: the source is the untouched `clang -O3` output, the rewrite must keep the exact same signature, and every result is stored with the files that were proven and their hashes.
 - **We test the tester**: a regression suite of deliberately wrong rewrites (`abs(INT_MIN)`, oversized shifts, introduced division by zero…) that the pipeline must reject, every time.
-- **Reproducible**: one command re-runs the prover on every published result.
+- **Reproducible**: one command (`scripts/verify_all.py`) re-checks the corpus and re-runs the prover on every recorded result, checking the stored hashes.
 - **Honest numbers**: one pinned LLVM commit, same target CPU on both sides, gains measured on the final assembly rather than on the IR.
 
 ## Benchmark
@@ -74,9 +74,10 @@ Everything in this repository was written during the hackathon. We build on the 
 |---|---|
 | The propose → prove → repair loop and its orchestration | [LLVM / clang](https://llvm.org) (Apache 2.0 with LLVM Exceptions) |
 | Prompts and counterexample feedback | [Alive2](https://github.com/AliveToolkit/alive2) (MIT) and [Z3](https://github.com/Z3Prover/z3) (MIT) |
-| The rigor layer: strict proof parsing, signature checks, verifier regression suite | Meta's Muse Spark model, via the Meta Model API |
-| The benchmark corpus and its evaluation | `llvm-mca` for performance estimates |
-| Measurement harness and result reporting | |
+| The rigor layer: strict proof parsing, signature checks, verifier regression suite | Meta's Muse Spark model (and Muse Wonder, in experiments), via the Meta Model API |
+| The benchmark corpus and its evaluation | Meta's LLM Compiler, run locally with [llama.cpp](https://github.com/ggml-org/llama.cpp) |
+| Spending controls: hard cap per run, response cache | `llvm-mca` for performance estimates |
+| Measurement harness and result reporting (in progress) | The `openai` Python client, only as the HTTP client of the Meta Model API (requests go to Meta, no OpenAI model is used) |
 
 ## Prior art
 
@@ -95,3 +96,5 @@ Our contribution: use an LLM as the *search heuristic*, steer it with the prover
 ## License
 
 [MIT](LICENSE)
+
+Built with LLM Compiler.

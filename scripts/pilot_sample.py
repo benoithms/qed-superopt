@@ -5,7 +5,8 @@
     PYTHONPATH=. python scripts/pilot_sample.py --seed 20261029 --exclude-run results/pilot-wonder
 
 Excluded: entries where llc already recovers the optimization (no asm gain on Skylake), and
-C entries Jules moved to B (their solution is known)."""
+C entries Jules moved to B (their solution is known).
+The draw depends on the corpus at the time: the exact entries of a past run are in its run.json."""
 
 import argparse
 import random
