@@ -57,6 +57,9 @@ class Settings:
     large_insts: int = 10
     max_tokens_large: int = 32_000
     max_tokens_after_win_large: int = 20_000
+    # A truncated answer loses all its reasoning (the API returns only the final answer), so a
+    # retry restarts the same search from scratch. With a high cap, stop instead of retrying.
+    stop_on_truncation: bool = False
 
 
 DEFAULT = Settings()
@@ -105,7 +108,13 @@ def cost_usd(model: str, tokens_in: float, tokens_out: float) -> float:
 def client() -> OpenAI:
     if not config.META_API_KEY:
         raise RuntimeError("META_API_KEY is missing: copy .env.example to .env and fill it in")
-    return OpenAI(api_key=config.META_API_KEY, base_url=config.META_API_BASE)
+    # The Meta Model API speaks the OpenAI wire format: this is only the HTTP client, every request
+    # goes to META_API_BASE. While the model reasons, a stream sends nothing: muse-wonder-1.0 was
+    # silent for more than the default 10 minutes at 60k tokens, hence 30. No automatic retry: a
+    # hidden retry could be billed twice without going through the run's spending cap.
+    return OpenAI(
+        api_key=config.META_API_KEY, base_url=config.META_API_BASE, timeout=1800, max_retries=0
+    )
 
 
 def first_message(ir: str, c_source: str | None, baseline=None, show_asm: bool = False) -> str:
@@ -138,6 +147,26 @@ def messages(ir, history, c_source=None, baseline=None, settings=DEFAULT) -> lis
     return msgs
 
 
+def _stream(request: dict):
+    """Streamed call: a non-streamed request is cut by the server (504) when the model reasons
+    for several minutes (muse-wonder-1.0 at 50k tokens). Same answer, received in pieces.
+    Returns (model, response, finish_reason, usage)."""
+    chunks = client().chat.completions.create(
+        **request, stream=True, stream_options={"include_usage": True}
+    )
+    model, parts, finish_reason, usage = request["model"], [], None, None
+    for c in chunks:
+        model = c.model or model
+        if c.choices:
+            if c.choices[0].delta and c.choices[0].delta.content:
+                parts.append(c.choices[0].delta.content)
+            finish_reason = c.choices[0].finish_reason or finish_reason
+        usage = c.usage or usage
+    if usage is None:
+        raise RuntimeError("streamed response without token usage: cost cannot be recorded")
+    return model, "".join(parts), finish_reason, usage
+
+
 def generate(ir: str, history: list, *, c_source=None, baseline=None, settings=DEFAULT) -> str:
     """Propose a faster version of the function in `ir`.
 
@@ -157,13 +186,12 @@ def generate(ir: str, history: list, *, c_source=None, baseline=None, settings=D
     else:
         request.pop("n_attempt", None)
         start = time.monotonic()
-        r = client().chat.completions.create(**request)
-        u = r.usage
+        model, response, finish_reason, u = _stream(request)
         details = u.completion_tokens_details
         record = {
-            "model": r.model,
-            "response": r.choices[0].message.content or "",
-            "finish_reason": r.choices[0].finish_reason,
+            "model": model,
+            "response": response,
+            "finish_reason": finish_reason,
             "tokens_in": u.prompt_tokens,
             "tokens_out": u.completion_tokens,
             "tokens_reasoning": (details.reasoning_tokens or 0) if details else 0,
