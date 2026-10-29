@@ -27,8 +27,12 @@ def first_win(res: dict) -> int | None:
 def summary(name: str, runs: dict[str, dict]) -> dict:
     wins = [r for r in runs.values() if r["best"]]
     speedups = [r["best"]["speedup"] for r in wins]
-    firsts = [first_win(r) for r in wins]
-    improved = sum(1 for r, f in zip(wins, firsts, strict=True) if r["best"]["n"] > f)
+    # With a fallback model, a win may come only from the fallback run: no first win here.
+    pairs = [(r, first_win(r)) for r in wins if first_win(r) is not None]
+    firsts = [f for _, f in pairs]
+    improved = sum(
+        1 for r, f in pairs if r["best"]["n"] > f and r["best"] == r.get("primary_best", r["best"])
+    )
     checks = Counter(a["check"] for r in runs.values() for a in r["attempts"])
     attempts = [a for r in runs.values() for a in r["attempts"]]
     paid = [a for a in attempts if not a.get("cached")]

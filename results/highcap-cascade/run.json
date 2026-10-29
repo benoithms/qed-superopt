@@ -1,0 +1,97 @@
+{
+ "run_id": "highcap-cascade",
+ "started": "2026-10-29T01:28:36.563541+00:00",
+ "backend": "muse",
+ "model": "muse-spark-1.3",
+ "settings": {
+  "model": "muse-spark-1.3",
+  "show_asm": "never",
+  "feedback": "full",
+  "max_tokens": 64000,
+  "max_tokens_after_win": 64000,
+  "large_insts": 10,
+  "max_tokens_large": 64000,
+  "max_tokens_after_win_large": 64000,
+  "stop_on_truncation": true
+ },
+ "attempts": 5,
+ "budget_usd_per_function": 1.5,
+ "jobs": 10,
+ "max_total_usd": 40.0,
+ "fallback": {
+  "model": "muse-wonder-1.0",
+  "when": "always",
+  "attempts": 5,
+  "budget_usd_per_function": 7.0588235294117645
+ },
+ "system_prompt": "You are a superoptimizer for LLVM IR. You receive one function compiled by clang -O3 for x86-64 (Skylake) and propose a faster version of it.\n\nYour rewrite is checked by Alive2, a formal verifier: it must be a refinement of the source.\n- For every input where the source has defined behavior, return the same value.\n- You may exploit undefined behavior that is already in the source (nsw, nuw, exact flags, poison, shifts past the bit width, division by zero): on those inputs, any result is allowed.\n- Never introduce undefined behavior the source does not have (no new nsw/nuw/exact flag, no possible division by zero, no new poison).\n- Only LLVM intrinsics may be called (llvm.ctpop, llvm.ctlz, llvm.cttz, llvm.abs, llvm.smin/smax/umin/umax, llvm.fshl/fshr, llvm.bswap, llvm.bitreverse, llvm.uadd.sat, ...). No memory access, no other function.\n\nSpeed is measured by llvm-mca on the x86-64 assembly that llc produces for your IR, in cycles per call. Fewer IR instructions is not the goal: a division or a branch can cost far more than several simple instructions.\n\nAnswer format:\n- Write only the function BODY in a ```llvm block: no `define` line, no closing brace. The original header (name, parameters, attributes) is kept as is.\n- Parameters keep their names (%0, %1, ...). Give your own values names (%t1, %t2, ...), never new numbers.\n- If, after at least one attempt, you believe the source is already optimal, answer NO_IMPROVEMENT followed by one sentence explaining why.",
+ "toolchain": {
+  "llvm": "b97454582dfbe2d5ebe7b7b1533de947bef16942",
+  "alive2": "adacbd5180ccf95075e9867c4f0c259f59c9fef2",
+  "clang_flags": [
+   "-O3",
+   "--target=x86_64-unknown-linux-gnu",
+   "-march=skylake",
+   "-S",
+   "-emit-llvm",
+   "-g0",
+   "-fdiscard-value-names"
+  ],
+  "llc_flags": [
+   "-O3",
+   "-mtriple=x86_64-unknown-linux-gnu",
+   "-mcpu=skylake"
+  ],
+  "mca_flags": [
+   "-mtriple=x86_64-unknown-linux-gnu",
+   "-mcpu=skylake"
+  ]
+ },
+ "entries": [
+  "bench/B/llvm-issue-234717",
+  "bench/B/llvm-issue-207909",
+  "bench/B/llvm-issue-220800",
+  "bench/B/llvm-issue-234884",
+  "bench/B/llvm-issue-231586",
+  "bench/B/llvm-issue-215060",
+  "bench/B/llvm-issue-222691",
+  "bench/B/llvm-issue-204851",
+  "bench/B/llvm-issue-221351",
+  "bench/B/llvm-issue-214416",
+  "bench/B/swap-two-bits",
+  "bench/B/varint-size-u64",
+  "bench/C/absdiff-chain",
+  "bench/C/median3-i32",
+  "bench/C/rgb565-to-rgb888",
+  "bench/B/llvm-issue-230763",
+  "bench/B/llvm-issue-227763",
+  "bench/B/llvm-issue-214956",
+  "bench/B/llvm-issue-233753",
+  "bench/B/llvm-issue-221129",
+  "bench/B/llvm-issue-229419",
+  "bench/B/llvm-issue-219147",
+  "bench/B/llvm-issue-211183",
+  "bench/C/hamming74-encode",
+  "bench/C/gray-decode-u32",
+  "bench/C/dos-time-to-seconds",
+  "bench/C/hex-encode-byte",
+  "bench/A/rotl-32",
+  "bench/A/pow2-test"
+ ],
+ "finished": "2026-10-29T03:11:40.258604+00:00",
+ "cost_usd": 23.86737925,
+ "skipped_by_max_total": [],
+ "errors": {
+  "bench/B/llvm-issue-230763": "InternalServerError('Error code: 504 - Request exceeded the non-streaming server time limit before a response was produced. For large or slow requests, use the streaming API by setting \"stream\": true.')",
+  "bench/C/dos-time-to-seconds": "InternalServerError('Error code: 504 - Request exceeded the non-streaming server time limit before a response was produced. For large or slow requests, use the streaming API by setting \"stream\": true.')",
+  "bench/C/gray-decode-u32": "InternalServerError('Error code: 504 - Request exceeded the non-streaming server time limit before a response was produced. For large or slow requests, use the streaming API by setting \"stream\": true.')",
+  "bench/C/rgb565-to-rgb888": "InternalServerError('Error code: 504 - Request exceeded the non-streaming server time limit before a response was produced. For large or slow requests, use the streaming API by setting \"stream\": true.')",
+  "bench/C/absdiff-chain": "InternalServerError('Error code: 504 - Request exceeded the non-streaming server time limit before a response was produced. For large or slow requests, use the streaming API by setting \"stream\": true.')",
+  "bench/B/llvm-issue-214956": "InternalServerError('Error code: 504 - Request exceeded the non-streaming server time limit before a response was produced. For large or slow requests, use the streaming API by setting \"stream\": true.')",
+  "bench/C/hamming74-encode": "InternalServerError('Error code: 504 - Request exceeded the non-streaming server time limit before a response was produced. For large or slow requests, use the streaming API by setting \"stream\": true.')",
+  "bench/B/llvm-issue-227763": "InternalServerError('Error code: 504 - Request exceeded the non-streaming server time limit before a response was produced. For large or slow requests, use the streaming API by setting \"stream\": true.')",
+  "bench/A/rotl-32": "InternalServerError('Error code: 504 - Request exceeded the non-streaming server time limit before a response was produced. For large or slow requests, use the streaming API by setting \"stream\": true.')",
+  "bench/A/pow2-test": "InternalServerError('Error code: 504 - Request exceeded the non-streaming server time limit before a response was produced. For large or slow requests, use the streaming API by setting \"stream\": true.')",
+  "bench/C/hex-encode-byte": "InternalServerError('Error code: 504 - Request exceeded the non-streaming server time limit before a response was produced. For large or slow requests, use the streaming API by setting \"stream\": true.')"
+ }
+}
