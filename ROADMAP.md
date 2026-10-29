@@ -22,7 +22,7 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 - [x] Verifier regression suite: 10 wrong rewrites rejected, 7 correct ones proven (`tests/test_verifier_regression.py`)
 - [x] `cost.py`: `llc` + `llvm-mca` for Skylake
 - [x] `llm.py`: Muse Spark `generate()`, with token (including reasoning tokens) and cost logging
-- [x] `loop.py`: propose, prove, repair; results written as JSON in `results/<run-id>/`; strict budget per function, and after a win the first truncated answer ends the search
+- [x] `loop.py`: propose, prove, repair; results written as JSON in `results/<run-id>/`; strict budget per function; one 64k token cap per call and a function stops at its first truncated answer (see M2)
 
 **Jules**
 - [x] LLM Compiler behind `generate(ir, history) -> body` (training prompt format, prefilled module header): `qed/llm_compiler.py`
@@ -32,7 +32,9 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 
 ## M2: First results (Fri Oct 30 – Sun Nov 1)
 
-- [ ] Anchoring pilot: ~10 random B entries, clang's assembly shown never / from the start / only in feedback; then freeze the prompt and disclose the choice (Benoit)
+- [x] Anchoring pilot: 10 random B entries, clang's assembly shown never / from the start / only in feedback: same wins, "never" is cheapest and has no anchoring risk, so the prompt never shows it (Benoit, `results/pilot-anchor-*`)
+- [x] Model choice (Benoit, Oct 28–29): Muse Spark vs. Muse Wonder on 15 entries (`results/pilot-wonder`); a Spark → Wonder fallback policy picked on that pilot did not hold on 14 unseen entries (1 real gain for $17, `results/validation-fallback`); 75% of all spend went to truncated answers, whose reasoning is lost. With one 64k cap and no retry after a truncation (`results/highcap-cascade`), Muse Spark matched or beat the old Muse Wonder results at a fraction of the cost, with a median of 9 s to its first proven win. **Decision: Muse Spark alone, 64k tokens, for the corpus.** Muse Wonder needs more than 64k tokens and 10 minutes per call on our largest functions: kept for a later experiment on truly large functions
+- [x] Spending controls: hard cap per run checked before every call (worst case reserved, cached answers free), streamed calls, no hidden client retries (Benoit)
 - [ ] Full corpus run with Muse Spark (Benoit)
 - [ ] Full corpus run with LLM Compiler (Jules)
 - [ ] Ablation, three arms: independent samples, "rejected" only, full counterexample (Benoit)
@@ -48,7 +50,8 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 ## M4: Submission (Tue Nov 3 – Wed Nov 4)
 
 - [ ] Results in the README, demo page (together)
-- [ ] `make verify-all`: re-runs Alive2 on every published result, reproduced on a second machine (together)
+- [x] `scripts/verify_all.py`: re-checks the corpus and re-runs Alive2 on every recorded proof, with hash checks (Benoit; Oct 29: 103 entries and 142 proofs, 0 problems)
+- [ ] The same check reproduced on a second machine (together)
 - [ ] Demo video (together)
 - [ ] Submission (Benoit)
 
@@ -72,6 +75,7 @@ Why it matters: more and more code is written by AI models, and it can only be t
 - [ ] Memory of wins: rewrites proven on *other* functions as few-shot examples (never `expected.ll`).
 - [ ] Corpus from real code: automatically extract small pure integer functions from open-source projects *(can start now)*.
 - [ ] Peephole rules: generalize wins into rules with symbolic constants, re-proven by Alive2.
+- [ ] Muse Wonder on truly large functions: needs a corpus of large functions, splitting them into pieces Alive2 can prove, and more than 64k tokens per call.
 
 **Tooling**
 - [x] Verifier regression suite: deliberately wrong rewrites that `verify.py` must reject (done in M1).
@@ -104,3 +108,5 @@ Evaluation rules that go with them:
 - **The model writes bodies, never headers.** The tool places the body under the source's exact header, so the signature and function attributes cannot change.
 - **Refinement, not equivalence.** Alive2 proves that the rewrite refines the original, the criterion LLVM uses for its own optimizations.
 - **Only Meta models generate candidates**: Muse Spark (API) and LLM Compiler (local).
+- **One high token cap, no blind retries.** The API returns no reasoning, so a truncated answer is lost and a retry starts over: Muse Spark gets 64k tokens per call and a function stops at its first truncation.
+- **Hard spending cap.** Every paid run has a cap checked before each call; only free credits are spent.
