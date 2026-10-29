@@ -20,7 +20,7 @@ Reject (and say why) any function that fails one of them:
 
 ## 2. Category
 
-- **A, control**: clang already produces optimal code. A B case that clang trunk now optimizes moves here.
+- **A, control**: clang already produces optimal code. A B case that clang trunk now optimizes moves here, and so does an LLVM issue whose IR miss `llc` already recovers (no assembly gain, see section 6).
 - **B, known miss**: a better version is known (LLVM issue, Souper) and it is faster in llvm-mca cycles on Skylake, not just shorter in IR (see section 6). Add `expected.ll` if available: only its body matters (the header comes from the source), and it will itself be proven by Alive2 against the source.
 - One optimization pattern = one entry: if a C entry has a known solution that is faster in cycles, it is a B entry (cite the issue in `notes`). A known form that is shorter in IR but not faster keeps the entry in C: write the form in `notes`, with no `expected.ll`.
 - An issue that does not reproduce from C: if clang already optimizes it, move it to A; if it was reported at IR level (e.g. from Rust) and the C does not produce the same IR, drop it for now.
@@ -62,7 +62,7 @@ Two versions that differ only on inputs where the source has UB (signed overflow
 
 ## 6. Cycle check (B)
 
-A miss in the IR is not always a miss in the assembly: `llc` sometimes recovers the optimization by itself. Once `expected.ll` is proven, compile the source IR and `expected.ll` with the reference `llc` (`-O3 -mtriple=x86_64-unknown-linux-gnu -mcpu=skylake`) and compare `llvm-mca -mcpu=skylake` cycles (`qed/cost.py` does both). Record the result in `notes`. If `expected.ll` is not faster: for an LLVM issue (the IR-level miss is real), keep it in B but say in `notes` that it has no assembly gain on Skylake (it cannot produce a win and is excluded from pilots); for any other entry, it is C, with the slower form written in `notes` and no `expected.ll`.
+A miss in the IR is not always a miss in the assembly: `llc` sometimes recovers the optimization by itself. Once `expected.ll` is proven, compile the source IR and `expected.ll` with the reference `llc` (`-O3 -mtriple=x86_64-unknown-linux-gnu -mcpu=skylake`) and compare `llvm-mca -mcpu=skylake` cycles (`qed/cost.py` does both). Record the result in `notes`. If `expected.ll` is not faster: for an LLVM issue whose miss `llc` already recovers (same cycles), it is A; for any other entry, it is C. In both cases, write the known form in `notes` and drop `expected.ll`.
 
 ## 7. Doubtful cases
 
