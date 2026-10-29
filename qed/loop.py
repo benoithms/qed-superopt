@@ -310,8 +310,10 @@ def main(argv=None):
     )
     ap.add_argument(
         "--stop-on-truncation",
-        action="store_true",
-        help="stop a function at its first truncated answer instead of retrying",
+        action=argparse.BooleanOptionalAction,
+        default=llm.DEFAULT.stop_on_truncation,
+        help="stop a function at its first truncated answer (default) or retry, as runs "
+        "before results/highcap-cascade did",
     )
     args = ap.parse_args(argv)
     jobs = 1 if args.backend == "llmc" else args.jobs  # one local llama-server

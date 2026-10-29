@@ -275,10 +275,10 @@ def test_stop_on_truncation_does_not_retry(entry, fake_muse):
 def test_max_tokens_option_sets_every_cap(entry, fake_muse, monkeypatch, tmp_path):
     fake_muse(RIGHT, f"{NO_IMPROVEMENT}: single range check.")
     monkeypatch.setattr(loop.config, "RESULTS_DIR", tmp_path)
-    loop.main([str(entry), "--run-id", "t", "--max-tokens", "64000", "--stop-on-truncation"])
-    assert fake_muse.max_tokens == [64000, 64000]
+    loop.main([str(entry), "--run-id", "t", "--max-tokens", "8000", "--no-stop-on-truncation"])
+    assert fake_muse.max_tokens == [8000, 8000]
     run = json.loads((tmp_path / "t" / "run.json").read_text())
-    assert run["settings"]["stop_on_truncation"] is True
+    assert run["settings"]["stop_on_truncation"] is False
 
 
 def test_fallback_budget_scales_with_the_output_price(entry, fake_muse, monkeypatch, tmp_path):
