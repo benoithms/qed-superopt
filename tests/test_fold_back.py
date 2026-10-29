@@ -42,6 +42,13 @@ def test_a_rewrite_that_opt_folds_back_is_not_kept(tmp_path):
     assert r["throughput"] == 1.0 and r["latency"] == 1.0
 
 
+def test_a_win_needs_one_measure_above_the_threshold_and_neither_slower():
+    assert fold_back.holds(1.30, 1.00, 1.05)  # throughput only
+    assert fold_back.holds(1.00, 1.10, 1.05)  # latency only
+    assert not fold_back.holds(1.04, 1.04, 1.05)  # below the threshold
+    assert not fold_back.holds(1.50, 0.91, 1.05)  # faster throughput, slower call
+
+
 def test_branches_are_detected_in_the_assembly():
     assert fold_back.has_branch("f:\n\ttestl %edi, %edi\n\tje .LBB0_2\n\tretq\n.Lfunc_end0:")
     assert not fold_back.has_branch("f:\n\tcmpq %rsi, %rdi\n\tcmovgel %ecx, %eax\n\tretq\n")
