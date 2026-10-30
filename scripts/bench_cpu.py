@@ -243,8 +243,9 @@ int main(void) {
     for (int i = 0; i < DISTINCT; i++) {
         for (int j = 0; j < NARGS; j++) a[j][0] = in[j][i];
         uint64_t s = (uint64_t)CALL(f_src, a, 0), t = (uint64_t)CALL(f_tgt, a, 0);
-        if ((@RET@)loop_f_src(&ext[0][i], 1) != (@RET@)s ||
-            (@RET@)loop_f_tgt(&ext[0][i], 1) != (@RET@)t) {
+        /* only the low bits of rax hold the result (al for a bool) */
+        if ((@RETU@)loop_f_src(&ext[0][i], 1) != (@RETU@)(@RET@)s ||
+            (@RETU@)loop_f_tgt(&ext[0][i], 1) != (@RETU@)(@RET@)t) {
             fprintf(stderr, "inline loop differs from the function on input %d\n", i);
             return 1;
         }
@@ -299,6 +300,7 @@ def driver(ll: str, reps: int, seed: int) -> str:
         "CALLS": str(CALLS),
         "REPS": str(reps),
         "RET": ret,
+        "RETU": "uint8_t" if ret == "bool" else ret.lstrip("u").replace("int", "uint", 1),
         "PARAMS": ", ".join(params),
         "CANDS": ",".join("{" + ",".join(f"{v}u" for v in c) + "}" for c in cands),
         "ARGS": ", ".join(f"({t})a[{j}][i]" for j, t in enumerate(params)),
