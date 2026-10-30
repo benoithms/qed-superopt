@@ -30,6 +30,33 @@ def test_renamed_changes_only_the_definition():
     assert "@f_src(i1" in out and "@f(" not in out
 
 
+ASM = """\t.text
+\t.globl\tf_src
+\t.type\tf_src,@function
+f_src:                                  # @f_src
+\t.cfi_startproc
+# %bb.0:
+\ttestl\t%edi, %edi
+\tje\t.LBB0_2
+\tmovl\t$1, %eax
+\tretq
+.LBB0_2:
+\txorl\t%eax, %eax
+\tretq
+.Lfunc_end0:
+\t.size\tf_src, .Lfunc_end0-f_src
+\t.cfi_endproc
+"""
+
+
+def test_inline_loop_turns_rets_into_jumps_and_loads_the_arguments():
+    out = bench_cpu.inline_loop(ASM, "f_src", 2)
+    assert "loop_f_src:" in out and "retq" not in out.split("loop_f_src:")[1].split("popq")[0]
+    assert out.count("jmp\t.Lnext_f_src") == 1  # the last ret falls through
+    assert "131072(%r12,%rbx,8), %rsi" in out  # 2nd argument: CALLS * 8 bytes further
+    assert ".cfi_" not in out and "\tf_src," not in out
+
+
 def test_summarize_needs_every_launch_above_the_threshold():
     def launch(src, tgt):
         m = {"src": {"median": src}, "tgt": {"median": tgt}, "nop": {"median": 1.0}}
@@ -62,4 +89,4 @@ def test_driver_runs_and_traps_are_dropped(tmp_path):
     exe = bench_cpu.build(src, src, tmp_path, 3, 1)
     out = bench_cpu.json.loads(bench_cpu._run([exe]))
     assert out["dropped"] > 0 and out["differ"] == 0
-    assert out["random"]["src"]["median"] > 0
+    assert out["random"]["src"]["median"] > 0 and out["random"]["inline_tgt"]["median"] > 0

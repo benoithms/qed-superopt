@@ -23,7 +23,15 @@ A chain of dependent adds (one cycle each, best of 5) gives the actual core freq
 start and at the end of each launch, which shows whether turbo was on or the CPU slowed down.
 Each launch is a separate process pinned with taskset; the spread between
 launches tells whether the measure is stable (under WSL2, taskset pins a virtual CPU only).
-A win holds in a mode when every launch is faster by more than --min-speedup."""
+A win holds in a mode when every launch is faster by more than --min-speedup.
+
+Inline measure, next to it: a call costs about 5 cycles, and most small branch-free functions
+sit at that floor (clang, rewrite and empty function equal). So each function's assembly from
+llc is also pasted, unchanged, into a loop written in assembly: the loop loads tuple i into the
+argument registers, runs the body, every ret becoming a jump to the end of the iteration, and
+xors the result. No call, no ret, no pointer; branches and several rets keep working, since
+their labels stay in the same file. Before timing, each inline loop must return what the
+function returns on every input, or the run stops. Rows "<mode>_inline" in the table."""
 
 import argparse
 import json
@@ -46,6 +54,7 @@ DISTINCT = 64
 ALIGN = ["-align-all-functions=6"]
 CALLS = 16384
 _PARAM = re.compile(r"(i\d+)([^,)]*)")
+ARG_REGS = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
 
 
 def c_type(ir_type: str, attrs: str) -> str:
@@ -110,7 +119,18 @@ DRIVER = r"""
 static const uint64_t cand[CANDIDATES][NARGS] = {@CANDS@};
 static uint64_t keep[DISTINCT][NARGS];
 static uint64_t in[NARGS][CALLS];
+static uint64_t ext[NARGS][CALLS]; /* in, extended as the caller would to 64-bit registers */
 static uint64_t sink;
+
+uint64_t loop_f_src(const uint64_t *args, uint64_t n);
+uint64_t loop_f_tgt(const uint64_t *args, uint64_t n);
+uint64_t loop_f_nop(const uint64_t *args, uint64_t n);
+typedef uint64_t (*loop_t)(const uint64_t *, uint64_t);
+static loop_t volatile loops[3] = {loop_f_src, loop_f_tgt, loop_f_nop};
+
+static void extend(void) {
+@EXT@
+}
 
 #define CALL(fn, a, i) fn(@ARGS@)
 
@@ -169,6 +189,12 @@ __attribute__((noinline)) static double time_calls(fn_t fn) {
     return out;
 }
 
+__attribute__((noinline)) static double time_inline(loop_t lp) {
+    uint64_t t0 = tsc();
+    sink ^= lp(&ext[0][0], CALLS);
+    return (double)(tsc() - t0) / CALLS;
+}
+
 static int cmp(const void *a, const void *b) {
     double x = *(const double *)a, y = *(const double *)b;
     return (x > y) - (x < y);
@@ -182,17 +208,16 @@ static void stats(const char *name, double *v, double tpc, int last) {
 }
 
 static void measure(const char *mode, double tpc, int last) {
-    static double src[REPS], tgt[REPS], nop[REPS];
-    double *out[3] = {src, tgt, nop};
+    static double out[6][REPS];
+    static const char *names[6] = {"src", "tgt", "nop", "inline_src", "inline_tgt", "inline_nop"};
+    extend();
     for (int r = 0; r < REPS; r++)
-        for (int k = 0; k < 3; k++) {
-            int v = (r + k) % 3;
-            out[v][r] = time_calls(fns[v]);
+        for (int k = 0; k < 6; k++) {
+            int v = (r + k) % 6;
+            out[v][r] = v < 3 ? time_calls(fns[v]) : time_inline(loops[v - 3]);
         }
     printf("\"%s\": {", mode);
-    stats("src", src, tpc, 0);
-    stats("tgt", tgt, tpc, 0);
-    stats("nop", nop, tpc, 1);
+    for (int v = 0; v < 6; v++) stats(names[v], out[v], tpc, v == 5);
     printf("}%s", last ? "" : ", ");
 }
 
@@ -210,6 +235,21 @@ int main(void) {
     }
     signal(SIGFPE, SIG_DFL);
     if (kept < DISTINCT) { fprintf(stderr, "only %d inputs without a trap\n", kept); return 1; }
+
+    /* the inline loops must compute what the functions compute */
+    for (int i = 0; i < DISTINCT; i++)
+        for (int j = 0; j < NARGS; j++) in[j][i] = keep[i][j];
+    extend();
+    for (int i = 0; i < DISTINCT; i++) {
+        for (int j = 0; j < NARGS; j++) a[j][0] = in[j][i];
+        uint64_t s = (uint64_t)CALL(f_src, a, 0), t = (uint64_t)CALL(f_tgt, a, 0);
+        /* only the low bits of rax hold the result (al for a bool) */
+        if ((@RETU@)loop_f_src(&ext[0][i], 1) != (@RETU@)(@RET@)s ||
+            (@RETU@)loop_f_tgt(&ext[0][i], 1) != (@RETU@)(@RET@)t) {
+            fprintf(stderr, "inline loop differs from the function on input %d\n", i);
+            return 1;
+        }
+    }
 
     double ghz = tsc_ghz(), tpc_start = ticks_per_cycle();
     printf("{\"tsc_ghz\": %.4f, \"core_ghz_start\": %.4f, \"dropped\": %d, \"differ\": %d, ",
@@ -244,6 +284,7 @@ NOP = """\t.text
 f_nop:
 \txorl\t%eax, %eax
 \tretq
+.Lfunc_end_nop:
 \t.size\tf_nop, .-f_nop
 \t.section\t".note.GNU-stack","",@progbits
 """
@@ -259,11 +300,69 @@ def driver(ll: str, reps: int, seed: int) -> str:
         "CALLS": str(CALLS),
         "REPS": str(reps),
         "RET": ret,
+        "RETU": "uint8_t" if ret == "bool" else ret.lstrip("u").replace("int", "uint", 1),
         "PARAMS": ", ".join(params),
         "CANDS": ",".join("{" + ",".join(f"{v}u" for v in c) + "}" for c in cands),
         "ARGS": ", ".join(f"({t})a[{j}][i]" for j, t in enumerate(params)),
+        "EXT": "\n".join(
+            f"    for (int i = 0; i < CALLS; i++) ext[{j}][i] = (uint64_t)(int64_t)({t})in[{j}][i];"
+            for j, t in enumerate(params)
+        ),
     }
     return re.sub(r"@([A-Z]+)@", lambda m: subs[m.group(1)], DRIVER)
+
+
+def inline_loop(asm: str, name: str, nargs: int) -> str:
+    """`name`'s body from llc's assembly, pasted into loop_<name>(args, n): for i < n, load
+    args[j * CALLS + i] into the j-th argument register, run the body (each ret jumps to the end
+    of the iteration) and xor the results. The rest of the file (constants) is kept."""
+    lines = asm.splitlines()
+    start = next(i for i, x in enumerate(lines) if x.split("#")[0].strip() == f"{name}:")
+    end = next(i for i in range(start, len(lines)) if lines[i].startswith(".Lfunc_end"))
+    body = []
+    for line in lines[start + 1 : end]:
+        s = line.strip()
+        if s.startswith(".cfi_"):
+            continue
+        if re.match(r"call|jmp\s+[^.\s]", s):
+            raise ValueError(f"{name} calls or tail-calls out: {s}")
+        body.append(f"\tjmp\t.Lnext_{name}" if re.match(r"(rep\s+)?retq?\b", s) else line)
+    # the last ret falls through to the end of the iteration, no jump needed
+    while body and not body[-1].strip():
+        body.pop()
+    if body and body[-1] == f"\tjmp\t.Lnext_{name}":
+        body.pop()
+    rest = [
+        x
+        for x in lines[:start] + lines[end:]
+        if not re.search(rf"\b{name}\b", x) and not x.strip().startswith(".cfi_")
+    ]
+    loop = [
+        "\t.text",
+        "\t.p2align\t6",
+        f"\t.globl\tloop_{name}",
+        f"\t.type\tloop_{name},@function",
+        f"loop_{name}:",
+        *[f"\tpushq\t%{r}" for r in ("rbx", "r12", "r13", "r14", "r15")],
+        "\tmovq\t%rdi, %r12",
+        "\tmovq\t%rsi, %r13",
+        "\txorl\t%ebx, %ebx",
+        "\txorl\t%r14d, %r14d",
+        "\t.p2align\t6",
+        f".Ltop_{name}:",
+        *[f"\tmovq\t{j * CALLS * 8}(%r12,%rbx,8), %{ARG_REGS[j]}" for j in range(nargs)],
+        *body,
+        f".Lnext_{name}:",
+        "\txorq\t%rax, %r14",
+        "\tincq\t%rbx",
+        "\tcmpq\t%r13, %rbx",
+        f"\tjb\t.Ltop_{name}",
+        "\tmovq\t%r14, %rax",
+        *[f"\tpopq\t%{r}" for r in ("r15", "r14", "r13", "r12", "rbx")],
+        "\tretq",
+        f"\t.size\tloop_{name}, .-loop_{name}",
+    ]
+    return "\n".join(rest + loop) + "\n"
 
 
 def renamed(ll: str, name: str) -> str:
@@ -286,17 +385,29 @@ def build(src_ll: str, tgt_ll: str, d: Path, reps: int, seed: int) -> Path:
         _run([config.LLC, *config.LLC_FLAGS, *ALIGN, d / f"{name}.ll", "-o", d / f"{name}.s"])
         objs.append(d / f"{name}.s")
     (d / "nop.s").write_text(NOP)
+    objs.append(d / "nop.s")
+    nargs = len(signature(src_ll)[1])
+    for name in ("f_src", "f_tgt", "f_nop"):
+        path = d / ("nop.s" if name == "f_nop" else f"{name}.s")
+        (d / f"loop_{name}.s").write_text(inline_loop(path.read_text(), name, nargs))
+        objs.append(d / f"loop_{name}.s")
     (d / "driver.c").write_text(driver(src_ll, reps, seed))
     exe = d / "bench"
     flags = ["-O2", f"-march={config.CPU}", "-falign-functions=64", "-falign-loops=64"]
-    _run([config.CLANG, *flags, "-o", exe, d / "driver.c", *objs, d / "nop.s"])
+    _run([config.CLANG, *flags, "-o", exe, d / "driver.c", *objs])
     return exe
+
+
+# (mode, variant prefix): called through the timing loop, then pasted inline
+MEASURES = [(m, p) for p in ("", "inline_") for m in ("predictable", "random")]
 
 
 def summarize(launches: list[dict], min_speedup: float) -> dict:
     out = {}
-    for mode in ("predictable", "random"):
-        med = {v: [r[mode][v]["median"] for r in launches] for v in ("src", "tgt", "nop")}
+    for mode, prefix in MEASURES:
+        if prefix + "src" not in launches[0][mode]:
+            continue
+        med = {v: [r[mode][prefix + v]["median"] for r in launches] for v in ("src", "tgt", "nop")}
         speedups = [s / t for s, t in zip(med["src"], med["tgt"], strict=True)]
         triples = zip(med["src"], med["tgt"], med["nop"], strict=True)
         # a rewrite as cheap as the empty function leaves no net time to compare
@@ -310,7 +421,7 @@ def summarize(launches: list[dict], min_speedup: float) -> dict:
             verdict = "slower"
         else:
             verdict = "no clear gain"
-        out[mode] = {
+        out[mode + ("_inline" if prefix else "")] = {
             "cycles": {v: statistics.median(med[v]) for v in med},
             "speedup": statistics.median(speedups),
             "speedup_range": [min(speedups), max(speedups)],
@@ -395,21 +506,24 @@ def main(argv=None):
         print(f"{fid}: done", file=sys.stderr)
 
     print(
-        f"{'cat':4}{'function':30}{'mode':12}{'clang':>8}{'rewrite':>8}{'speedup':>9}"
+        f"{'cat':4}{'function':30}{'mode':20}{'clang':>8}{'rewrite':>8}{'speedup':>9}"
         f"{'range':>14}{'spread':>8}  verdict"
     )
     for r in sorted(rows, key=lambda r: (r["category"], r["id"])):
-        for mode in ("predictable", "random"):
+        for mode in (m + ("_inline" if p else "") for m, p in MEASURES):
+            if mode not in r:
+                continue
             m = r[mode]
             lo, hi = m["speedup_range"]
             print(
-                f"{r['category']:4}{r['id']:30}{mode:12}{m['cycles']['src']:>8.2f}"
+                f"{r['category']:4}{r['id']:30}{mode:20}{m['cycles']['src']:>8.2f}"
                 f"{m['cycles']['tgt']:>8.2f}{m['speedup']:>8.2f}x{lo:>7.2f}-{hi:.2f}x"
                 f"{max(m['spread'].values()):>7.1%}  {m['verdict']}"
             )
     ghz = [(x["core_ghz_start"], x["core_ghz_end"]) for r in rows for x in r["launches"]]
     print(
-        f"\ncycles per call, overhead included; core clock {min(min(g) for g in ghz):.2f}"
+        "\ncycles per call (inline: per iteration), overhead included; "
+        f"core clock {min(min(g) for g in ghz):.2f}"
         f"-{max(max(g) for g in ghz):.2f} GHz"
     )
     if args.out:
