@@ -151,19 +151,36 @@ def _stream(request: dict):
     """Streamed call: a non-streamed request is cut by the server (504) when the model reasons
     for several minutes (muse-wonder-1.0 at 50k tokens). Same answer, received in pieces.
     Returns (model, response, finish_reason, usage)."""
-    chunks = client().chat.completions.create(
-        **request, stream=True, stream_options={"include_usage": True}
-    )
+    start = last = time.monotonic()
     model, parts, finish_reason, usage = request["model"], [], None, None
-    for c in chunks:
-        model = c.model or model
-        if c.choices:
-            if c.choices[0].delta and c.choices[0].delta.content:
-                parts.append(c.choices[0].delta.content)
-            finish_reason = c.choices[0].finish_reason or finish_reason
-        usage = c.usage or usage
+
+    def where() -> str:
+        # Why streams get cut is unknown: record when, and how long the stream had been silent.
+        now = time.monotonic()
+        return (
+            f"after {now - start:.0f} s, {len(parts)} content chunks, "
+            f"last chunk {now - last:.0f} s before, finish_reason {finish_reason}"
+        )
+
+    try:
+        chunks = client().chat.completions.create(
+            **request, stream=True, stream_options={"include_usage": True}
+        )
+        for c in chunks:
+            last = time.monotonic()
+            model = c.model or model
+            if c.choices:
+                if c.choices[0].delta and c.choices[0].delta.content:
+                    parts.append(c.choices[0].delta.content)
+                finish_reason = c.choices[0].finish_reason or finish_reason
+            usage = c.usage or usage
+    except Exception as exc:
+        exc.add_note(f"stream failed {where()}")
+        raise
     if usage is None:
-        raise RuntimeError("streamed response without token usage: cost cannot be recorded")
+        raise RuntimeError(
+            f"streamed response without token usage: cost cannot be recorded ({where()})"
+        )
     return model, "".join(parts), finish_reason, usage
 
 
