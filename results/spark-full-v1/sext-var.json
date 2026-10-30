@@ -1,0 +1,66 @@
+{
+ "id": "sext-var",
+ "category": "A",
+ "backend": "muse",
+ "model": "muse-spark-1.3",
+ "settings": {
+  "model": "muse-spark-1.3",
+  "show_asm": "never",
+  "feedback": "full",
+  "max_tokens": 64000,
+  "max_tokens_after_win": 64000,
+  "large_insts": 10,
+  "max_tokens_large": 64000,
+  "max_tokens_after_win_large": 64000,
+  "stop_on_truncation": true
+ },
+ "src_ll": "; ModuleID = 'bench/A/sext-var/src.c'\nsource_filename = \"bench/A/sext-var/src.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\n; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable\ndefine dso_local i32 @f(i32 noundef %0, i32 noundef %1) local_unnamed_addr #0 {\n  %3 = sub i32 0, %1\n  %4 = and i32 %3, 31\n  %5 = shl i32 %0, %4\n  %6 = ashr exact i32 %5, %4\n  ret i32 %6\n}\n\nattributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable \"min-legal-vector-width\"=\"0\" \"no-trapping-math\"=\"true\" \"stack-protector-buffer-size\"=\"8\" \"target-cpu\"=\"skylake\" \"target-features\"=\"+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+crc32,+cx16,+cx8,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves\" }\n\n!llvm.module.flags = !{!0, !1, !2}\n!llvm.ident = !{!3}\n!llvm.errno.tbaa = !{!4}\n\n!0 = !{i32 8, !\"PIC Level\", i32 2}\n!1 = !{i32 7, !\"PIE Level\", i32 2}\n!2 = !{i32 7, !\"uwtable\", i32 2}\n!3 = !{!\"clang version 24.0.0git (https://github.com/llvm/llvm-project.git b97454582dfbe2d5ebe7b7b1533de947bef16942)\"}\n!4 = !{!5, !6, i64 0}\n!5 = !{!\"__libc_errno\", !6, i64 0}\n!6 = !{!\"int\", !7, i64 0}\n!7 = !{!\"omnipotent char\", !8, i64 0}\n!8 = !{!\"Simple C/C++ TBAA\"}\n",
+ "src_sha256": "15e01881e4c39134a6b3d693b64ccc17976d27d9e5d26718dfd0362f19fa87c4",
+ "baseline": {
+  "ir_insts": 5,
+  "asm_insts": 4,
+  "mca_cycles": 1.6,
+  "asm": "f:                                      # @f\n\t.cfi_startproc\n# %bb.0:\n\tnegb\t%sil\n\tshlxl\t%esi, %edi, %eax\n\tsarxl\t%esi, %eax, %eax\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      400\nTotal Cycles:      160\nTotal uOps:        600\n\nDispatch Width:    6\nuOps Per Cycle:    3.75\nIPC:               2.50\nBlock RThroughput: 1.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        negb\t%sil\n 1      1     0.50                        shlxl\t%esi, %edi, %eax\n 1      1     0.50                        sarxl\t%esi, %eax, %eax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     1.50   0.99   0.50   0.50    -     1.00   1.51    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -      -     0.27    -      -      -     0.72   0.01    -     negb\t%sil\n -      -     0.50    -      -      -      -      -     0.50    -     shlxl\t%esi, %edi, %eax\n -      -     1.00    -      -      -      -      -      -      -     sarxl\t%esi, %eax, %eax\n -      -      -     0.72   0.50   0.50    -     0.28   1.00    -     retq\n"
+ },
+ "attempts": [
+  {
+   "n": 1,
+   "model": "muse-spark-1.3",
+   "response": "```llvm\n%t1 = sub i32 0, %1\n%t2 = call i32 @llvm.x86.bmi.shlx.32(i32 %0, i32 %t1)\n%t3 = call i32 @llvm.x86.bmi.sarx.32(i32 %t2, i32 %t1)\nret i32 %t3\n```",
+   "finish_reason": "stop",
+   "tokens_in": 577,
+   "tokens_out": 14149,
+   "tokens_reasoning": 14058,
+   "cost_usd": 0.0608545,
+   "seconds": 80.84265579099883,
+   "cached": true,
+   "body": "%t1 = sub i32 0, %1\n%t2 = call i32 @llvm.x86.bmi.shlx.32(i32 %0, i32 %t1)\n%t3 = call i32 @llvm.x86.bmi.sarx.32(i32 %t2, i32 %t1)\nret i32 %t3",
+   "tgt_ll": "; ModuleID = 'bench/A/sext-var/src.c'\nsource_filename = \"bench/A/sext-var/src.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\n; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable\ndefine dso_local i32 @f(i32 noundef %0, i32 noundef %1) local_unnamed_addr #0 {\n%t1 = sub i32 0, %1\n%t2 = call i32 @llvm.x86.bmi.shlx.32(i32 %0, i32 %t1)\n%t3 = call i32 @llvm.x86.bmi.sarx.32(i32 %t2, i32 %t1)\nret i32 %t3\n}\n\nattributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable \"min-legal-vector-width\"=\"0\" \"no-trapping-math\"=\"true\" \"stack-protector-buffer-size\"=\"8\" \"target-cpu\"=\"skylake\" \"target-features\"=\"+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+crc32,+cx16,+cx8,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves\" }\n\n!llvm.module.flags = !{!0, !1, !2}\n!llvm.ident = !{!3}\n!llvm.errno.tbaa = !{!4}\n\n!0 = !{i32 8, !\"PIC Level\", i32 2}\n!1 = !{i32 7, !\"PIE Level\", i32 2}\n!2 = !{i32 7, !\"uwtable\", i32 2}\n!3 = !{!\"clang version 24.0.0git (https://github.com/llvm/llvm-project.git b97454582dfbe2d5ebe7b7b1533de947bef16942)\"}\n!4 = !{!5, !6, i64 0}\n!5 = !{!\"__libc_errno\", !6, i64 0}\n!6 = !{!\"int\", !7, i64 0}\n!7 = !{!\"omnipotent char\", !8, i64 0}\n!8 = !{!\"Simple C/C++ TBAA\"}\n",
+   "tgt_sha256": "2eded8d94749d5ba8c212a5cdafc2d483223b3f9958c28b1db91065172ad437c",
+   "check": "not_proven",
+   "alive2_output": "Could not read bitcode from '/var/folders/9q/4w716j_n6ln_s6g0h256cl4c0000gn/T/tmpi8wiap08/tgt.ll'\n/var/folders/9q/4w716j_n6ln_s6g0h256cl4c0000gn/T/tmpi8wiap08/tgt.ll:10:16: error: unknown intrinsic 'llvm.x86.bmi.sarx.32'\n%t3 = call i32 @llvm.x86.bmi.sarx.32(i32 %t2, i32 %t1)\n               ^\n",
+   "alive2_seconds": 0.04184404099942185,
+   "feedback": "Alive2 could not prove it (invalid IR, timeout or error):\nCould not read bitcode from '/var/folders/9q/4w716j_n6ln_s6g0h256cl4c0000gn/T/tmpi8wiap08/tgt.ll'\n/var/folders/9q/4w716j_n6ln_s6g0h256cl4c0000gn/T/tmpi8wiap08/tgt.ll:10:16: error: unknown intrinsic 'llvm.x86.bmi.sarx.32'\n%t3 = call i32 @llvm.x86.bmi.sarx.32(i32 %t2, i32 %t1)\n               ^"
+  },
+  {
+   "n": 2,
+   "model": "muse-spark-1.3",
+   "response": "NO_IMPROVEMENT The sequence already computes the masked count in two ALU ops and sign-extends with two dependent variable shifts that lower to the minimal neg/and/shlx/sarx on Skylake, and any correct generic IR needs at least those two shifts and count ops.",
+   "finish_reason": "stop",
+   "tokens_in": 817,
+   "tokens_out": 25750,
+   "tokens_reasoning": 25684,
+   "cost_usd": 0.11045875,
+   "seconds": 193.9871982090117,
+   "cached": false,
+   "check": "no_improvement"
+  }
+ ],
+ "best": null,
+ "stop": "no_improvement",
+ "cost_usd": 0.17131325,
+ "large": false,
+ "budget_usd": 1.5,
+ "verified_by": "alive-tv, reference toolchain"
+}
