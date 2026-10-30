@@ -16,9 +16,12 @@ Any gap between the two modes is the cost of mispredicted branches.
 
 Timing: the time-stamp counter around 16384 calls, the clang version, the rewrite and an empty
 function in turn, repeated --reps times; the median per call is kept. The empty function gives
-the loop and call overhead. A chain of dependent adds (one cycle each) gives the actual core
-frequency at the start and at the end of each launch, which shows whether turbo was on or the
-CPU slowed down. Each launch is a separate process pinned with taskset; the spread between
+the loop and call overhead. One timing loop, called through a pointer, serves all three
+functions, and every function starts on a 64-byte boundary: on Skylake the position of a jump
+against 32-byte boundaries changes its cost, which made a constant function look slower.
+A chain of dependent adds (one cycle each, best of 5) gives the actual core frequency at the
+start and at the end of each launch, which shows whether turbo was on or the CPU slowed down.
+Each launch is a separate process pinned with taskset; the spread between
 launches tells whether the measure is stable (under WSL2, taskset pins a virtual CPU only).
 A win holds in a mode when every launch is faster by more than --min-speedup."""
 
@@ -39,6 +42,8 @@ from qed import config
 from qed.extract import function
 
 DISTINCT = 64
+# Every measured function and the timing loop start on a 64-byte boundary: same layout for all.
+ALIGN = ["-align-all-functions=6"]
 CALLS = 16384
 _PARAM = re.compile(r"(i\d+)([^,)]*)")
 
@@ -120,7 +125,7 @@ static uint64_t tsc(void) {
 }
 
 /* TSC ticks per core cycle: 10 dependent adds per iteration, one cycle each. */
-static double ticks_per_cycle(void) {
+static double ticks_per_cycle_once(void) {
     uint64_t n = 20000000, x = 0, t0 = tsc();
     __asm__ volatile("1:\n"
                      "add $1, %0\n add $1, %0\n add $1, %0\n add $1, %0\n add $1, %0\n"
@@ -128,6 +133,16 @@ static double ticks_per_cycle(void) {
                      "dec %1\n jnz 1b"
                      : "+r"(x), "+r"(n));
     return (double)(tsc() - t0) / (20000000.0 * 10);
+}
+
+/* Best of 5: a pause of the (virtual) CPU only makes one try look slower. */
+static double ticks_per_cycle(void) {
+    double best = ticks_per_cycle_once();
+    for (int k = 1; k < 5; k++) {
+        double t = ticks_per_cycle_once();
+        if (t < best) best = t;
+    }
+    return best;
 }
 
 static double tsc_ghz(void) {
@@ -140,13 +155,19 @@ static double tsc_ghz(void) {
     return (double)(t1 - t0) / ((b.tv_sec - a.tv_sec) * 1e9 + (b.tv_nsec - a.tv_nsec));
 }
 
-#define TIME(fn, out)                                                         \
-    do {                                                                      \
-        uint64_t s = 0, t0 = tsc();                                           \
-        for (int i = 0; i < CALLS; i++) s ^= (uint64_t)CALL(fn, in, i);       \
-        out = (double)(tsc() - t0) / CALLS;                                   \
-        sink ^= s;                                                            \
-    } while (0)
+/* One timing loop for all three functions: a copy per function would sit at its own address,
+   and on Skylake the position of a jump against 32-byte boundaries changes its cost. The
+   pointers are volatile so that the compiler cannot clone the loop per function. */
+typedef @RET@ (*fn_t)(@PARAMS@);
+static fn_t volatile fns[3] = {f_src, f_tgt, f_nop};
+
+__attribute__((noinline)) static double time_calls(fn_t fn) {
+    uint64_t s = 0, t0 = tsc();
+    for (int i = 0; i < CALLS; i++) s ^= (uint64_t)CALL(fn, in, i);
+    double out = (double)(tsc() - t0) / CALLS;
+    sink ^= s;
+    return out;
+}
 
 static int cmp(const void *a, const void *b) {
     double x = *(const double *)a, y = *(const double *)b;
@@ -162,15 +183,12 @@ static void stats(const char *name, double *v, double tpc, int last) {
 
 static void measure(const char *mode, double tpc, int last) {
     static double src[REPS], tgt[REPS], nop[REPS];
-    for (int r = 0; r < REPS; r++) {
+    double *out[3] = {src, tgt, nop};
+    for (int r = 0; r < REPS; r++)
         for (int k = 0; k < 3; k++) {
-            switch ((r + k) % 3) {
-            case 0: TIME(f_src, src[r]); break;
-            case 1: TIME(f_tgt, tgt[r]); break;
-            case 2: TIME(f_nop, nop[r]); break;
-            }
+            int v = (r + k) % 3;
+            out[v][r] = time_calls(fns[v]);
         }
-    }
     printf("\"%s\": {", mode);
     stats("src", src, tpc, 0);
     stats("tgt", tgt, tpc, 0);
@@ -220,6 +238,7 @@ int main(void) {
 """
 
 NOP = """\t.text
+\t.p2align\t6
 \t.globl\tf_nop
 \t.type\tf_nop,@function
 f_nop:
@@ -264,14 +283,13 @@ def build(src_ll: str, tgt_ll: str, d: Path, reps: int, seed: int) -> Path:
     objs = []
     for name, ll in (("f_src", src_ll), ("f_tgt", tgt_ll)):
         (d / f"{name}.ll").write_text(renamed(ll, name))
-        _run([config.LLC, *config.LLC_FLAGS, d / f"{name}.ll", "-o", d / f"{name}.s"])
+        _run([config.LLC, *config.LLC_FLAGS, *ALIGN, d / f"{name}.ll", "-o", d / f"{name}.s"])
         objs.append(d / f"{name}.s")
     (d / "nop.s").write_text(NOP)
     (d / "driver.c").write_text(driver(src_ll, reps, seed))
     exe = d / "bench"
-    _run(
-        [config.CLANG, "-O2", f"-march={config.CPU}", "-o", exe, d / "driver.c", *objs, d / "nop.s"]
-    )
+    flags = ["-O2", f"-march={config.CPU}", "-falign-functions=64", "-falign-loops=64"]
+    _run([config.CLANG, *flags, "-o", exe, d / "driver.c", *objs, d / "nop.s"])
     return exe
 
 
