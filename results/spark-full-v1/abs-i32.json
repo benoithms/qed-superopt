@@ -1,0 +1,74 @@
+{
+ "id": "abs-i32",
+ "category": "A",
+ "backend": "muse",
+ "model": "muse-spark-1.3",
+ "settings": {
+  "model": "muse-spark-1.3",
+  "show_asm": "never",
+  "feedback": "full",
+  "max_tokens": 64000,
+  "max_tokens_after_win": 64000,
+  "large_insts": 10,
+  "max_tokens_large": 64000,
+  "max_tokens_after_win_large": 64000,
+  "stop_on_truncation": true
+ },
+ "src_ll": "; ModuleID = 'bench/A/abs-i32/src.c'\nsource_filename = \"bench/A/abs-i32/src.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\n; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable\ndefine dso_local range(i32 0, -2147483648) i32 @f(i32 noundef %0) local_unnamed_addr #0 {\n  %2 = tail call i32 @llvm.abs.i32(i32 %0, i1 true)\n  ret i32 %2\n}\n\n; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)\ndeclare i32 @llvm.abs.i32(i32, i1 immarg) #1\n\nattributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable \"min-legal-vector-width\"=\"0\" \"no-trapping-math\"=\"true\" \"stack-protector-buffer-size\"=\"8\" \"target-cpu\"=\"skylake\" \"target-features\"=\"+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+crc32,+cx16,+cx8,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves\" }\nattributes #1 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }\n\n!llvm.module.flags = !{!0, !1, !2}\n!llvm.ident = !{!3}\n!llvm.errno.tbaa = !{!4}\n\n!0 = !{i32 8, !\"PIC Level\", i32 2}\n!1 = !{i32 7, !\"PIE Level\", i32 2}\n!2 = !{i32 7, !\"uwtable\", i32 2}\n!3 = !{!\"clang version 24.0.0git (https://github.com/llvm/llvm-project.git b97454582dfbe2d5ebe7b7b1533de947bef16942)\"}\n!4 = !{!5, !6, i64 0}\n!5 = !{!\"__libc_errno\", !6, i64 0}\n!6 = !{!\"int\", !7, i64 0}\n!7 = !{!\"omnipotent char\", !8, i64 0}\n!8 = !{!\"Simple C/C++ TBAA\"}\n",
+ "src_sha256": "7cb74519e1ed33bbe946e2b37a18dd7dee673c21245784e5bc32de34619e2ea1",
+ "baseline": {
+  "ir_insts": 2,
+  "asm_insts": 4,
+  "mca_cycles": 1.34,
+  "asm": "f:                                      # @f\n\t.cfi_startproc\n# %bb.0:\n\tmovl\t%edi, %eax\n\tnegl\t%eax\n\tcmovsl\t%edi, %eax\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      400\nTotal Cycles:      134\nTotal uOps:        600\n\nDispatch Width:    6\nuOps Per Cycle:    4.48\nIPC:               2.99\nBlock RThroughput: 1.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        movl\t%edi, %eax\n 1      1     0.25                        negl\t%eax\n 1      1     0.50                        cmovsl\t%edi, %eax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     1.25   1.24   0.50   0.50    -     1.25   1.26    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.01   0.49    -      -      -     0.25   0.25    -     movl\t%edi, %eax\n -      -      -      -      -      -      -     1.00    -      -     negl\t%eax\n -      -     0.99    -      -      -      -      -     0.01    -     cmovsl\t%edi, %eax\n -      -     0.25   0.75   0.50   0.50    -      -     1.00    -     retq\n"
+ },
+ "attempts": [
+  {
+   "n": 1,
+   "model": "muse-spark-1.3",
+   "response": "```llvm\n  %t1 = ashr i32 %0, 31\n  %t2 = xor i32 %0, %t1\n  %t3 = sub i32 %t2, %t1\n  ret i32 %t3\n```",
+   "finish_reason": "stop",
+   "tokens_in": 519,
+   "tokens_out": 3830,
+   "tokens_reasoning": 3763,
+   "cost_usd": 0.01692625,
+   "seconds": 19.082374582998455,
+   "cached": true,
+   "body": "  %t1 = ashr i32 %0, 31\n  %t2 = xor i32 %0, %t1\n  %t3 = sub i32 %t2, %t1\n  ret i32 %t3",
+   "tgt_ll": "; ModuleID = 'bench/A/abs-i32/src.c'\nsource_filename = \"bench/A/abs-i32/src.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\n; Function Attrs: mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable\ndefine dso_local range(i32 0, -2147483648) i32 @f(i32 noundef %0) local_unnamed_addr #0 {\n  %t1 = ashr i32 %0, 31\n  %t2 = xor i32 %0, %t1\n  %t3 = sub i32 %t2, %t1\n  ret i32 %t3\n}\n\n; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)\ndeclare i32 @llvm.abs.i32(i32, i1 immarg) #1\n\nattributes #0 = { mustprogress nofree norecurse nosync nounwind willreturn memory(none) uwtable \"min-legal-vector-width\"=\"0\" \"no-trapping-math\"=\"true\" \"stack-protector-buffer-size\"=\"8\" \"target-cpu\"=\"skylake\" \"target-features\"=\"+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+crc32,+cx16,+cx8,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves\" }\nattributes #1 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }\n\n!llvm.module.flags = !{!0, !1, !2}\n!llvm.ident = !{!3}\n!llvm.errno.tbaa = !{!4}\n\n!0 = !{i32 8, !\"PIC Level\", i32 2}\n!1 = !{i32 7, !\"PIE Level\", i32 2}\n!2 = !{i32 7, !\"uwtable\", i32 2}\n!3 = !{!\"clang version 24.0.0git (https://github.com/llvm/llvm-project.git b97454582dfbe2d5ebe7b7b1533de947bef16942)\"}\n!4 = !{!5, !6, i64 0}\n!5 = !{!\"__libc_errno\", !6, i64 0}\n!6 = !{!\"int\", !7, i64 0}\n!7 = !{!\"omnipotent char\", !8, i64 0}\n!8 = !{!\"Simple C/C++ TBAA\"}\n",
+   "tgt_sha256": "5e6347478abbc05780f3d04e29776a77e67c09cd0ac1be3e62bc783e9cdc2cc5",
+   "check": "proven",
+   "alive2_output": "\n----------------------------------------\ndefine i32 @f(i32 noundef %#0) nofree willreturn memory(none) {\n#1:\n  %#2 = abs i32 noundef %#0, 1\n  %#range_0_%#2 = !range i32 %#2, i32 0, i32 2147483648\n  ret i32 %#range_0_%#2\n}\n=>\ndefine i32 @f(i32 noundef %#0) nofree willreturn memory(none) {\n#1:\n  %t1 = ashr i32 noundef %#0, 31\n  %t2 = xor i32 noundef %#0, %t1\n  %t3 = sub i32 %t2, %t1\n  %#range_0_%t3 = !range i32 %t3, i32 0, i32 2147483648\n  ret i32 %#range_0_%t3\n}\nTransformation seems to be correct!\n\nSummary:\n  1 correct transformations\n  0 incorrect transformations\n  0 failed-to-prove transformations\n  0 Alive2 errors\n",
+   "alive2_seconds": 0.04905270900053438,
+   "cost": {
+    "ir_insts": 4,
+    "asm_insts": 4,
+    "mca_cycles": 1.34,
+    "asm": "f:                                      # @f\n\t.cfi_startproc\n# %bb.0:\n\tmovl\t%edi, %eax\n\tnegl\t%eax\n\tcmovsl\t%edi, %eax\n\tretq\n.Lfunc_end0:",
+    "mca_output": "Iterations:        100\nInstructions:      400\nTotal Cycles:      134\nTotal uOps:        600\n\nDispatch Width:    6\nuOps Per Cycle:    4.48\nIPC:               2.99\nBlock RThroughput: 1.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        movl\t%edi, %eax\n 1      1     0.25                        negl\t%eax\n 1      1     0.50                        cmovsl\t%edi, %eax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     1.25   1.24   0.50   0.50    -     1.25   1.26    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.01   0.49    -      -      -     0.25   0.25    -     movl\t%edi, %eax\n -      -      -      -      -      -      -     1.00    -      -     negl\t%eax\n -      -     0.99    -      -      -      -      -     0.01    -     cmovsl\t%edi, %eax\n -      -     0.25   0.75   0.50   0.50    -      -     1.00    -     retq\n"
+   },
+   "faster": false,
+   "feedback": "Proven correct. Cost: 1.34 cycles per call, clang: 1.34.\nNot faster: find a faster version."
+  },
+  {
+   "n": 2,
+   "model": "muse-spark-1.3",
+   "response": "NO_IMPROVEMENT The source already lowers to the minimal mov neg cmov sequence which uses the fewest uops with only one port-06 uop and any mask-based alternative needs at least as many instructions with the same bottleneck so it cannot be beaten.",
+   "finish_reason": "stop",
+   "tokens_in": 616,
+   "tokens_out": 25556,
+   "tokens_reasoning": 25494,
+   "cost_usd": 0.109383,
+   "seconds": 113.19496370900015,
+   "cached": true,
+   "check": "no_improvement"
+  }
+ ],
+ "best": null,
+ "stop": "no_improvement",
+ "cost_usd": 0.12630924999999998,
+ "large": false,
+ "budget_usd": 1.5,
+ "verified_by": "alive-tv, reference toolchain"
+}
