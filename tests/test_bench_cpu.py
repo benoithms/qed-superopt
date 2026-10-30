@@ -90,3 +90,25 @@ def test_driver_runs_and_traps_are_dropped(tmp_path):
     out = bench_cpu.json.loads(bench_cpu._run([exe]))
     assert out["dropped"] > 0 and out["differ"] == 0
     assert out["random"]["src"]["median"] > 0 and out["random"]["inline_tgt"]["median"] > 0
+
+
+def test_overall_needs_one_faster_and_no_slower_number():
+    def row(*verdicts):
+        modes = ("predictable", "random", "predictable_inline", "random_inline")
+        return {m: {"verdict": v} for m, v in zip(modes, verdicts, strict=True)} | {"id": "f"}
+
+    assert (
+        bench_cpu.overall(row("no clear gain", "no clear gain", "faster", "faster")) == "confirmed"
+    )
+    assert bench_cpu.overall(row("slower", "faster", "slower", "faster")) == "depends on context"
+    assert bench_cpu.overall(row("slower", "slower", "no clear gain", "no clear gain")) == "slower"
+    assert bench_cpu.overall(row(*["no clear gain"] * 4)) == "no gain"
+
+
+def test_slower_needs_every_launch_below_098():
+    def launch(src, tgt):
+        m = {"src": {"median": src}, "tgt": {"median": tgt}, "nop": {"median": 1.0}}
+        return {"predictable": m, "random": m}
+
+    assert bench_cpu.summarize([launch(9.9, 10)], 1.05)["random"]["verdict"] == "no clear gain"
+    assert bench_cpu.summarize([launch(9.7, 10)], 1.05)["random"]["verdict"] == "slower"

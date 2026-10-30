@@ -42,6 +42,7 @@ import statistics
 import subprocess
 import sys
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 from fold_back import check, opt_o3, winning_attempt
@@ -398,6 +399,8 @@ def build(src_ll: str, tgt_ll: str, d: Path, reps: int, seed: int) -> Path:
     return exe
 
 
+# Slower only when every launch is below this: the inline spread between launches is 1.3-1.4%.
+SLOWER = 0.98
 # (mode, variant prefix): called through the timing loop, then pasted inline
 MEASURES = [(m, p) for p in ("", "inline_") for m in ("predictable", "random")]
 
@@ -417,7 +420,7 @@ def summarize(launches: list[dict], min_speedup: float) -> dict:
         }
         if min(speedups) > min_speedup:
             verdict = "faster"
-        elif max(speedups) < 1.0:
+        elif max(speedups) < SLOWER:
             verdict = "slower"
         else:
             verdict = "no clear gain"
@@ -430,6 +433,42 @@ def summarize(launches: list[dict], min_speedup: float) -> dict:
             "verdict": verdict,
         }
     return out
+
+
+def overall(row: dict) -> str:
+    """Rule fixed with Benoit on Oct 30, after seeing the data: confirmed when one of the four
+    numbers (call or inline, predictable or random inputs) is faster and none is slower."""
+    verdicts = [row[k]["verdict"] for k in row if isinstance(row[k], dict) and "verdict" in row[k]]
+    faster, slower = "faster" in verdicts, "slower" in verdicts
+    if faster:
+        return "depends on context" if slower else "confirmed"
+    return "slower" if slower else "no gain"
+
+
+def print_overall(rows: list[dict]) -> None:
+    """The four numbers behind every verdict: call and inline, predictable and random."""
+    print(f"\n{'cat':4}{'function':30}{'call pred/rand':>16}{'inline pred/rand':>18}  overall")
+    for r in sorted(rows, key=lambda r: (r["category"], r["id"])):
+        call = "/".join(f"{r[m]['speedup']:.2f}" for m in ("predictable", "random"))
+        inline = ("predictable_inline", "random_inline")
+        inl = "/".join(f"{r[m]['speedup']:.2f}" if m in r else "-" for m in inline)
+        print(f"{r['category']:4}{r['id']:30}{call:>16}{inl:>18}  {r['overall']}")
+    counts: dict = {}
+    for r in rows:
+        counts.setdefault(r["overall"], Counter())[r["category"]] += 1
+    for verdict, by_cat in sorted(counts.items()):
+        cats = ", ".join(f"{n} {c}" for c, n in sorted(by_cat.items()))
+        print(f"{verdict}: {sum(by_cat.values())} ({cats})")
+
+
+def resummarize(path: Path, min_speedup: float) -> list[dict]:
+    """Apply the current rule to saved launches, without timing anything again."""
+    data = json.loads(path.read_text())
+    for row in data["results"]:
+        row.update(summarize(row["launches"], min_speedup))
+        row["overall"] = overall(row)
+    path.write_text(json.dumps(data, indent=1) + "\n")
+    return data["results"]
 
 
 def conditions(args) -> dict:
@@ -461,8 +500,8 @@ def conditions(args) -> dict:
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("run_dir", type=Path)
-    ap.add_argument("--machine", required=True, help="turbo on/off, power plan, what else runs")
+    ap.add_argument("run_dir", type=Path, help="or a saved bench JSON: apply the rule again")
+    ap.add_argument("--machine", help="turbo on/off, power plan, what else runs (required)")
     ap.add_argument("--ids", nargs="*", help="these functions (default: kept wins with a branch)")
     ap.add_argument("--all-kept", action="store_true", help="every kept win, branch or not")
     ap.add_argument("--launches", type=int, default=5)
@@ -472,6 +511,11 @@ def main(argv=None):
     ap.add_argument("--min-speedup", type=float, default=1.05)
     ap.add_argument("--out", type=Path, help="write the full results as JSON")
     args = ap.parse_args(argv)
+    if args.run_dir.suffix == ".json":
+        print_overall(resummarize(args.run_dir, args.min_speedup))
+        return 0
+    if not args.machine:
+        ap.error("--machine is required to time anything")
 
     results = {}
     for p in sorted(args.run_dir.glob("*.json")):
@@ -503,6 +547,7 @@ def main(argv=None):
                 **summarize(launches, args.min_speedup),
             }
         )
+        rows[-1]["overall"] = overall(rows[-1])
         print(f"{fid}: done", file=sys.stderr)
 
     print(
@@ -526,6 +571,7 @@ def main(argv=None):
         f"core clock {min(min(g) for g in ghz):.2f}"
         f"-{max(max(g) for g in ghz):.2f} GHz"
     )
+    print_overall(rows)
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(

@@ -516,7 +516,8 @@
      "tgt": 0.004478791604461125
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "linux-ewma-add",
@@ -1014,7 +1015,8 @@
      "tgt": 0.012831622450339948
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "llvm-issue-204851",
@@ -1512,7 +1514,8 @@
      "tgt": 0.01788878093387444
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-207089",
@@ -2010,7 +2013,8 @@
      "tgt": 0.013966037136962435
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-207218",
@@ -2508,7 +2512,8 @@
      "tgt": 0.012783865332698112
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-210131",
@@ -3006,7 +3011,8 @@
      "tgt": 0.010605074821080014
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-214956",
@@ -3504,7 +3510,8 @@
      "tgt": 0.003382578600150163
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-219147",
@@ -4002,7 +4009,8 @@
      "tgt": 0.014254385964912334
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-221129",
@@ -4500,7 +4508,8 @@
      "tgt": 0.001747830279652786
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-222691",
@@ -4998,7 +5007,8 @@
      "tgt": 0.0022313765877102093
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-223348",
@@ -5496,7 +5506,8 @@
      "tgt": 0.01231860690099961
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-229419",
@@ -5994,7 +6005,8 @@
      "tgt": 0.044291774836953055
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-231063",
@@ -6492,7 +6504,8 @@
      "tgt": 0.03053380782918145
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-231089",
@@ -6990,7 +7003,8 @@
      "tgt": 0.004803218911102702
     },
     "verdict": "slower"
-   }
+   },
+   "overall": "slower"
   },
   {
    "id": "llvm-issue-231124",
@@ -7488,7 +7502,8 @@
      "tgt": 0.010883074132545089
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "llvm-issue-233753",
@@ -7986,7 +8001,8 @@
      "tgt": 0.021002386634844886
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "lua-shiftl",
@@ -8484,7 +8500,8 @@
      "tgt": 0.0032932723151275897
     },
     "verdict": "no clear gain"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "median3-i32",
@@ -8982,7 +8999,8 @@
      "tgt": 0.0198453813660636
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "opus-silk-rshift-round",
@@ -9480,7 +9498,8 @@
      "tgt": 0.011390979368248543
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "popcount-bits-u8",
@@ -9978,7 +9997,8 @@
      "tgt": 0.0014459613961933379
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "zstd-compress-bound",
@@ -10476,7 +10496,8 @@
      "tgt": 0.00820003231539837
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "zstd-cparam-row-size",
@@ -10974,7 +10995,8 @@
      "tgt": 0.006060717032262813
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   }
  ]
 }

@@ -516,7 +516,8 @@
      "tgt": 0.015470579291470344
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "bitfield-insert-u32",
@@ -1014,7 +1015,8 @@
      "tgt": 0.061084420041180545
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "brotli-combine-length-codes",
@@ -1512,7 +1514,8 @@
      "tgt": 0.01028765729319208
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "brotli-copy-length-code",
@@ -2010,7 +2013,8 @@
      "tgt": 0.0018234406438631177
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "clp2-u32",
@@ -2508,7 +2512,8 @@
      "tgt": 0.005549762873768182
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "dos-time-to-seconds",
@@ -3006,7 +3011,8 @@
      "tgt": 0.007464374575887775
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "fletcher16-update",
@@ -3504,7 +3510,8 @@
      "tgt": 0.009052424689118243
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "hamming74-encode",
@@ -4002,7 +4009,8 @@
      "tgt": 0.008448187515602244
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "has-zero-byte-u32",
@@ -4500,7 +4508,8 @@
      "tgt": 0.006443787430824066
     },
     "verdict": "slower"
-   }
+   },
+   "overall": "slower"
   },
   {
    "id": "hex-digit-value",
@@ -4998,7 +5007,8 @@
      "tgt": 0.007313317936874568
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "leap-year-u32",
@@ -5496,7 +5506,8 @@
      "tgt": 0.030755645263025135
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "libcxx-days-from-civil",
@@ -5994,7 +6005,8 @@
      "tgt": 0.0029088134663757827
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "linux-ewma-add",
@@ -6492,7 +6504,8 @@
      "tgt": 0.01832695825710957
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "linux-timespec64-to-ns",
@@ -6990,7 +7003,8 @@
      "tgt": 0.005955135298259791
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "llvm-issue-204851",
@@ -7488,7 +7502,8 @@
      "tgt": 0.03270894197170198
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-206577",
@@ -7986,7 +8001,8 @@
      "tgt": 0.00892038858679046
     },
     "verdict": "slower"
-   }
+   },
+   "overall": "slower"
   },
   {
    "id": "llvm-issue-206708",
@@ -8484,7 +8500,8 @@
      "tgt": 0.013579642769757767
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-207089",
@@ -8982,7 +8999,8 @@
      "tgt": 0.018591772151898618
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-207131",
@@ -9480,7 +9498,8 @@
      "tgt": 0.02659057795046129
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-207218",
@@ -9978,7 +9997,8 @@
      "tgt": 0.020854891347608057
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-209929",
@@ -10476,7 +10496,8 @@
      "tgt": 0.011957550695032534
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-210131",
@@ -10974,7 +10995,8 @@
      "tgt": 0.017042867364860468
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-211183",
@@ -11472,7 +11494,8 @@
      "tgt": 0.0045375683971707855
     },
     "verdict": "slower"
-   }
+   },
+   "overall": "slower"
   },
   {
    "id": "llvm-issue-212903",
@@ -11970,7 +11993,8 @@
      "tgt": 0.02845318158303166
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-214416",
@@ -12468,7 +12492,8 @@
      "tgt": 0.004796565256767175
     },
     "verdict": "no clear gain"
-   }
+   },
+   "overall": "no gain"
   },
   {
    "id": "llvm-issue-214956",
@@ -12966,7 +12991,8 @@
      "tgt": 0.01753476313928819
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-215060",
@@ -13464,7 +13490,8 @@
      "tgt": 0.008994220443897263
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-218231",
@@ -13962,7 +13989,8 @@
      "tgt": 0.00948334257035523
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-218553",
@@ -14460,7 +14488,8 @@
      "tgt": 0.024394347240915264
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-219130",
@@ -14958,7 +14987,8 @@
      "tgt": 0.037329360125639185
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-219147",
@@ -15456,7 +15486,8 @@
      "tgt": 0.021471637750707477
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-219334",
@@ -15954,7 +15985,8 @@
      "tgt": 0.008191262653169936
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-220238",
@@ -16452,7 +16484,8 @@
      "tgt": 0.013942422079467096
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-220800",
@@ -16950,7 +16983,8 @@
      "tgt": 0.011184857423795474
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-221129",
@@ -17448,7 +17482,8 @@
      "tgt": 0.010728708335844758
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-222281",
@@ -17946,7 +17981,8 @@
      "tgt": 0.010197915092914388
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-222691",
@@ -18444,7 +18480,8 @@
      "tgt": 0.013744137571651981
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-223251",
@@ -18942,7 +18979,8 @@
      "tgt": 0.009851520150836738
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-223348",
@@ -19440,7 +19478,8 @@
      "tgt": 0.007431821119296927
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-225655",
@@ -19938,7 +19977,8 @@
      "tgt": 0.04962214682294873
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-229419",
@@ -20436,7 +20476,8 @@
      "tgt": 0.005063610026451752
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "llvm-issue-229537",
@@ -20934,7 +20975,8 @@
      "tgt": 0.03319465344781789
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-230021",
@@ -21432,7 +21474,8 @@
      "tgt": 0.007227575982209071
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-230347",
@@ -21930,7 +21973,8 @@
      "tgt": 0.03281564198006256
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-230763",
@@ -22428,7 +22472,8 @@
      "tgt": 0.003753035543454178
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-230793",
@@ -22926,7 +22971,8 @@
      "tgt": 0.006336922386720427
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-230800",
@@ -23424,7 +23470,8 @@
      "tgt": 0.009160007795751317
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-231063",
@@ -23922,7 +23969,8 @@
      "tgt": 0.028727573436881985
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-231089",
@@ -24420,7 +24468,8 @@
      "tgt": 0.003304492596423104
     },
     "verdict": "slower"
-   }
+   },
+   "overall": "slower"
   },
   {
    "id": "llvm-issue-231124",
@@ -24918,7 +24967,8 @@
      "tgt": 0.004451183721385083
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-231586",
@@ -25416,7 +25466,8 @@
      "tgt": 0.010128359406337743
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-233753",
@@ -25914,7 +25965,8 @@
      "tgt": 0.017463104446448035
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-233785",
@@ -26412,7 +26464,8 @@
      "tgt": 0.05528630407467238
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-234703",
@@ -26910,7 +26963,8 @@
      "tgt": 0.04056267713669106
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-234717",
@@ -27408,7 +27462,8 @@
      "tgt": 0.014405940594059249
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-234884",
@@ -27906,7 +27961,8 @@
      "tgt": 0.004250761455300116
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "llvm-issue-235683",
@@ -28404,7 +28460,8 @@
      "tgt": 0.005632152834099187
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "lua-shiftl",
@@ -28902,7 +28959,8 @@
      "tgt": 0.006202599453043571
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "lwip-ip4-addr-isbroadcast",
@@ -29400,7 +29458,8 @@
      "tgt": 0.003904543652260374
     },
     "verdict": "no clear gain"
-   }
+   },
+   "overall": "no gain"
   },
   {
    "id": "lz4-frame-header-size",
@@ -29898,7 +29957,8 @@
      "tgt": 0.007786923580581719
     },
     "verdict": "slower"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "median3-i32",
@@ -30396,7 +30456,8 @@
      "tgt": 0.009831761680240081
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "musl-fpclassifyf",
@@ -30894,7 +30955,8 @@
      "tgt": 0.013019739605207891
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "nlz-binsearch-u32",
@@ -31392,7 +31454,8 @@
      "tgt": 0.0037122969837585862
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "opus-silk-lin2log",
@@ -31890,7 +31953,8 @@
      "tgt": 0.004417768001938567
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "opus-silk-log2lin",
@@ -32388,7 +32452,8 @@
      "tgt": 0.006708595387840649
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "opus-silk-rshift-round",
@@ -32886,7 +32951,8 @@
      "tgt": 0.013574834640824445
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "popcount-bits-u8",
@@ -33384,7 +33450,8 @@
      "tgt": 0.00559695202130886
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "rgb565-to-rgb888",
@@ -33882,7 +33949,8 @@
      "tgt": 0.008033343417028086
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "rot-lr-xor",
@@ -34380,7 +34448,8 @@
      "tgt": 0.019183057523595205
     },
     "verdict": "no clear gain"
-   }
+   },
+   "overall": "slower"
   },
   {
    "id": "scale-u10-to-u8",
@@ -34878,7 +34947,8 @@
      "tgt": 0.008975207827558293
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "sext-field-12",
@@ -35376,7 +35446,8 @@
      "tgt": 0.00580551523947745
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "softfloat-shift-right-jam32",
@@ -35874,7 +35945,8 @@
      "tgt": 0.011143905331972523
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "sqlite-logest-to-int",
@@ -36372,7 +36444,8 @@
      "tgt": 0.005493044071559843
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "ssub-sat-checks-i32",
@@ -36870,7 +36943,8 @@
      "tgt": 0.020382695507487586
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "swap-two-bits",
@@ -37368,7 +37442,8 @@
      "tgt": 0.005064930751602506
     },
     "verdict": "slower"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "varint-size-u64",
@@ -37866,7 +37941,8 @@
      "tgt": 0.007244364792891871
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "zstd-cblock-size",
@@ -38364,7 +38440,8 @@
      "tgt": 0.00406149301826001
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "depends on context"
   },
   {
    "id": "zstd-cparam-row-size",
@@ -38862,7 +38939,8 @@
      "tgt": 0.009574958635093684
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   },
   {
    "id": "zstd-nbseq-decode",
@@ -39360,7 +39438,8 @@
      "tgt": 0.026045291503827755
     },
     "verdict": "faster"
-   }
+   },
+   "overall": "confirmed"
   }
  ]
 }
