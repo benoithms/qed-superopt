@@ -145,14 +145,15 @@ static uint64_t tsc(void) {
     return t;
 }
 
-/* TSC ticks per core cycle: 10 dependent adds per iteration, one cycle each. */
+/* TSC ticks per core cycle: 10 dependent adds per iteration, one cycle each. The added value is
+   in a register: Golden Cove (i7-12700H) folds chains of add-immediate at rename. */
 static double ticks_per_cycle_once(void) {
-    uint64_t n = 20000000, x = 0, t0 = tsc();
+    uint64_t n = 20000000, x = 0, one = 1, t0 = tsc();
     __asm__ volatile("1:\n"
-                     "add $1, %0\n add $1, %0\n add $1, %0\n add $1, %0\n add $1, %0\n"
-                     "add $1, %0\n add $1, %0\n add $1, %0\n add $1, %0\n add $1, %0\n"
+                     "add %2, %0\n add %2, %0\n add %2, %0\n add %2, %0\n add %2, %0\n"
+                     "add %2, %0\n add %2, %0\n add %2, %0\n add %2, %0\n add %2, %0\n"
                      "dec %1\n jnz 1b"
-                     : "+r"(x), "+r"(n));
+                     : "+r"(x), "+r"(n) : "r"(one));
     return (double)(tsc() - t0) / (20000000.0 * 10);
 }
 
