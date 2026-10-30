@@ -9,7 +9,7 @@
 Built for the **Meta Global AI Developer Hackathon** (Oct 26 – Nov 4, 2026), theme *Push the Frontier*.
 
 > [!NOTE]
-> 🚧 Under active development during the hackathon. Results will be published here as they are proven.
+> 🚧 Under active development during the hackathon. The results below come from one CPU; a second one is pending.
 
 ---
 
@@ -40,7 +40,7 @@ flowchart LR
 1. **Extract** a function's IR as produced by `clang -O3`: the baseline to beat.
 2. **Propose**: a Meta model (Muse Spark via the Meta Model API) rewrites it.
 3. **Prove**: Alive2 checks the rewrite against the original with an SMT solver (Z3). If it is wrong, Alive2 produces a concrete input that breaks it, which goes back to the model.
-4. **Measure**: the proven rewrite is lowered to x86-64 assembly and scored with `llvm-mca` (Skylake). Confirmation with a microbenchmark on real hardware is in progress.
+4. **Measure**: the proven rewrite is lowered to x86-64 assembly and scored with `llvm-mca` (Skylake), then timed on a real CPU.
 
 ## Why you can trust the results
 
@@ -65,7 +65,43 @@ We evaluate on a corpus of small, pure integer functions, in three groups report
 | **Known misses** | Optimizations reported as missed in LLVM issues and prior work | Rediscover them |
 | **Open** | Classic bit-manipulation functions written naively | New discoveries |
 
-*Results coming soon.*
+## Results
+
+On the frozen corpus `corpus-v1`: 134 functions (24 control, 61 known misses, 49 open), up to 5 attempts each. Every win below is proven correct (refinement) by Alive2.
+
+| | Muse Spark | LLM Compiler |
+|---|---:|---:|
+| Functions with a proven rewrite | 132 | 80 |
+| Faster than `clang -O3`, gain estimated by `llvm-mca` | 105 | 30 |
+| Kept: not undone by `opt -O3`, and over 5% in throughput or latency with neither worse | 79 | 22 |
+| **Confirmed on the CPU** | **60** | **15** |
+| Depends on the context | 12 | 6 |
+| No clear gain | 2 | 0 |
+| Slower | 5 | 1 |
+| Cost | about $36.50, failed calls included | none: local, 57 min on a GPU |
+
+Each kept win is timed on an i7-9700K in four ways: called as a function and pasted inline in a loop, each with predictable and with random inputs. **Confirmed** means over 5% faster in every launch in at least one of the four, and slower in none (under 0.98 in every launch). We chose this rule after seeing the data, so the four numbers of every win are in [`results/bench-9700k/`](results/bench-9700k/).
+
+Of the confirmed wins, Muse Spark has 45 known misses, 14 open functions and 1 control; LLM Compiler has 14 known misses and 1 open function. Some wins on open functions, as speedups over `clang -O3`:
+
+| Function | Call, predictable | Call, random | Inline, predictable | Inline, random |
+|---|---:|---:|---:|---:|
+| `rgb565-to-rgb888` | 1.40x | 1.40x | 2.99x | 2.99x |
+| `libcxx-days-from-civil` | 1.54x | 1.54x | 1.51x | 1.51x |
+| `lua-shiftl` | 1.30x | 3.70x | 1.16x | 4.66x |
+| `opus-silk-lin2log` | 1.33x | 2.36x | 1.35x | 2.43x |
+| `fletcher16-update` | 1.14x | 1.14x | 1.21x | 1.21x |
+
+**Controls.** `llvm-mca` kept 2 of the 24 controls, which were supposed to have nothing to gain. On the CPU, `rot-lr-xor` is no gain (0.88x as a call, 1.05x inline). `align-up-pow2` is 1.14x inline but 1.01x as a call: it rediscovers a miss LLVM already tracks ([#125354](https://github.com/llvm/llvm-project/issues/125354)), so its control label looks wrong.
+
+**What the feedback brings.** On 30 functions drawn at random, we compared independent attempts, feedback with the verdict only, and feedback with the counterexample: 16, 18 and 18 kept wins. Only 4 functions change between the first and the last, 3 against 1, which is no evidence that memory helps. Counterexamples are rare: 10 in the whole Muse Spark run, on 8 functions, and they changed no result. So far Alive2 works as a judge that guarantees what we keep, more than as a teacher.
+
+**Limits.**
+- Small pure integer functions, one pass per function, one CPU. Timing runs under WSL2.
+- `llvm-mca` alone is not enough: 26 of its 105 first wins fall to `opt -O3` or to our rule, and 19 of the remaining 79 are not confirmed on the CPU.
+- Wins with a branch often depend on the inputs: `median3-i32` is 6.11x inline with random inputs and 0.94x with predictable ones.
+- The known solutions of 8 of the 61 known misses show no gain under our rule. Their category is under review.
+- Nothing has been reported to LLVM yet, and we do not call any win new: a search of LLVM issues finds nothing on 4 candidates, which is weak evidence.
 
 ## What we built vs. what we use
 
@@ -78,7 +114,7 @@ Everything in this repository was written during the hackathon. We build on the 
 | The rigor layer: strict proof parsing, signature checks, verifier regression suite | Meta's Muse Spark model (and Muse Wonder, in experiments), via the Meta Model API |
 | The benchmark corpus and its evaluation | Meta's LLM Compiler, run locally with [llama.cpp](https://github.com/ggml-org/llama.cpp) |
 | Spending controls: hard cap per run, response cache | `llvm-mca` for performance estimates |
-| Measurement harness and result reporting (in progress) | The `openai` Python client, only as the HTTP client of the Meta Model API (requests go to Meta, no OpenAI model is used) |
+| Measurement harness (`scripts/bench_cpu.py`) and result checks (`scripts/fold_back.py`) | The `openai` Python client, only as the HTTP client of the Meta Model API (requests go to Meta, no OpenAI model is used) |
 
 ## Prior art
 
@@ -87,7 +123,7 @@ Everything in this repository was written during the hackathon. We build on the 
 - **AlphaDev** (DeepMind): reinforcement learning that discovered faster sorting routines.
 - **Meta LLM Compiler**: LLMs trained on LLVM IR and assembly.
 
-Our contribution: use an LLM as the *search heuristic*, steer it with the prover's counterexamples, and publish only what is formally proven.
+Our contribution: use an LLM as the *search heuristic*, feed the prover's verdicts back to it, and publish only what is formally proven.
 
 ## Team
 
