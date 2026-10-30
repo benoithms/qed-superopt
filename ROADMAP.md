@@ -53,6 +53,7 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 
 - [ ] x86 microbenchmark harness: separate object, no inlining, latency and throughput (Benoit)
 - [ ] Measurements from the same `.s`: i7-9700K, reference (Jules); i7-12700H (Benoit). Now the priority: no C win is confirmed without it. Every win with a branch is measured with predictable and with random inputs, and the report says in which case it holds
+  - [x] i7-9700K (Jules, Oct 30, `results/bench-9700k/`, `scripts/bench_cpu.py --all-kept`): WSL2, Windows processor boost disabled, core clock measured 3.54-3.58 GHz (one Spark launch dipped to 3.01), median spread between launches 0.5-0.7%. Spark: of 79 kept wins, 35 faster in both modes (17 B, 18 C), 3 C only with random inputs, 39 no measurable gain, 2 slower. LLM Compiler: of 22, 9 faster in both modes, 2 C only with random inputs, 11 no measurable gain. Limits: a call through the timing loop costs about 5 cycles, and most branch-free B wins sit at that floor (clang, rewrite and empty function equal), so "no measurable gain" means not visible when called as a function, not disproven. `rot-lr-xor` (A) is slower on the CPU (0.88x in both modes), against llvm-mca; `align-up-pow2` (A) shows no gain. A first version had one timing loop per function, and loop placement made a constant function look 20% slower: fixed by one aligned loop for all
 - [ ] Stretch: generalize wins into peephole rules, re-proven by Alive2 (Benoit)
 
 ## M4: Submission (Tue Nov 3 – Wed Nov 4)
