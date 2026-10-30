@@ -281,7 +281,8 @@ def summarize(launches: list[dict], min_speedup: float) -> dict:
         med = {v: [r[mode][v]["median"] for r in launches] for v in ("src", "tgt", "nop")}
         speedups = [s / t for s, t in zip(med["src"], med["tgt"], strict=True)]
         triples = zip(med["src"], med["tgt"], med["nop"], strict=True)
-        net = [(s - n) / (t - n) for s, t, n in triples]
+        # a rewrite as cheap as the empty function leaves no net time to compare
+        net = [(s - n) / (t - n) if t > n else None for s, t, n in triples]
         spread = {
             v: (max(med[v]) - min(med[v])) / statistics.median(med[v]) for v in ("src", "tgt")
         }
@@ -295,7 +296,7 @@ def summarize(launches: list[dict], min_speedup: float) -> dict:
             "cycles": {v: statistics.median(med[v]) for v in med},
             "speedup": statistics.median(speedups),
             "speedup_range": [min(speedups), max(speedups)],
-            "net_speedup": statistics.median(net),
+            "net_speedup": None if None in net else statistics.median(net),
             "spread": spread,
             "verdict": verdict,
         }

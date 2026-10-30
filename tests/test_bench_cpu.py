@@ -44,6 +44,12 @@ def test_summarize_needs_every_launch_above_the_threshold():
     assert bench_cpu.summarize([launch(9, 10)], 1.05)["random"]["verdict"] == "slower"
 
 
+def test_summarize_survives_a_rewrite_as_cheap_as_the_empty_function():
+    m = {"src": {"median": 3.0}, "tgt": {"median": 1.0}, "nop": {"median": 1.0}}
+    out = bench_cpu.summarize([{"predictable": m, "random": m}], 1.05)
+    assert out["random"]["net_speedup"] is None and out["random"]["verdict"] == "faster"
+
+
 @pytest.mark.skipif(
     platform.system() != "Linux" or platform.machine() != "x86_64" or config.check_toolchain(),
     reason="runs x86-64 Linux code built by the reference toolchain",
