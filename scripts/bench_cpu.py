@@ -288,7 +288,7 @@ def build(src_ll: str, tgt_ll: str, d: Path, reps: int, seed: int) -> Path:
     (d / "nop.s").write_text(NOP)
     (d / "driver.c").write_text(driver(src_ll, reps, seed))
     exe = d / "bench"
-    flags = ["-O2", f"-march={config.CPU}", "-mllvm", "-align-loops=64"]
+    flags = ["-O2", f"-march={config.CPU}", "-falign-functions=64", "-falign-loops=64"]
     _run([config.CLANG, *flags, "-o", exe, d / "driver.c", *objs, d / "nop.s"])
     return exe
 
