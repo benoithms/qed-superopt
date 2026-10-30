@@ -105,8 +105,14 @@ def run_function(
                 # a failed call may still have been billed: keep its worst case as paid
                 if WALLET is not None:
                     WALLET.settle(hard, hard)
-                exc.add_note(f"attempt {n}, {len(log)} earlier attempts")
-                raise
+                if not isinstance(exc, Exception):
+                    raise
+                # The server drops answers after about 8 minutes (f32-to-bf16-rne: empty answer
+                # after 497 s), like a truncation: stop, but keep the attempts already paid for.
+                error = "; ".join([repr(exc), *getattr(exc, "__notes__", [])])
+                log.append({"n": n, "check": "api_error", "error": error, "worst_case_usd": hard})
+                stop = "api_error"
+                break
             stats = {k: v for k, v in llm.last_call.items() if k != "messages"}
             if WALLET is not None:
                 WALLET.settle(hard, 0.0 if stats.get("cached") else stats["cost_usd"])

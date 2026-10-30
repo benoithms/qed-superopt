@@ -34,6 +34,8 @@ def fake_muse(monkeypatch):
             seen.append([dict(h) for h in history])
             max_tokens.append(kw["settings"].max_tokens)
             response = queue.pop(0)
+            if isinstance(response, Exception):  # the API failed
+                raise response
             llm.last_call.clear()
             llm.last_call.update(cost_usd=0.01, tokens_in=100, tokens_out=50, finish_reason="stop")
             if response is None:  # the model hit the token limit
@@ -60,6 +62,14 @@ def test_loop_repairs_from_counterexample_and_keeps_best(entry, fake_muse):
     assert res["stop"] == "no_improvement"
     assert res["cost_usd"] == pytest.approx(0.03)
     assert all("this must never be read" not in str(a) for a in res["attempts"])
+
+
+def test_an_api_error_stops_but_keeps_the_attempts_already_paid(entry, fake_muse):
+    fake_muse(WRONG, RIGHT, RuntimeError("streamed response without token usage"))
+    res = loop.run_function(entry, attempts=5)
+    assert [a["check"] for a in res["attempts"]] == ["counterexample", "proven", "api_error"]
+    assert "without token usage" in res["attempts"][2]["error"]
+    assert res["best"]["n"] == 2 and res["stop"] == "api_error"
 
 
 def test_no_improvement_on_first_attempt_is_refused(entry, fake_muse):
