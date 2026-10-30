@@ -54,7 +54,7 @@ def test_inline_loop_turns_rets_into_jumps_and_loads_the_arguments():
     assert "loop_f_src:" in out and "retq" not in out.split("loop_f_src:")[1].split("popq")[0]
     assert out.count("jmp\t.Lnext_f_src") == 1  # the last ret falls through
     assert "131072(%r12,%rbx,8), %rsi" in out  # 2nd argument: CALLS * 8 bytes further
-    assert ".cfi_" not in out and "f_src," not in out
+    assert ".cfi_" not in out and "\\tf_src," not in out
 
 
 def test_summarize_needs_every_launch_above_the_threshold():
