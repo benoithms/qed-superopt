@@ -311,6 +311,24 @@ def test_an_error_on_one_entry_does_not_stop_the_run(entry, fake_muse, monkeypat
     assert (tmp_path / "results" / "t" / "srem-range.json").exists()
 
 
+def test_a_cut_stream_records_when_it_failed(monkeypatch):
+    from types import SimpleNamespace
+
+    def chunks():
+        delta = SimpleNamespace(content="think")
+        yield SimpleNamespace(
+            model="m", choices=[SimpleNamespace(delta=delta, finish_reason=None)], usage=None
+        )
+        raise ConnectionError("cut")
+
+    create = lambda **kw: chunks()  # noqa: E731
+    fake = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+    monkeypatch.setattr(llm, "client", lambda: fake)
+    with pytest.raises(ConnectionError) as info:
+        llm._stream({"model": "m", "messages": [], "max_tokens": 10})
+    assert "1 content chunks" in info.value.__notes__[0]
+
+
 def test_llmc_run_records_no_muse_settings(entry, monkeypatch, tmp_path):
     from qed import llm_compiler
 

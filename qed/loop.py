@@ -101,10 +101,11 @@ def run_function(
                 response = llm.generate(
                     src_ll, history, c_source=c_source, baseline=base, settings=call
                 )
-            except BaseException:
+            except BaseException as exc:
                 # a failed call may still have been billed: keep its worst case as paid
                 if WALLET is not None:
                     WALLET.settle(hard, hard)
+                exc.add_note(f"attempt {n}, {len(log)} earlier attempts")
                 raise
             stats = {k: v for k, v in llm.last_call.items() if k != "messages"}
             if WALLET is not None:
@@ -417,8 +418,9 @@ def main(argv=None):
                 try:
                     res = fut.result()
                 except Exception as exc:  # one broken entry must not stop the run
-                    errors[str(e)] = repr(exc)
-                    print(f"{e.name:28} ERROR {exc!r}", flush=True)
+                    detail = "; ".join([repr(exc), *getattr(exc, "__notes__", [])])
+                    errors[str(e)] = detail
+                    print(f"{e.name:28} ERROR {detail}", flush=True)
                     continue
                 (out / f"{e.name}.json").write_text(json.dumps(res, indent=1))
                 total += res["cost_usd"]
