@@ -42,6 +42,42 @@ flowchart LR
 3. **Prove**: Alive2 checks the rewrite against the original with an SMT solver (Z3). If it is wrong, Alive2 produces a concrete input that breaks it, which goes back to the model.
 4. **Measure**: the proven rewrite is lowered to x86-64 assembly and scored with `llvm-mca` (Skylake), then timed on a real CPU.
 
+## Quick start
+
+You need [uv](https://docs.astral.sh/uv/) and the reference toolchain: LLVM `b974545` and Alive2 `adacbd5`, with Z3, in a `qed-toolchain` folder next to this repository (or set `QED_TOOLCHAIN`). Building LLVM takes hours:
+
+```bash
+mkdir ../qed-toolchain && cd ../qed-toolchain
+git init llvm-project && cd llvm-project
+git remote add origin https://github.com/llvm/llvm-project.git
+git fetch --depth 1 origin b97454582dfbe2d5ebe7b7b1533de947bef16942 && git checkout FETCH_HEAD
+cd ..
+cmake -G Ninja -S llvm-project/llvm -B llvm-build -DCMAKE_BUILD_TYPE=Release \
+  -DLLVM_ENABLE_PROJECTS="llvm;clang" -DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
+  -DLLVM_ENABLE_ASSERTIONS=ON -DLLVM_ENABLE_RTTI=ON -DLLVM_ENABLE_EH=ON -DBUILD_SHARED_LIBS=ON \
+  -DLLVM_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_INCLUDE_EXAMPLES=OFF
+ninja -C llvm-build
+git clone https://github.com/AliveToolkit/alive2.git
+git -C alive2 checkout adacbd5180ccf95075e9867c4f0c259f59c9fef2
+cmake -G Ninja -S alive2 -B alive2/build -DCMAKE_BUILD_TYPE=Release -DBUILD_TV=1 \
+  -DCMAKE_PREFIX_PATH=$PWD/llvm-build -DCMAKE_CXX_COMPILER=$PWD/llvm-build/bin/clang++
+ninja -C alive2/build alive-tv
+```
+
+Then, from this repository, without any API key:
+
+```bash
+uv run pytest -q                                                     # includes the wrong rewrites that must be rejected
+PYTHONPATH=. uv run python scripts/verify_all.py                     # re-proves every recorded result
+PYTHONPATH=. uv run python scripts/fold_back.py results/spark-full-v1   # applies our rule to the recorded wins
+```
+
+To run the loop on one function, copy `.env.example` to `.env`, add a Meta Model API key, and cap the spending:
+
+```bash
+PYTHONPATH=. uv run python -m qed.loop bench/B/llvm-issue-215060 --run-id try-1 --max-total 1
+```
+
 ## Why you can trust the results
 
 A superoptimizer is only as good as its proofs, so rigor is the core of the project, not an afterthought.
