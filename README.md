@@ -9,7 +9,7 @@
 Built for the **Meta Global AI Developer Hackathon** (Oct 26 – Nov 4, 2026), theme *Push the Frontier*.
 
 > [!NOTE]
-> 🚧 Under active development during the hackathon. The results below come from one CPU; a second one is pending.
+> 🚧 Under active development during the hackathon.
 
 ---
 
@@ -53,7 +53,7 @@ A superoptimizer is only as good as its proofs, so rigor is the core of the proj
 - **We test the tester**: a regression suite of deliberately wrong rewrites (`abs(INT_MIN)`, oversized shifts, introduced division by zero…) that the pipeline must reject, every time.
 - **Reproducible**: one command (`scripts/verify_all.py`) re-checks the corpus and re-runs the prover on every recorded result, checking the stored hashes.
 - **Honest numbers**: one pinned LLVM commit, same target CPU on both sides, gains measured on the final assembly rather than on the IR.
-- **Measurement conditions**: `scripts/bench_cpu.py` times each win on the real CPU (i7-9700K, then i7-12700H) with the same inputs in a predictable and in a random order, turbo off, core frequency measured at the start and end of every launch, median of 201 repetitions, 5 separate launches, and records these conditions with the results. It runs under WSL2, which executes natively on the CPU (no emulation): a spread under 2% between launches and the branch-free wins, used as controls, check that the noise stays small.
+- **Measurement conditions**: `scripts/bench_cpu.py` times each win on the real CPU (i7-9700K, then i7-12700H) with the same inputs in a predictable and in a random order, turbo off, core frequency measured at the start and end of every launch, median of 201 repetitions, 5 separate launches, and records these conditions with the results. It runs under WSL2, which executes natively on the CPU (no emulation): the spread between launches and the branch-free wins, used as controls, check the noise. The median spread is 0.9% on both CPUs, but some measures are noisier: over 2% on 61 of 316 on the i7-9700K and on 138 of 316 on the i7-12700H. A win only counts if every launch clears the threshold, and the spread of each measure is in the results.
 
 ## Benchmark
 
@@ -74,31 +74,31 @@ On the frozen corpus `corpus-v1`: 134 functions (24 control, 61 known misses, 49
 | Functions with a proven rewrite | 132 | 80 |
 | Faster than `clang -O3`, gain estimated by `llvm-mca` | 105 | 30 |
 | Kept: not undone by `opt -O3`, and over 5% in throughput or latency with neither worse | 79 | 22 |
-| **Confirmed on the CPU** | **60** | **15** |
-| Depends on the context | 12 | 6 |
-| No clear gain | 2 | 0 |
-| Slower | 5 | 1 |
+| Confirmed on the i7-9700K | 60 | 15 |
+| Confirmed on the i7-12700H | 59 | 10 |
+| **Confirmed on both CPUs** | **51** | **8** |
 | Cost | about $36.50, failed calls included | none: local, 57 min on a GPU |
 
-Each kept win is timed on an i7-9700K in four ways: called as a function and pasted inline in a loop, each with predictable and with random inputs. **Confirmed** means over 5% faster in every launch in at least one of the four, and slower in none (under 0.98 in every launch). We chose this rule after seeing the data, so the four numbers of every win are in [`results/bench-9700k/`](results/bench-9700k/).
+Each kept win is timed on each CPU in four ways: called as a function and pasted inline in a loop, each with predictable and with random inputs. **Confirmed** means over 5% faster in every launch in at least one of the four, and slower in none (under 0.98 in every launch). Otherwise a win depends on the context, shows no clear gain, or is slower. We chose this rule after seeing the data, so the four numbers of every win are in [`results/bench-9700k/`](results/bench-9700k/) and [`results/bench-12700h/`](results/bench-12700h/).
 
-Of the confirmed wins, Muse Spark has 45 known misses, 14 open functions and 1 control; LLM Compiler has 14 known misses and 1 open function. Some wins on open functions, as speedups over `clang -O3`:
+Of the wins confirmed on both CPUs, Muse Spark has 39 known misses, 11 open functions and 1 control; LLM Compiler has 8 known misses. Some of these wins on open functions, as speedups over `clang -O3` on the i7-9700K:
 
 | Function | Call, predictable | Call, random | Inline, predictable | Inline, random |
 |---|---:|---:|---:|---:|
 | `rgb565-to-rgb888` | 1.40x | 1.40x | 2.99x | 2.99x |
 | `libcxx-days-from-civil` | 1.54x | 1.54x | 1.51x | 1.51x |
-| `lua-shiftl` | 1.30x | 3.70x | 1.16x | 4.66x |
+| `hex-digit-value` | 1.80x | 1.80x | 1.09x | 1.09x |
 | `opus-silk-lin2log` | 1.33x | 2.36x | 1.35x | 2.43x |
 | `fletcher16-update` | 1.14x | 1.14x | 1.21x | 1.21x |
 
-**Controls.** `llvm-mca` kept 2 of the 24 controls, which were supposed to have nothing to gain. On the CPU, `rot-lr-xor` is no gain (0.88x as a call, 1.05x inline). `align-up-pow2` is 1.14x inline but 1.01x as a call: it rediscovers a miss LLVM already tracks ([#125354](https://github.com/llvm/llvm-project/issues/125354)), so its control label looks wrong.
+**Controls.** `llvm-mca` kept 2 of the 24 controls, which were supposed to have nothing to gain. `rot-lr-xor` is no reliable gain: as a call and inline, 0.88x and 1.05x on the i7-9700K, but 1.12x and 0.96x on the i7-12700H. `align-up-pow2` shows a gain only inline, 1.14x and 1.11x, and about 1.00x as a call: it rediscovers a miss LLVM already tracks ([#125354](https://github.com/llvm/llvm-project/issues/125354)), so its control label looks wrong.
 
 **What the feedback brings.** On 30 functions drawn at random, we compared independent attempts, feedback with the verdict only, and feedback with the counterexample: 16, 18 and 18 kept wins. Only 4 functions change between the first and the last, 3 against 1, which is no evidence that memory helps. Counterexamples are rare: 10 in the whole Muse Spark run, on 8 functions, and they changed no result. So far Alive2 works as a judge that guarantees what we keep, more than as a teacher.
 
 **Limits.**
-- Small pure integer functions, one pass per function, one CPU. Timing runs under WSL2.
-- `llvm-mca` alone is not enough: 26 of its 105 first wins fall to `opt -O3` or to our rule, and 19 of the remaining 79 are not confirmed on the CPU.
+- Small pure integer functions, one pass per function, two CPUs. Timing runs under WSL2, where we cannot pin a physical core.
+- The CPU matters: the verdict of 19 of Muse Spark's 79 kept wins differs between the two.
+- `llvm-mca` alone is not enough: 26 of its 105 first wins fall to `opt -O3` or to our rule, and 28 of the remaining 79 are not confirmed on both CPUs.
 - Wins with a branch often depend on the inputs: `median3-i32` is 6.11x inline with random inputs and 0.94x with predictable ones.
 - The known solutions of 8 of the 61 known misses show no gain under our rule. Their category is under review.
 - Nothing has been reported to LLVM yet, and we do not call any win new: a search of LLVM issues finds nothing on 4 candidates, which is weak evidence.
