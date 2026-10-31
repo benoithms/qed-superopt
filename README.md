@@ -136,7 +136,7 @@ Of the wins confirmed on both CPUs, Muse Spark has 39 known misses, 11 open func
 - The CPU matters: the verdict of 19 of Muse Spark's 79 kept wins differs between the two.
 - `llvm-mca` alone is not enough: 26 of its 105 first wins fall to `opt -O3` or to our rule, and 28 of the remaining 79 are not confirmed on both CPUs.
 - Wins with a branch often depend on the inputs: `median3-i32` is 6.11x inline with random inputs and 0.94x with predictable ones.
-- The known solutions of 8 of the 61 known misses show no gain under our rule. Their category is under review.
+- The known solutions of 8 of the 61 known misses show no gain under our rule. We keep them in that group, since the corpus is frozen and no kept win comes from them.
 - Nothing has been reported to LLVM yet, and we do not call any win new: a search of LLVM issues finds nothing on 4 candidates, which is weak evidence.
 
 ## What we built vs. what we use
