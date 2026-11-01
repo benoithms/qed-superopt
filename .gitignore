@@ -226,3 +226,10 @@ __marimo__/
 *.o
 *.s
 *.gguf
+
+# Local assistant setup
+CLAUDE.md
+.claude/
+
+# Local issue drafts
+issue-drafts/
