@@ -24,5 +24,6 @@ else:
     c, b = a["cost"], r["baseline"]
     print(f"--- clang -O3: {b['asm_insts']} instructions, {b['mca_cycles']} cycles")
     print(
-        f"--- rewrite:   {c['asm_insts']} instructions, {c['mca_cycles']} cycles (estimated by llvm-mca)"
+        f"--- rewrite:   {c['asm_insts']} instructions, {c['mca_cycles']} cycles "
+        "(estimated by llvm-mca)"
     )

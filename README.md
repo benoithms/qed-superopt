@@ -141,7 +141,7 @@ Of the wins confirmed on both CPUs, Muse Spark has 39 known misses, 11 open func
 %14 = mul nsw i32 %13, -400
 ```
 
-The year fits in 16 bits, so Muse Spark adds 51200, a multiple of 400, to make it positive. The sign handling and the 400-year arithmetic disappear, and Alive2 proves the result correct (refinement):
+The year fits in 16 bits, and leap years repeat every 400 years. So Muse Spark counts leap years on the year plus 51200, a multiple of 400, which is always positive, and a constant corrects the total. The sign handling and the 400-year arithmetic disappear, and Alive2 proves the result correct (refinement):
 
 ```llvm
 %t7 = add i32 %t6, 51200
