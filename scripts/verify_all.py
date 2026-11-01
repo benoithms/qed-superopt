@@ -2,7 +2,7 @@
     PYTHONPATH=. python scripts/verify_all.py            # corpus + every recorded proof
     PYTHONPATH=. python scripts/verify_all.py --corpus   # corpus only
 
-Corpus: each entry against the CLAUDE.md rules (meta, size, category), and every expected.ll
+Corpus: each entry against the corpus rules (meta, size, category), and every expected.ll
 proven by Alive2 and faster than clang -O3 in llvm-mca cycles. Results: every attempt
 recorded as proven in results/*/*.json is proven again by Alive2, and the stored hashes must
 match the stored files. Lists every problem found and exits with 1 if there is any."""
@@ -45,7 +45,8 @@ def check_corpus() -> list[str]:
 
 def recorded_proofs():
     for p in sorted(Path("results").glob("*/*.json")):
-        if p.name == "run.json":
+        # results/bench-*: CPU timings of wins recorded elsewhere, they hold no proof
+        if p.name == "run.json" or p.parent.name.startswith("bench-"):
             continue
         res = json.loads(p.read_text())
         for run in [res] + ([res["fallback"]] if res.get("fallback") else []):

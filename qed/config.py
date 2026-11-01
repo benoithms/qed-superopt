@@ -59,6 +59,10 @@ RESULTS_DIR = REPO / "results"
 
 # LLM Compiler, served locally by llama.cpp (llama-server -m llm-compiler-7b.Q8_0.gguf).
 LLMC_URL = os.environ.get("LLMC_URL", "http://127.0.0.1:8089")
+# What the server cannot report about itself, recorded in run.json: the GGUF's sha256 and the
+# machine (GPU, driver, backend), e.g. "az4, RTX 4070 Ti, driver 616.92, CUDA 13.4".
+LLMC_MODEL_SHA256 = os.environ.get("LLMC_MODEL_SHA256")
+LLMC_MACHINE = os.environ.get("LLMC_MACHINE")
 
 
 def check_toolchain() -> list[str]:

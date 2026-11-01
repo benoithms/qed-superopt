@@ -1,0 +1,9 @@
+{
+  "id": "linux-timespec64-to-ns",
+  "category": "C",
+  "source": "https://github.com/torvalds/linux/blob/v6.11/include/linux/time64.h#L130-L140",
+  "description": "Convert seconds and nanoseconds to a signed 64-bit nanosecond count, saturating at KTIME_MAX and KTIME_MIN (timespec64_to_ns)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Linux kernel v6.11, timespec64_to_ns (include/linux/time64.h); the struct timespec64 fields become the parameters s (tv_sec) and ns (tv_nsec), and KTIME_SEC_MAX / KTIME_SEC_MIN are inlined as 9223372036 / -9223372036. Written by us from the function. clang trunk -O3 -march=skylake: two compare-and-branch steps, a mul nsw, an add nsw and a phi: 9 IR instructions. Signed overflow of s * 1000000000 + ns (large ns near the limits) is UB in the source. Whether a shorter form exists is unknown."
+}

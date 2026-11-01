@@ -1,0 +1,9 @@
+{
+  "id": "linux-drm-fixp2int-ceil",
+  "category": "C",
+  "source": "https://github.com/torvalds/linux/blob/v6.11/include/drm/drm_fixed.h#L95-L101",
+  "description": "Integer part of a signed 32.32 fixed-point value: (a + 2^32 - 1) >> 32 for a >= 0, (a - (2^32 - 1)) >> 32 for a < 0 (drm_fixp2int_ceil)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Linux kernel v6.11, drm_fixp2int_ceil (include/drm/drm_fixed.h), with drm_fixp2int (arithmetic shift right by DRM_FIXED_POINT = 32, result as int) and DRM_FIXED_ALMOST_ONE = 2^32 - 1 inlined. Kept exactly as upstream: for negative inputs it is not a ceiling (e.g. -0.5 gives -2). Written by us from the function. clang trunk -O3 -march=skylake: a compare, a select between -(2^32 - 1) and 2^32 - 1, an add, a shift and a trunc: 6 IR instructions. Whether a shorter form exists is unknown."
+}

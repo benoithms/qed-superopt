@@ -1,0 +1,9 @@
+{
+  "id": "opus-silk-lin2log",
+  "category": "C",
+  "source": "https://github.com/xiph/opus/blob/v1.5.2/silk/lin2log.c#L35-L45",
+  "description": "Fixed-point approximation of 128 * log2(x): integer part from the leading-zero count, fraction from the next 7 bits with a parabolic correction (silk_lin2log)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Opus 1.5.2, silk_lin2log (silk/lin2log.c), with silk_CLZ_FRAC (silk/Inlines.h), silk_CLZ32 and silk_ROR32 (silk/macros.h, silk/SigProc_FIX.h) and the 64-bit silk_SMLAWB selected on x86-64 by OPUS_FAST_INT64 (celt/arch.h) inlined. Written by us from the functions. clang trunk -O3 -march=skylake: ctlz, the rotation by 24 - lz kept as two branches and a phi, then two multiplications, shifts and adds: 25 IR instructions. Whether a shorter form exists is unknown."
+}

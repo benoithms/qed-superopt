@@ -1,0 +1,9 @@
+{
+  "id": "lwip-ip4-addr-isbroadcast",
+  "category": "C",
+  "source": "https://github.com/lwip-tcpip/lwip/blob/STABLE-2_2_0_RELEASE/src/core/ipv4/ip4_addr.c#L57-L85",
+  "description": "Whether an IPv4 address is a broadcast address for a network interface: all ones, all zeros, or the subnet broadcast of the interface (ip4_addr_isbroadcast_u32)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "lwIP 2.2.0, ip4_addr_isbroadcast_u32 (src/core/ipv4/ip4_addr.c). The netif fields become parameters: fl = netif->flags (NETIF_FLAG_BROADCAST = 0x02), ip = interface address, m = netmask; ip4_addr_net_eq, IPADDR_ANY and IPADDR_BROADCAST are inlined. Written by us from the function. clang trunk -O3 -march=skylake: two branches, masked compares and a phi: 18 IR instructions. Whether a shorter form exists is unknown."
+}

@@ -40,8 +40,10 @@ class FakeLLM:
 
 
 @pytest.fixture
-def fake(monkeypatch):
+def fake(monkeypatch, tmp_path):
     monkeypatch.setattr(llm_compiler, "_cache", {})
+    monkeypatch.setattr(config, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(llm_compiler, "server", lambda: {"llama_cpp": "test"})
 
     def install(*bodies):
         llm = FakeLLM(bodies)
@@ -84,6 +86,19 @@ def test_identical_requests_are_not_sent_twice(fake):
     generate(SRC, [])
     generate(SRC, [XOR])
     assert len(llm.prompts) == 4
+
+
+def test_answers_are_cached_on_disk_per_server(fake, monkeypatch):
+    llm = fake(XOR)
+    generate(SRC, [])
+    monkeypatch.setattr(llm_compiler, "_cache", {})
+    assert generate(SRC, []) == XOR
+    assert len(llm.prompts) == 2
+    monkeypatch.setattr(llm_compiler, "_cache", {})
+    monkeypatch.setattr(llm_compiler, "server", lambda: {"llama_cpp": "other"})
+    llm = fake(XOR)
+    generate(SRC, [])
+    assert len(llm.prompts) == 2
 
 
 def test_metadata_attachments_are_dropped(fake):

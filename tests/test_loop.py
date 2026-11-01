@@ -34,6 +34,8 @@ def fake_muse(monkeypatch):
             seen.append([dict(h) for h in history])
             max_tokens.append(kw["settings"].max_tokens)
             response = queue.pop(0)
+            if isinstance(response, Exception):  # the API failed
+                raise response
             llm.last_call.clear()
             llm.last_call.update(cost_usd=0.01, tokens_in=100, tokens_out=50, finish_reason="stop")
             if response is None:  # the model hit the token limit
@@ -60,6 +62,14 @@ def test_loop_repairs_from_counterexample_and_keeps_best(entry, fake_muse):
     assert res["stop"] == "no_improvement"
     assert res["cost_usd"] == pytest.approx(0.03)
     assert all("this must never be read" not in str(a) for a in res["attempts"])
+
+
+def test_an_api_error_stops_but_keeps_the_attempts_already_paid(entry, fake_muse):
+    fake_muse(WRONG, RIGHT, RuntimeError("streamed response without token usage"))
+    res = loop.run_function(entry, attempts=5)
+    assert [a["check"] for a in res["attempts"]] == ["counterexample", "proven", "api_error"]
+    assert "without token usage" in res["attempts"][2]["error"]
+    assert res["best"]["n"] == 2 and res["stop"] == "api_error"
 
 
 def test_no_improvement_on_first_attempt_is_refused(entry, fake_muse):
@@ -309,3 +319,42 @@ def test_an_error_on_one_entry_does_not_stop_the_run(entry, fake_muse, monkeypat
     run = json.loads((tmp_path / "results" / "t" / "run.json").read_text())
     assert list(run["errors"]) == [str(broken)]
     assert (tmp_path / "results" / "t" / "srem-range.json").exists()
+
+
+def test_a_cut_stream_records_when_it_failed(monkeypatch):
+    from types import SimpleNamespace
+
+    def chunks():
+        delta = SimpleNamespace(content="think")
+        yield SimpleNamespace(
+            model="m", choices=[SimpleNamespace(delta=delta, finish_reason=None)], usage=None
+        )
+        raise ConnectionError("cut")
+
+    create = lambda **kw: chunks()  # noqa: E731
+    fake = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+    monkeypatch.setattr(llm, "client", lambda: fake)
+    with pytest.raises(ConnectionError) as info:
+        llm._stream({"model": "m", "messages": [], "max_tokens": 10})
+    assert "1 content chunks" in info.value.__notes__[0]
+
+
+def test_llmc_run_records_no_muse_settings(entry, monkeypatch, tmp_path):
+    from qed import llm_compiler
+
+    def generate(ir, history):
+        llm_compiler.last_call.clear()
+        llm_compiler.last_call.update(model="llm-compiler-7b", completion_tokens=10)
+        return RIGHT
+
+    monkeypatch.setattr(llm_compiler, "generate", generate)
+    monkeypatch.setattr(llm_compiler, "server", lambda: {"llama_cpp": "test"})
+    monkeypatch.setattr(loop.config, "LLMC_MODEL_SHA256", "0" * 64)
+    monkeypatch.setattr(loop.config, "LLMC_MACHINE", "test")
+    monkeypatch.setattr(loop.config, "RESULTS_DIR", tmp_path)
+    loop.main([str(entry), "--run-id", "t", "--backend", "llmc", "--attempts", "1"])
+    run = json.loads((tmp_path / "t" / "run.json").read_text())
+    res = json.loads((tmp_path / "t" / "srem-range.json").read_text())
+    assert run["settings"] is None and run["model"] == "llm-compiler-7b"
+    assert res["settings"] is None and res["budget_usd"] is None
+    assert res["best"] is not None

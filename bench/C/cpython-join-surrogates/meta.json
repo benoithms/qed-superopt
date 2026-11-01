@@ -1,0 +1,9 @@
+{
+  "id": "cpython-join-surrogates",
+  "category": "C",
+  "source": "https://github.com/python/cpython/blob/v3.13.0/Include/cpython/unicodeobject.h#L27-L31",
+  "description": "Combine a UTF-16 high surrogate and low surrogate into a code point (Py_UNICODE_JOIN_SURROGATES)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "CPython 3.13.0, Py_UNICODE_JOIN_SURROGATES (Include/cpython/unicodeobject.h), with Py_UCS4 as uint32_t. The two asserts that check the surrogate ranges are dropped, as in release (NDEBUG) builds, so the inputs are arbitrary. Written by us from the function. clang trunk -O3 -march=skylake: shl, two and, or disjoint and add: 6 IR instructions. Whether a shorter form exists is unknown."
+}

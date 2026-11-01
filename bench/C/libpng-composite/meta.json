@@ -1,0 +1,9 @@
+{
+  "id": "libpng-composite",
+  "category": "C",
+  "source": "https://github.com/pnggroup/libpng/blob/v1.6.44/png.h#L2506-L2513",
+  "description": "Alpha-composite one 8-bit channel over a background: fg * a + bg * (255 - a) + 128, divided by 255 with the (t + (t >> 8)) >> 8 approximation (png_composite)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "libpng 1.6.44, png_composite macro (png.h), the PNG_READ_COMPOSITE_NODIV_SUPPORTED version, which the default configuration enables (scripts/pnglibconf.h.prebuilt); the result is returned instead of assigned. Written by us from the macro. clang trunk -O3 -march=skylake: two multiplications (255 - a becomes ~a), adds and the two shifts of the division approximation: 15 IR instructions. Whether a shorter form exists is unknown."
+}

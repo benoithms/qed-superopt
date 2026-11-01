@@ -1,0 +1,9 @@
+{
+  "id": "zstd-dict-and-window-log",
+  "category": "C",
+  "source": "https://github.com/facebook/zstd/blob/v1.5.6/lib/compress/zstd_compress.c#L1430-L1454",
+  "description": "Window log large enough for a dictionary plus the source, capped at the maximum window log",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "zstd 1.5.6, ZSTD_dictAndWindowLog (lib/compress/zstd_compress.c), for a 64-bit target (ZSTD_WINDOWLOG_MAX = 31), with ZSTD_highbit32 written as 31 - __builtin_clz. The asserts are dropped as in release builds. Written by us from the function. clang trunk -O3 -march=skylake: three branches on d, the window size and the 2^31 cap, a 64-bit shift, a ctlz and a phi: 17 IR instructions. Whether a shorter form exists is unknown."
+}

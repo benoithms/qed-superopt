@@ -1,0 +1,9 @@
+{
+  "id": "lua-shiftl",
+  "category": "C",
+  "source": "https://github.com/lua/lua/blob/v5.4.7/lvm.c#L777-L786",
+  "description": "Lua integer shift: logical left for a positive count, logical right for a negative count, 0 when the count is 64 or more in magnitude (luaV_shiftl)",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "Lua 5.4.7, luaV_shiftl (lvm.c), with lua_Integer = int64_t and NBITS = 64; the intop() macro is spelled as casts to uint64_t. Written by us from the function. clang trunk -O3 -march=skylake: two branches, a select and a phi: 13 IR instructions. Whether a shorter form exists is unknown."
+}

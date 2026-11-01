@@ -1,0 +1,9 @@
+{
+  "id": "zstd-cblock-size",
+  "category": "C",
+  "source": "https://github.com/facebook/zstd/blob/v1.5.6/lib/decompress/zstd_decompress_block.c#L63-L77",
+  "description": "Decode a zstd block header: compressed size, 1 for an RLE block, an error code for the reserved block type",
+  "known_solution": false,
+  "still_missed_on": "clang trunk (godbolt, -march=skylake), 2026-10-28",
+  "notes": "zstd 1.5.6, ZSTD_getcBlockSize (lib/decompress/zstd_decompress_block.c). The 24-bit little-endian header read by MEM_readLE24 is passed as a uint32_t, with its range stated by __builtin_assume(h < 2^24); the srcSize check and the writes to the blockProperties_t output are dropped, only the return value is kept. The error is ERROR(corruption_detected), i.e. (size_t)-20. Written by us from the function. clang trunk -O3 -march=skylake: a switch on the 2-bit block type and a phi: 10 IR instructions (the assume compare included). Whether a shorter form exists is unknown."
+}

@@ -1,6 +1,6 @@
 [project]
 name = "qed-superopt"
-version = "0.1.0"
+version = "0.2.0"
 description = "LLM-guided superoptimizer for LLVM IR, with every rewrite proven correct by Alive2"
 readme = "README.md"
 license = "MIT"
@@ -12,6 +12,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "matplotlib>=3.11.2",
     "pytest>=8",
     "ruff>=0.6",
 ]

@@ -9,7 +9,7 @@ Hackathon window: **Oct 26 – Nov 4, 2026**. Submission: **Wed Nov 4, 21:00 ET*
 - [x] Reference toolchain built and smoke-tested: LLVM `b974545` (clang 24.0.0git) and Alive2 `adacbd5` (Benoit)
 - [x] Python project skeleton with the frozen interfaces `generate()`, `verify()`, `cost()` (Benoit)
 - [x] Meta Model API access validated with `muse-spark-1.3` (Benoit)
-- [x] Corpus: 103 entries (24 A, 61 B, 18 C); the 103 compile and the 61 `expected.ll` are proven by Alive2 with the reference toolchain (Jules, re-checked by Benoit)
+- [x] Corpus: 134 entries (24 A, 61 B, 49 C, of which 31 from real projects); the 134 compile and the 61 `expected.ll` are proven by Alive2 with the reference toolchain (Jules, re-checked by Benoit)
 - [x] LLM Compiler 7B (Q8 GGUF) running locally with llama.cpp; first loop turn done by hand (Jules)
 
 ## M1: MVP, full loop on one function (Thu Oct 29)
@@ -26,32 +26,48 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 
 **Jules**
 - [x] LLM Compiler behind `generate(ir, history) -> body` (training prompt format, prefilled module header): `qed/llm_compiler.py`
-- [ ] Reference toolchain built on a second machine, same commits (independent reproduction)
+- [x] Reference toolchain built on a second machine, same commits (independent reproduction): WSL2 Ubuntu 24.04, GCC, i7-9700K (Jules, Oct 29)
 - [x] Corpus: more C entries; `nlz-binsearch-u32` and `clp2-u32` to B; issues 210131, 227280, 225655 and the `__builtin_assume` / `__builtin_unreachable` issues added; variants removed and C entries with a known solution moved to B after review
-- [ ] Corpus: settle `next-same-popcount` with the reference clang (Jules)
+- [x] Corpus: settle `next-same-popcount` with the reference clang: stays C (Jules, Oct 29)
+- [x] Corpus freeze: tag `corpus-v1` (134 entries); both full runs use it. Sources are frozen; only the category of a few B entries may change once the measurement is settled (Jules and Benoit, Oct 29)
 
 ## M2: First results (Fri Oct 30 – Sun Nov 1)
 
 - [x] Anchoring pilot: 10 random B entries, clang's assembly shown never / from the start / only in feedback: same wins, "never" is cheapest and has no anchoring risk, so the prompt never shows it (Benoit, `results/pilot-anchor-*`)
 - [x] Model choice (Benoit, Oct 28–29): Muse Spark vs. Muse Wonder on 15 entries (`results/pilot-wonder`); a Spark → Wonder fallback policy picked on that pilot did not hold on 14 unseen entries (1 real gain for $17, `results/validation-fallback`); 75% of all spend went to truncated answers, whose reasoning is lost. With one 64k cap and no retry after a truncation (`results/highcap-cascade`), Muse Spark matched or beat the old Muse Wonder results at a fraction of the cost, with a median of 9 s to its first proven win. **Decision: Muse Spark alone, 64k tokens, for the corpus.** Muse Wonder needs more than 64k tokens and 10 minutes per call on our largest functions: kept for a later experiment on truly large functions
 - [x] Spending controls: hard cap per run checked before every call (worst case reserved, cached answers free), streamed calls, no hidden client retries (Benoit)
-- [ ] Full corpus run with Muse Spark (Benoit)
-- [ ] Full corpus run with LLM Compiler (Jules)
-- [ ] Ablation, three arms: independent samples, "rejected" only, full counterexample (Benoit)
-- [ ] Muse Spark vs. LLM Compiler comparison: proven-candidate rate, gains, cost (together)
-- [ ] Triage of real wins: gain on the final assembly, and `opt -O3` must not fold the rewrite back (Benoit)
+- [x] Full corpus run with Muse Spark (Benoit, Oct 29–30, `results/spark-full-v1`): 134 entries, 64k tokens, about $36.8 including failed calls (the server sometimes ends an answer empty, without token usage, after 5 to 8 minutes: such a call now ends the entry but keeps its paid attempts). After `scripts/fold_back.py`: 79 of 105 wins kept, 2 A, 52 B, 25 C; 53 without any branch, 26 to confirm on the i7-9700K. C wins without any branch: libcxx-days-from-civil, rgb565-to-rgb888, scale-u10-to-u8, fletcher16-update, bitfield-insert-u32, hamming74-encode, dos-time-to-seconds
+  - [x] **Report the 2 A wins, never hide or silently re-label them**: llvm-mca keeps 2 of the 24 A controls; on the i7-9700K they split. `align-up-pow2` (`((x - 1) & -a) + a` instead of `(x + a - 1) & -a`): x1.01 as a call, x1.14 inline, in both modes, so a measured gain seen only inline, and its A label looks wrong. `rot-lr-xor` (two variable rotates done as BMI2 shifts of `x` doubled to 64 bits): x0.88 as a call, x1.05 inline (1.04-1.06, under the threshold), so no gain and not to be filed upstream. Always quote the numbers for these two (Benoit and Jules, Oct 30)
+    - For the report: align-up-pow2 rediscovers a miss LLVM already tracks (#125354, open), a good sign that the loop finds real gaps (Benoit, Oct 30)
+- [x] Full corpus run with LLM Compiler (Jules), on one machine: RTX 4070 Ti (CUDA, 56 tokens/s vs. 7 on the M1 Mac mini). On 40 B entries × 3 attempts, CUDA and Metal wrote the same candidate 85% of the time and found the same 13 faster proven rewrites; the gap is a limitation to state in the paper. `run.json` records the llama.cpp build, GGUF sha256, quantization, GPU and generation settings. Done Oct 29 (`results/llmc-full-az4`, 134 entries in 57 min, no error): 5 attempts, which are 5 independent samples since LLM Compiler cannot read counterexamples. Proven rewrite on 12 A, 39 B, 29 C; faster than clang -O3 on 1 A, 20 B, 9 C; after the fold-back check with a 5% threshold: 0 A, 19 B, 7 C. Its `run.json` still lists Muse settings (fixed since in `loop.py`): ignore them
+- [x] Ablation, three arms (Benoit, Oct 30, `results/ablation-*`, counterexample arm = `spark-full-v1`): 30 entries drawn with seed 20261030 (15 B, 15 C), kept wins 16 / 18 / 18 under `fold_back.py`, llvm-mca only. 3 against 1 discordant entries between arms 1 and 3 (sign test p = 0.63): no evidence that memory helps. Counterexamples are rare (10 on 8 of 134 entries in `spark-full-v1`) and verdict and counterexample arms reach the same kept verdict on all 8. Alive2 acts as a judge more than a teacher
+- [x] Muse Spark vs. LLM Compiler comparison (Benoit, Oct 30): functions with a proven rewrite 132 / 80, proposals proven 325 of 474 (69%) / 185 of 670 (28%), kept wins 79 / 22, confirmed on the i7-9700K 60 / 15 (14 in common; `llvm-issue-229419` only for LLM Compiler), about $36.50 / free on a local GPU. LLM Compiler cannot read the feedback, so its 5 attempts are independent samples
+- [x] Triage of real wins: gain on the final assembly, and `opt -O3` must not fold the rewrite back (Benoit)
+  - [x] Fold-back check: `scripts/fold_back.py` runs `opt -O3` on every win and re-measures it (Jules). On `llmc-full-az4` it catches `cmp3-i64` (A, x1.17: `opt -O3` re-forms `llvm.scmp`, a backend lowering issue)
+  - [x] Minimum gain: 5% (`--min-speedup 1.05`), fixed before the Muse Spark run and applied the same way to both models. llvm-mca is deterministic: 0.01 cycle per call is below its resolution (1 simulated cycle in 100 iterations), not noise (Jules and Benoit, Oct 29)
+  - [x] Measurement rule (Benoit and Jules, Oct 29): a win counts when llvm-mca's Block RThroughput (no dependency between calls) or one call (`-iterations=1`, latency) is better by more than 5%, and the other is not worse; a real caller may need either. One call is a whole number of cycles (about 10), so one cycle is about 10%: a coarse measure, one more reason to confirm on the CPU (Benoit, Oct 29: the first version required throughput and rejected latency-only gains). The chained figure (100 calls back to back, what `cost()` reports) is kept for the record only: a register reused as a temporary there delays the next call's argument (zstd-fse-optimal-table-log x1.43 -> x1.00). llvm-mca reads both sides of a branch in a straight line, so a win with a branch in clang's or the rewrite's assembly is marked "confirm on CPU". `scripts/fold_back.py` applies all of it. On `llmc-full-az4`: 22 of 30 wins kept (16 B, 6 C); 12 B without any branch, 10 to confirm on the i7-9700K
+  - [x] Re-check every B `expected.ll` with the same rule (the B rule "faster in cycles" used the chained figure): 8 of 61 known solutions show no gain, stated in the README
+  - [x] No numbers announced (README, demo, LLVM issues) before the measurement is settled
+  - [x] The 7 C wins kept on `llmc-full-az4` (zstd-fse-optimal-table-log x1.43, zstd-cparam-row-size x1.23, median3-i32 x1.21 after opt, opus-silk-rshift-round x1.17, lua-shiftl x1.14, linux-ewma-add x1.11, zstd-compress-bound x1.07): search existing LLVM issues before calling any of them new, then measure on the i7-9700K (Jules). Added from `spark-full-v1` (Benoit, Oct 30): the 7 C wins without any branch (libcxx-days-from-civil, rgb565-to-rgb888, scale-u10-to-u8, fletcher16-update, bitfield-insert-u32, hamming74-encode, dos-time-to-seconds), the 2 A wins (align-up-pow2, rot-lr-xor), and each C win with a branch once the i7-9700K confirms it
+    - Search of LLVM issues and PRs, read-only, nothing filed (Jules, Oct 30), on the 20 Spark wins (19 C + align-up-pow2) faster on the i7-9700K in at least one setting. GitHub search recalls IR patterns badly: "nothing found" is weak evidence, check Godbolt trunk and Discourse before any claim. KNOWN: align-up-pow2 (#125354, open). Candidates, gain independent of inputs: fletcher16-update (`urem 255` on [0, 510], one past the X < 2C limit of the CVP expansion, PR #84390), libcxx-days-from-civil (removes `sdiv 400` by biasing the year, 1.5x), hex-digit-value (merges the two letter-case range checks for value-returning arms; #54680 covers only boolean results), opus-silk-lin2log (guarded rotate in both directions; #18278 covers only `n == 0 ? x : rot`). Weaker, inline-only or niche: bitfield-insert-u32 (masked-merge family #7145), dos-time-to-seconds, hamming74-encode (multi-use folds blocked), scale-u10-to-u8 (mul folded into the udiv magic on a clamped range), the common `<< 8 | b` sinking in zstd-nbseq-decode. Known gap: rgb565-to-rgb888 (pdep/pext never generated, #98217; Intel-only gain). Not a miss, branch vs. select cost choice, slower or no gain with predictable inputs: brotli-combine-length-codes, brotli-copy-length-code, linux-timespec64-to-ns, lz4-frame-header-size (inline 0.93x), musl-fpclassifyf, opus-silk-log2lin, softfloat-shift-right-jam32, sqlite-logest-to-int, zstd-cblock-size (family #32360, #39374, #45035, #228923)
+    - Second check of the 4 candidates, read-only (Jules, Oct 30): Godbolt `x86-64 clang (trunk)` on Oct 30 gives the same IR as our pinned b974545 for all 4 (and the same asm for fletcher16-update), so none is fixed on trunk. fletcher16-update: confirmed in the source of `expandUDivOrURem` (CorrelatedValuePropagation.cpp), which expands `X urem Y` only when X < 2Y strictly; here X is at most 255 + 255 = 510 = 2 x 255, so it bails, while the second `urem` (at most 509) is expanded. Discourse (`urem 255`, `modulo 255`, `fletcher checksum`, `end-around carry`, `days_from_civil`, `floor division 400`, `hex digit`, `isxdigit`, `case insensitive range check`, `rotate idiom`, `guarded rotate`, `funnel shift phi`): nothing on these patterns. Nothing filed: review together before any issue (Benoit, Oct 30)
 
 ## M3: Confirmation on real hardware (Mon Nov 2)
 
-- [ ] x86 microbenchmark harness: separate object, no inlining, latency and throughput (Benoit)
-- [ ] Measurements from the same `.s`: i7-9700K, reference (Jules); i7-12700H (Benoit)
+- [x] x86 microbenchmark harness: `scripts/bench_cpu.py`, call and inline, predictable and random inputs (Benoit and Jules)
+- [x] Measurements from the same `.s`: i7-9700K, reference (Jules); i7-12700H (Benoit). Now the priority: no C win is confirmed without it. Every win with a branch is measured with predictable and with random inputs, and the report says in which case it holds
+  - [x] i7-9700K (Jules, Oct 30, `results/bench-9700k/`, `scripts/bench_cpu.py --all-kept`): WSL2, Windows processor boost disabled, core clock measured 3.54-3.58 GHz (one Spark launch dipped to 3.01), median spread between launches 0.5-0.7%. Spark: of 79 kept wins, 35 faster in both modes (17 B, 18 C), 3 C only with random inputs, 39 no measurable gain, 2 slower. LLM Compiler: of 22, 9 faster in both modes, 2 C only with random inputs, 11 no measurable gain. Limits: a call through the timing loop costs about 5 cycles, and most branch-free B wins sit at that floor (clang, rewrite and empty function equal), so "no measurable gain" means not visible when called as a function, not disproven. `rot-lr-xor` (A) is slower on the CPU (0.88x in both modes), against llvm-mca; `align-up-pow2` (A) shows no gain. A first version had one timing loop per function, and loop placement made a constant function look 20% slower: fixed by one aligned loop for all
+  - [x] Inline measure (Benoit asked, Jules, Oct 30): each function's llc assembly pasted unchanged into an assembly loop (args loaded into the argument registers, every ret a jump to the end of the iteration), checked to return what the function returns on every input before timing; no call floor. Same conditions, rerun of both runs with both measures (3.45-3.58 GHz; inline spread median 1.3-1.4%, higher than calls since an iteration is only about 3 cycles). Of the 40 Spark wins stuck at the call floor: 34 faster in both modes, 2 no gain, 4 slower (has-zero-byte-u32, llvm-issue-206577, 211183, 231089). Spark A: align-up-pow2 1.14x inline (no gain as a call), rot-lr-xor 1.05x inline (0.88x as a call). Inline, many branchy C wins lose in predictable mode (median3 0.94x, opus-silk-log2lin 0.67x) and win big in random mode (6.1x, 3.3x): when the branches are predictable, clang's branchy code is cheap once inlined; the report must give both
+  - [x] Rule for the CPU measures (Benoit and Jules, Oct 30), **chosen after seeing the data**, to be said so in the report: a win is confirmed when at least one of its four numbers (call or inline, predictable or random inputs) is faster by more than 5% in every launch and none is slower; slower means every launch below 0.98 (the inline spread between launches is 1.3-1.4%); a win faster in one setting and slower in another "depends on context". The report always gives the four numbers, not only the verdict. `scripts/bench_cpu.py <bench JSON>` applies the rule again to saved launches. Spark: 60 confirmed (1 A, 45 B, 14 C), 12 depend on context, 2 no gain, 5 slower; LLM Compiler: 15 confirmed (14 B, 1 C), 6 depend on context, 1 slower. The inline floor needs no work: the empty loop is at 1.25 cycles median (3.96 was its maximum)
 - [ ] Stretch: generalize wins into peephole rules, re-proven by Alive2 (Benoit)
+
+- i7-12700H (Benoit, Oct 30, `results/bench-12700h/`): WSL2, Windows processor boost disabled, maximum state 99%, minimum 100%, `--cpu 4`, core clock 2.02-2.22 GHz. Spark: 59 confirmed, 13 depend on the context, 4 no gain, 3 slower. LLM Compiler: 10, 8, 2, 2. **Confirmed on both CPUs: Spark 51 (39 B, 11 C, 1 A), LLM Compiler 8 (8 B).** The 19 Spark verdicts that differ show that part of the gains depend on the CPU. `rot-lr-xor` reverses (0.88x and 1.05x, then 1.12x and 0.96x). Median spread 0.9% on both, but over 2% on 61 of 316 measures on the i7-9700K and 138 of 316 on the i7-12700H. The clock check first showed 22.8 GHz: this CPU folds chains of add-immediate, so it now uses register adds; speedups are not affected
 
 ## M4: Submission (Tue Nov 3 – Wed Nov 4)
 
-- [ ] Results in the README, demo page (together)
+- [x] Results and visuals in the README (together); `scripts/charts.py` for the paper, `scripts/visuals.py` for everyone. The live demo page is cut: the video replays recorded traces, with Alive2 really running again
 - [x] `scripts/verify_all.py`: re-checks the corpus and re-runs Alive2 on every recorded proof, with hash checks (Benoit; Oct 29: 103 entries and 142 proofs, 0 problems)
-- [ ] The same check reproduced on a second machine (together)
+- [x] The same check reproduced on a second machine: WSL2 Ubuntu 24.04 built with GCC, 103 entries and 142 proofs, then 134 entries with real-code, 0 problems (Jules, Oct 29)
 - [ ] Demo video (together)
 - [ ] Submission (Benoit)
 
@@ -60,9 +76,8 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 Bonuses once the MVP works. Tasks marked *(can start now)* do not depend on the loop.
 
 **To win**
-- [ ] Report every proven, new win upstream as an LLVM issue (C, IR, Alive2 proof). Selective: only proven, previously unreported cases.
-- [ ] Live demo page of the loop: proposal, Alive2 counterexample, repair, proof, measured gain.
-- [ ] Charts: ablation with vs. without counterexamples, cost per proven optimization, proven rate vs. number of attempts.
+- [ ] Report proven wins upstream as LLVM issues, after a trunk and duplicate check. `scripts/issue_draft.py` writes the drafts; nothing is filed yet.
+- [x] Charts: funnel, confirmed wins, attempts, llvm-mca vs. CPU, CPU vs. CPU (`scripts/charts.py`).
 
 **Usefulness: prove it, don't just claim it**
 
@@ -79,12 +94,14 @@ Why it matters: more and more code is written by AI models, and it can only be t
 
 **Tooling**
 - [x] Verifier regression suite: deliberately wrong rewrites that `verify.py` must reject (done in M1).
-- [ ] Chart scripts and demo page reading `results/<run-id>/*.json`.
+- [x] Chart scripts reading the recorded `results/` JSON files (`scripts/charts.py`, `scripts/visuals.py`).
 
 **After the submission**
 - [ ] Paper: a precise, formal and reproducible write-up of the approach (refinement, the counterexample-guided loop, corpus, results, threats to validity).
 
 ## Decisions (Oct 28, Benoit and Jules)
+
+Kept as written on Oct 28. Results changed some of them: we do not call any win new, the controls have 1 confirmed win, and the two-model pipeline was not built.
 
 First signal (provisional: godbolt IR, online Alive2, IR instruction count, not llvm-mca): LLM Compiler alone, up to 5 attempts, on the 40 B entries: 23 proven, 15 shorter than `clang -O3`. Extra attempts added no win: the hard cases need a model that can read counterexamples.
 

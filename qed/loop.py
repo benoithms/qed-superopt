@@ -101,11 +101,18 @@ def run_function(
                 response = llm.generate(
                     src_ll, history, c_source=c_source, baseline=base, settings=call
                 )
-            except BaseException:
+            except BaseException as exc:
                 # a failed call may still have been billed: keep its worst case as paid
                 if WALLET is not None:
                     WALLET.settle(hard, hard)
-                raise
+                if not isinstance(exc, Exception):
+                    raise
+                # The server drops answers after about 8 minutes (f32-to-bf16-rne: empty answer
+                # after 497 s), like a truncation: stop, but keep the attempts already paid for.
+                error = "; ".join([repr(exc), *getattr(exc, "__notes__", [])])
+                log.append({"n": n, "check": "api_error", "error": error, "worst_case_usd": hard})
+                stop = "api_error"
+                break
             stats = {k: v for k, v in llm.last_call.items() if k != "messages"}
             if WALLET is not None:
                 WALLET.settle(hard, 0.0 if stats.get("cached") else stats["cost_usd"])
@@ -153,7 +160,8 @@ def run_function(
         "category": entry.parent.name,
         "backend": backend,
         "model": settings.model if backend == "muse" else "llm-compiler-7b",
-        "settings": asdict(settings),
+        # LLM Compiler uses none of them: no tokens to cap, and it never reads the feedback.
+        "settings": asdict(settings) if backend == "muse" else None,
         "src_ll": src_ll,
         "src_sha256": sha256(src_ll),
         "baseline": _cost_record(base),
@@ -162,7 +170,7 @@ def run_function(
         "stop": stop,
         "cost_usd": spent,
         "large": large,
-        "budget_usd": budget_usd,
+        "budget_usd": budget_usd if backend == "muse" else None,
         "verified_by": "alive-tv, reference toolchain",
     }
 
@@ -357,6 +365,10 @@ def main(argv=None):
             )
         return run_function(e, args.backend, settings, args.attempts, args.budget)
 
+    if args.backend == "llmc" and not (config.LLMC_MODEL_SHA256 and config.LLMC_MACHINE):
+        ap.error(
+            "set LLMC_MODEL_SHA256 and LLMC_MACHINE: a run must say which model and GPU answered"
+        )
     out = config.RESULTS_DIR / args.run_id
     out.mkdir(parents=True, exist_ok=True)
     run = {
@@ -364,7 +376,7 @@ def main(argv=None):
         "started": datetime.now(UTC).isoformat(),
         "backend": args.backend,
         "model": settings.model if args.backend == "muse" else "llm-compiler-7b",
-        "settings": asdict(settings),
+        "settings": asdict(settings) if args.backend == "muse" else None,
         "attempts": args.attempts,
         "budget_usd_per_function": args.budget,
         "jobs": jobs,
@@ -377,6 +389,8 @@ def main(argv=None):
             "budget_usd_per_function": fallback_budget,
         },
         "system_prompt": llm.SYSTEM if args.backend == "muse" else llm_compiler.PROMPT,
+        "llm_compiler": args.backend == "llmc"
+        and {**llm_compiler.server(), "generation": llm_compiler.GENERATION},
         "toolchain": {
             "llvm": _git_head(config.TOOLCHAIN / "llvm-project"),
             "alive2": _git_head(config.TOOLCHAIN / "alive2"),
@@ -410,8 +424,9 @@ def main(argv=None):
                 try:
                     res = fut.result()
                 except Exception as exc:  # one broken entry must not stop the run
-                    errors[str(e)] = repr(exc)
-                    print(f"{e.name:28} ERROR {exc!r}", flush=True)
+                    detail = "; ".join([repr(exc), *getattr(exc, "__notes__", [])])
+                    errors[str(e)] = detail
+                    print(f"{e.name:28} ERROR {detail}", flush=True)
                     continue
                 (out / f"{e.name}.json").write_text(json.dumps(res, indent=1))
                 total += res["cost_usd"]

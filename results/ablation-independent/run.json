@@ -1,0 +1,83 @@
+{
+ "run_id": "ablation-independent",
+ "started": "2026-10-30T11:24:03.825637+00:00",
+ "backend": "muse",
+ "model": "muse-spark-1.3",
+ "settings": {
+  "model": "muse-spark-1.3",
+  "show_asm": "never",
+  "feedback": "independent",
+  "max_tokens": 64000,
+  "max_tokens_after_win": 64000,
+  "large_insts": 10,
+  "max_tokens_large": 64000,
+  "max_tokens_after_win_large": 64000,
+  "stop_on_truncation": true
+ },
+ "attempts": 5,
+ "budget_usd_per_function": null,
+ "jobs": 2,
+ "max_total_usd": 14.0,
+ "fallback": null,
+ "system_prompt": "You are a superoptimizer for LLVM IR. You receive one function compiled by clang -O3 for x86-64 (Skylake) and propose a faster version of it.\n\nYour rewrite is checked by Alive2, a formal verifier: it must be a refinement of the source.\n- For every input where the source has defined behavior, return the same value.\n- You may exploit undefined behavior that is already in the source (nsw, nuw, exact flags, poison, shifts past the bit width, division by zero): on those inputs, any result is allowed.\n- Never introduce undefined behavior the source does not have (no new nsw/nuw/exact flag, no possible division by zero, no new poison).\n- Only LLVM intrinsics may be called (llvm.ctpop, llvm.ctlz, llvm.cttz, llvm.abs, llvm.smin/smax/umin/umax, llvm.fshl/fshr, llvm.bswap, llvm.bitreverse, llvm.uadd.sat, ...). No memory access, no other function.\n\nSpeed is measured by llvm-mca on the x86-64 assembly that llc produces for your IR, in cycles per call. Fewer IR instructions is not the goal: a division or a branch can cost far more than several simple instructions.\n\nAnswer format:\n- Write only the function BODY in a ```llvm block: no `define` line, no closing brace. The original header (name, parameters, attributes) is kept as is.\n- Parameters keep their names (%0, %1, ...). Give your own values names (%t1, %t2, ...), never new numbers.\n- If, after at least one attempt, you believe the source is already optimal, answer NO_IMPROVEMENT followed by one sentence explaining why.",
+ "llm_compiler": false,
+ "toolchain": {
+  "llvm": "b97454582dfbe2d5ebe7b7b1533de947bef16942",
+  "alive2": "adacbd5180ccf95075e9867c4f0c259f59c9fef2",
+  "clang_flags": [
+   "-O3",
+   "--target=x86_64-unknown-linux-gnu",
+   "-march=skylake",
+   "-S",
+   "-emit-llvm",
+   "-g0",
+   "-fdiscard-value-names"
+  ],
+  "llc_flags": [
+   "-O3",
+   "-mtriple=x86_64-unknown-linux-gnu",
+   "-mcpu=skylake"
+  ],
+  "mca_flags": [
+   "-mtriple=x86_64-unknown-linux-gnu",
+   "-mcpu=skylake"
+  ]
+ },
+ "entries": [
+  "bench/B/llvm-issue-227280",
+  "bench/B/llvm-issue-212903",
+  "bench/B/llvm-issue-227763",
+  "bench/B/llvm-issue-219130",
+  "bench/B/llvm-issue-220829",
+  "bench/B/leap-year-u32",
+  "bench/B/llvm-issue-231124",
+  "bench/B/llvm-issue-234703",
+  "bench/B/llvm-issue-225655",
+  "bench/B/llvm-issue-229537",
+  "bench/B/llvm-issue-214416",
+  "bench/B/llvm-issue-230424",
+  "bench/B/llvm-issue-214956",
+  "bench/B/llvm-issue-207131",
+  "bench/B/sext-field-12",
+  "bench/C/next-same-popcount",
+  "bench/C/hex-digit-value",
+  "bench/C/opus-silk-lin2log",
+  "bench/C/linux-drm-fixp2int-ceil",
+  "bench/C/lua-shiftl",
+  "bench/C/brotli-combine-length-codes",
+  "bench/C/musl-iswprint",
+  "bench/C/opus-silk-rshift-round",
+  "bench/C/libcxx-days-from-civil",
+  "bench/C/libpng-composite",
+  "bench/C/crc32-nibble-update",
+  "bench/C/zstd-cparam-row-size",
+  "bench/C/libpng-paeth-predictor",
+  "bench/C/zstd-compress-bound",
+  "bench/C/f32-to-bf16-rne"
+ ],
+ "finished": "2026-10-30T12:58:40.825870+00:00",
+ "cost_usd": 9.79741425,
+ "skipped_by_max_total": [],
+ "errors": {},
+ "paid_usd": 10.347188000000001
+}
