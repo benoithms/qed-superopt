@@ -4,6 +4,7 @@
 skyline.png: every win confirmed on both CPUs, its worst and best timing against clang -O3.
 saved.png: every win confirmed on both CPUs, the time it saves, median of its timings.
 squares.png: the 134 functions, one square each, colored by the last check they passed.
+groups.png: the 134 functions, one square each, by corpus group, filled when confirmed.
 Timings: the 8 of a win (4 measures on each of 2 CPUs). Prints what it draws."""
 
 import argparse
@@ -41,6 +42,11 @@ def timings() -> dict[str, list[float]]:
         for fid in benches[0]
         if fid in benches[1]
     }
+
+
+def categories() -> dict[str, str]:
+    """The corpus group of each function."""
+    return {d.name: d.parent.name for d in Path("bench").glob("*/*") if d.is_dir()}
 
 
 def columns(subtitle: str, note: str, figsize=(12, 6.75), bottom=0.12):
@@ -83,7 +89,7 @@ def skyline(out: Path):
     xs = list(range(len(rows)))
     best = [max(t) for _, t in rows]
     worst = [min(t) for _, t in rows]
-    groups = {d.name: d.parent.name for d in Path("bench").glob("*/*") if d.is_dir()}
+    groups = categories()
     colors = [GROUPS[groups[fid]][0] for fid, _ in rows]
     ax.bar(xs, [v - 1 for v in best], 0.8, bottom=1, color=colors, alpha=0.28)
     ax.bar(xs, [max(v, 1) - 1 for v in worst], 0.8, bottom=1, color=colors)
@@ -204,8 +210,63 @@ def squares(out: Path):
     save(fig, out, "squares")
 
 
+def by_group(out: Path):
+    """Each corpus group, what it tests, and how many of its functions are confirmed faster."""
+    wins, groups = timings(), categories()
+    print("confirmed controls:", [f for f in wins if groups[f] == "A"])
+    questions = {
+        "B": "Does it reach what people already know?",
+        "C": "Does it find gains with no answer to copy?",
+        "A": "Does it invent gains where little is left?",
+    }
+    fig, ax = plt.subplots(figsize=(12, 6.2), facecolor=SURFACE)
+    fig.subplots_adjust(left=0.02, right=0.98, top=0.87, bottom=0.12)
+    ax.axis("off")
+    per_row, y = 20, 0
+    for group, (color, label) in GROUPS.items():
+        ids = [f for f, g in groups.items() if g == group]
+        won = sum(f in wins for f in ids)
+        print("by_group", group, won, len(ids))
+        ax.text(0, y + 0.1, f"{won} of {len(ids)}", color=INK, fontsize=24, weight="bold", va="top")
+        ax.text(0, y - 1.05, label, color=INK, fontsize=13, va="top")
+        ax.text(0, y - 1.65, questions[group], color=MUTED, fontsize=12, va="top")
+        for i in range(len(ids)):
+            ax.add_patch(
+                Rectangle(
+                    (14 + i % per_row, y - i // per_row - 0.86),
+                    0.86,
+                    0.86,
+                    color=color,
+                    alpha=1 if i < won else 0.22,
+                )
+            )
+        y -= max((len(ids) - 1) // per_row + 1, 3) + 0.7
+    ax.set_xlim(0, 14 + per_row)
+    ax.set_ylim(y + 0.5, 0.2)
+    ax.set_aspect("equal")
+    fig.text(
+        0.02,
+        0.93,
+        f"{len(wins)} of {len(groups)} small functions are confirmed faster than clang -O3",
+        color=INK,
+        fontsize=17,
+        weight="bold",
+    )
+    fig.text(
+        0.02,
+        0.02,
+        "One square per function. Solid: proven correct (refinement) and confirmed faster on both "
+        "an i7-9700K and an i7-12700H. Pale: not confirmed.\nMuse Spark, 5 attempts at most. The "
+        "confirmed control is align-up-pow2: gain only inline, and LLVM already tracks this miss "
+        "(#125354), so its label looks wrong.",
+        color=MUTED,
+        fontsize=10.5,
+    )
+    save(fig, out, "groups")
+
+
 def save(fig, out: Path, name: str):
-    out.mkdir(exist_ok=True)
+    out.mkdir(parents=True, exist_ok=True)
     fig.savefig(out / f"{name}.png", dpi=200)
     fig.savefig(out / f"{name}.svg")
 
@@ -217,6 +278,7 @@ def main():
     skyline(args.out)
     saved(args.out)
     squares(args.out)
+    by_group(args.out)
 
 
 if __name__ == "__main__":
