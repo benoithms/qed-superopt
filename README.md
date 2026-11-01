@@ -158,13 +158,14 @@ On the i7-12700H it runs 1.39x faster as a call and about 1.49x inline; the i7-9
 
 **What the feedback brings.** On 30 functions drawn at random, we compared independent attempts, feedback with the verdict only, and feedback with the counterexample: 16, 18 and 18 kept wins. Only 4 functions change between the first and the last, 3 against 1, which is no evidence that memory helps. Counterexamples are rare: 10 in the whole Muse Spark run, on 8 functions, and they changed no result. So far Alive2 works as a judge that guarantees what we keep, more than as a teacher.
 
+We have already reported our first findings to LLVM: [#237771](https://github.com/llvm/llvm-project/issues/237771) and [#237772](https://github.com/llvm/llvm-project/issues/237772).
+
 **Limits.**
 - Small pure integer functions, one pass per function, two CPUs. Timing runs under WSL2, where we cannot pin a physical core.
 - The CPU matters: the verdict of 19 of Muse Spark's 79 kept wins differs between the two.
 - `llvm-mca` alone is not enough: 26 of its 105 first wins fall to `opt -O3` or to our rule, and 28 of the remaining 79 are not confirmed on both CPUs.
 - Wins with a branch often depend on the inputs: `median3-i32` is 6.11x inline with random inputs and 0.94x with predictable ones.
 - The known solutions of 8 of the 61 known misses show no gain under our rule. We keep them in that group, since the corpus is frozen and no kept win comes from them.
-- Nothing has been reported to LLVM yet, and we do not call any win new: a search of LLVM issues finds nothing on 4 candidates, which is weak evidence.
 
 ## What we built vs. what we use
 
