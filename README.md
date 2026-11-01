@@ -97,13 +97,15 @@ We evaluate on a corpus of small, pure integer functions, in three groups report
 
 | Group | What | Expected outcome |
 |---|---|---|
-| **Control** | Functions `clang -O3` already optimizes perfectly | Nothing found: no false wins |
-| **Known misses** | Optimizations reported as missed in LLVM issues and prior work | Rediscover them |
-| **Open** | Classic bit-manipulation functions written naively | New discoveries |
+| **Control** | Functions `clang -O3` already handles | Little to gain: checks that we do not invent wins |
+| **Known misses** | Optimizations reported as missed in LLVM issues and prior work, with a known better solution the model never sees | Reach that solution |
+| **Open** | Functions, some adapted from real projects, with no known better solution | Unknown: nobody knows how many can be improved |
 
 ## Results
 
 On the frozen corpus `corpus-v1`: 134 functions (24 control, 61 known misses, 49 open), up to 5 attempts each. Every win below is proven correct (refinement) by Alive2.
+
+![51 of 134 small functions are confirmed faster than clang -O3, by group](docs/images/groups.png)
 
 | | Muse Spark | LLM Compiler |
 |---|---:|---:|
@@ -117,6 +119,10 @@ On the frozen corpus `corpus-v1`: 134 functions (24 control, 61 known misses, 49
 
 Each kept win is timed on each CPU in four ways: called as a function and pasted inline in a loop, each with predictable and with random inputs. **Confirmed** means over 5% faster in every launch in at least one of the four, and slower in none (under 0.98 in every launch). Otherwise a win depends on the context, shows no clear gain, or is slower. We chose this rule after seeing the data, so the four numbers of every win are in [`results/bench-9700k/`](results/bench-9700k/) and [`results/bench-12700h/`](results/bench-12700h/).
 
+Each of Muse Spark's 51 wins, from its best timing to its worst. The best numbers are best cases, so read them with the worst ones under the axis:
+
+![The 51 wins of Muse Spark: best, median and worst speedup over clang -O3](docs/images/skyline.png)
+
 Of the wins confirmed on both CPUs, Muse Spark has 39 known misses, 11 open functions and 1 control; LLM Compiler has 8 known misses. Some of these wins on open functions, as speedups over `clang -O3` on the i7-9700K:
 
 | Function | Call, predictable | Call, random | Inline, predictable | Inline, random |
@@ -126,6 +132,28 @@ Of the wins confirmed on both CPUs, Muse Spark has 39 known misses, 11 open func
 | `hex-digit-value` | 1.80x | 1.80x | 1.09x | 1.09x |
 | `opus-silk-lin2log` | 1.33x | 2.36x | 1.35x | 2.43x |
 | `fletcher16-update` | 1.14x | 1.14x | 1.21x | 1.21x |
+
+**One win.** `libcxx-days-from-civil`, adapted from libc++: days since 1970 from a year, month and day. Open group, first attempt, $0.14, 35 assembly instructions down to 26. `clang -O3` handles negative years with a signed division by 400:
+
+```llvm
+%11 = icmp slt i32 %8, 0
+%12 = select i1 %11, i32 %10, i32 %8
+%13 = sdiv i32 %12, 400
+%14 = mul nsw i32 %13, -400
+```
+
+The year fits in 16 bits, so Muse Spark adds 51200, a multiple of 400, to make it positive. The sign handling and the 400-year arithmetic disappear, and Alive2 proves the result correct (refinement):
+
+```llvm
+%t7 = add i32 %t6, 51200
+%t14 = lshr i32 %t7, 2
+%t15 = udiv i32 %t7, 100
+%t16 = lshr i32 %t15, 2
+```
+
+On the i7-12700H it runs 1.39x faster as a call and about 1.49x inline; the i7-9700K is in the table above. Full record: [`results/spark-full-v1/libcxx-days-from-civil.json`](results/spark-full-v1/libcxx-days-from-civil.json).
+
+**One rejection.** On `linux-mult-frac`, `x / d * n + x % d * n / d` in 32 bits, Muse Spark's attempt 4 widens to 64 bits, multiplies, then divides. It looks right, but the source wraps around in 32 bits. Alive2 finds the input that tells them apart: `x = 9, n = 2747760640, d = 12` gives 271250773 in the source and 2060820480 in the rewrite. The attempt is rejected.
 
 **Controls.** `llvm-mca` kept 2 of the 24 controls, which were supposed to have nothing to gain. `rot-lr-xor` is no reliable gain: as a call and inline, 0.88x and 1.05x on the i7-9700K, but 1.12x and 0.96x on the i7-12700H. `align-up-pow2` shows a gain only inline, 1.14x and 1.11x, and about 1.00x as a call: it rediscovers a miss LLVM already tracks ([#125354](https://github.com/llvm/llvm-project/issues/125354)), so its control label looks wrong.
 
@@ -148,7 +176,7 @@ Everything in this repository was written during the hackathon. We build on the 
 | The propose → prove → repair loop and its orchestration | [LLVM / clang](https://llvm.org) (Apache 2.0 with LLVM Exceptions) |
 | Prompts and counterexample feedback | [Alive2](https://github.com/AliveToolkit/alive2) (MIT) and [Z3](https://github.com/Z3Prover/z3) (MIT) |
 | The rigor layer: strict proof parsing, signature checks, verifier regression suite | Meta's Muse Spark model (and Muse Wonder, in experiments), via the Meta Model API |
-| The benchmark corpus and its evaluation | Meta's LLM Compiler, run locally with [llama.cpp](https://github.com/ggml-org/llama.cpp) |
+| The benchmark corpus, its evaluation and its charts | Meta's LLM Compiler, run locally with [llama.cpp](https://github.com/ggml-org/llama.cpp) |
 | Spending controls: hard cap per run, response cache | `llvm-mca` for performance estimates |
 | Measurement harness (`scripts/bench_cpu.py`) and result checks (`scripts/fold_back.py`) | The `openai` Python client, only as the HTTP client of the Meta Model API (requests go to Meta, no OpenAI model is used) |
 
