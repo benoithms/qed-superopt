@@ -2,7 +2,7 @@
     PYTHONPATH=. python scripts/verify_all.py            # corpus + every recorded proof
     PYTHONPATH=. python scripts/verify_all.py --corpus   # corpus only
 
-Corpus: each entry against the CLAUDE.md rules (meta, size, category), and every expected.ll
+Corpus: each entry against the corpus rules (meta, size, category), and every expected.ll
 proven by Alive2 and faster than clang -O3 in llvm-mca cycles. Results: every attempt
 recorded as proven in results/*/*.json is proven again by Alive2, and the stored hashes must
 match the stored files. Lists every problem found and exits with 1 if there is any."""
