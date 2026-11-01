@@ -8,9 +8,6 @@
 
 Built for the **Meta Global AI Developer Hackathon** (Oct 26 – Nov 4, 2026), theme *Push the Frontier*.
 
-> [!NOTE]
-> 🚧 Under active development during the hackathon.
-
 ---
 
 ## Why
@@ -70,6 +67,8 @@ Then, from this repository, without any API key:
 uv run pytest -q                                                     # includes the wrong rewrites that must be rejected
 PYTHONPATH=. uv run python scripts/verify_all.py                     # re-proves every recorded result
 PYTHONPATH=. uv run python scripts/fold_back.py results/spark-full-v1   # applies our rule to the recorded wins
+PYTHONPATH=. uv run python scripts/replay.py win                     # replays a recorded win, Alive2 runs again
+PYTHONPATH=. uv run python scripts/replay.py rejected                # replays a recorded rejection
 ```
 
 To run the loop on one function, copy `.env.example` to `.env`, add a Meta Model API key, and cap the spending:
@@ -179,6 +178,8 @@ Everything in this repository was written during the hackathon. We build on the 
 | The benchmark corpus, its evaluation and its charts | Meta's LLM Compiler, run locally with [llama.cpp](https://github.com/ggml-org/llama.cpp) |
 | Spending controls: hard cap per run, response cache | `llvm-mca` for performance estimates |
 | Measurement harness (`scripts/bench_cpu.py`) and result checks (`scripts/fold_back.py`) | The `openai` Python client, only as the HTTP client of the Meta Model API (requests go to Meta, no OpenAI model is used) |
+
+For the demo video only, we also use [Manim](https://github.com/ManimCommunity/manim) for the animations and [Kokoro](https://github.com/hexgrad/kokoro) for the AI-generated voice.
 
 ## Prior art
 

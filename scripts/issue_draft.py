@@ -5,7 +5,7 @@ Refuses a win that our rule does not keep or that is not confirmed on both CPUs.
 has a shorter header than the recorded one, so that exact text is proven again by Alive2 before
 anything is written, and so is a reduced case. Numbers come from the files only and always
 describe the full function. The text that explains the miss is left as TODO for the person
-filing. Writes .orca/issues/generated/<id>.md: no API call, nothing filed."""
+filing. Writes issue-drafts/<id>.md: no API call, nothing filed."""
 
 import argparse
 import difflib
@@ -145,12 +145,13 @@ def main():
     ap.add_argument("id")
     ap.add_argument("--run", default="spark-full-v1")
     ap.add_argument("--reduced", type=Path, help="hand-reduced file with @src and @tgt")
+    ap.add_argument("--out", type=Path, default=Path("issue-drafts"))
     args = ap.parse_args()
     try:
         text = draft(args.id, args.run, args.reduced)
     except Refused as e:
         sys.exit(f"{args.id}: refused: {e}")
-    out = Path(".orca/issues/generated", f"{args.id}.md")
+    out = args.out / f"{args.id}.md"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(text)
     print(out)
