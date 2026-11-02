@@ -1,8 +1,9 @@
 """Steps 3 and 4 of the protocol: put a proven rewrite back into the whole program and time it.
-    PYTHONPATH=. python real-projects/stb-image/whole.py paeth-int rewrite.ll \
+    PYTHONPATH=. python real-projects/stb-image/whole.py paeth-u8 <rewrite> \
         --machine "<conditions>" --out results/real-projects/stb-image/whole-<cpu>.json
 
-rewrite.ll holds @f, proven again here against the function's src.c: nothing else is accepted.
+The rewrite is a recorded result (.json, its best attempt) or a .ll file holding @f. It is proven
+again here against the function's src.c: nothing else is accepted.
 Both binaries come from the same unoptimized module, then opt -O3 and llc, and differ only by
 the body of stbi__paeth. They must decode every image to the same bytes before any timing.
 --smoke checks all this on another machine, without timing."""
@@ -130,6 +131,9 @@ def main() -> None:
 
     src_ll = extract(HERE / "functions" / args.entry / "src.c")
     tgt_ll = args.rewrite.read_text()
+    if args.rewrite.suffix == ".json":
+        res = json.loads(tgt_ll)
+        tgt_ll = next(a for a in res["attempts"] if a["n"] == res["best"]["n"])["tgt_ll"]
     proof = verify(src_ll, tgt_ll)
     if proof.status is not Status.PROVEN:
         raise SystemExit(f"rewrite refused, not proven: {proof.status.value}")
