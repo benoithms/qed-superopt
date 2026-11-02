@@ -116,7 +116,9 @@ def binary(ir: str, name: str, flags: list, llc_cpu: list) -> Path:
     ll.write_text(ir)
     opt = [config.OPT, "-O3", "-S", *llc_cpu, ll, "-o", WORK / f"{name}.o3.ll"]
     subprocess.run(opt, check=True)
-    subprocess.run([config.LLC, "-O3", *llc_cpu, WORK / f"{name}.o3.ll", "-o", asm], check=True)
+    # position-independent, as clang builds this program by default and as Linux links it
+    llc = [config.LLC, "-O3", "-relocation-model=pic", *llc_cpu]
+    subprocess.run([*llc, WORK / f"{name}.o3.ll", "-o", asm], check=True)
     sys_flags = [f for f in flags if not f.startswith("-march")]
     subprocess.run([config.CLANG, *sys_flags, asm, "-o", exe, "-lm"], check=True)
     return exe
