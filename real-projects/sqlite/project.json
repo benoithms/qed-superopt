@@ -1,0 +1,15 @@
+{
+  "project": "SQLite",
+  "version": "3.50.4",
+  "amalgamation": {
+    "url": "https://www.sqlite.org/2025/sqlite-amalgamation-3500400.zip",
+    "sha256": "1d3049dd0f830a025a53105fc79fd2ab9431aea99e137809d064d8ee8356b032"
+  },
+  "speedtest1": {
+    "url": "https://raw.githubusercontent.com/sqlite/sqlite/version-3.50.4/test/speedtest1.c",
+    "sha256": "f495cd1c3f727ebf6270d967b43f11a14304053ae4532d6338dbfea65c1a5a78"
+  },
+  "license": "public domain",
+  "defines": ["SQLITE_THREADSAFE=0", "SQLITE_OMIT_LOAD_EXTENSION"],
+  "workload": ["--memdb", "--size", "25", "--singlethread", "--testset", "main"]
+}
