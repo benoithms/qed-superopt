@@ -1,0 +1,6 @@
+{
+  "id": "paeth-u8",
+  "category": "real-project",
+  "source": "stbi__paeth in stb_image.h, commit d14d46f6b44456eb88beac58cba833a4135d4c89, https://github.com/nothings/stb",
+  "description": "stbi__paeth with byte arguments: its only non-constant call site passes stbi_uc values"
+}
