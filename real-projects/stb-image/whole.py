@@ -21,7 +21,7 @@ from qed import config
 from qed.extract import body, extract, function
 from qed.verify import Status, sha256, verify
 
-HERE = Path(__file__).parent
+HERE = Path(__file__).resolve().parent
 WORK = HERE / "work"
 MIN_SPEEDUP = 1.02
 DRIVER = r"""
@@ -141,7 +141,8 @@ def main() -> None:
     if not args.smoke and not (args.machine and args.out):
         ap.error("--machine and --out are required")
 
-    src_ll = extract(HERE / "functions" / args.entry / "src.c")
+    # relative, as in the search: the path is part of the module, so of its recorded hash
+    src_ll = extract(HERE.relative_to(config.REPO) / "functions" / args.entry / "src.c")
     tgt_ll = args.rewrite.read_text()
     attempt = None
     if args.rewrite.suffix == ".json":
