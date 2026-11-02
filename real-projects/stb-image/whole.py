@@ -3,7 +3,8 @@
         --machine "<conditions>" --out results/real-projects/stb-image/whole-<cpu>.json
 
 The rewrite is a recorded result (.json, its best attempt) or a .ll file holding @f. It is proven
-again here against the function's src.c: nothing else is accepted.
+again here against the function's src.c; on a machine without Alive2, only a recorded
+proof whose hashes match is accepted.
 Both binaries come from the same unoptimized module, then opt -O3 and llc, and differ only by
 the body of stbi__paeth. They must decode every image to the same bytes before any timing.
 --smoke checks all this on another machine, without timing."""
@@ -18,7 +19,7 @@ from pathlib import Path
 
 from qed import config
 from qed.extract import body, extract, function
-from qed.verify import Status, verify
+from qed.verify import Status, sha256, verify
 
 HERE = Path(__file__).parent
 WORK = HERE / "work"
@@ -61,6 +62,17 @@ int main(int argc, char **argv) {
 }
 """
 PAETH = re.compile(r"^define internal i32 @stbi__paeth\((.*?)\)([^{]*)\{.*?^\}", re.S | re.M)
+
+
+def recorded_proof(src_ll: str, res: dict | None, attempt: dict | None) -> str:
+    """Without Alive2 on this machine: only a recorded proof of this exact source and rewrite.
+    verify_all proves it again on the machine that has Alive2."""
+    if res is None or attempt.get("check") != "proven":
+        raise SystemExit("rewrite refused: no Alive2 here and no recorded proof")
+    same_src = sha256(src_ll) == res["src_sha256"] == sha256(res["src_ll"])
+    if not same_src or sha256(attempt["tgt_ll"]) != attempt["tgt_sha256"]:
+        raise SystemExit("rewrite refused: the recorded proof does not match these files")
+    return attempt.get("alive2_output") or "recorded proof, hashes checked"
 
 
 def tools(smoke: bool) -> tuple[list, list]:
@@ -131,12 +143,18 @@ def main() -> None:
 
     src_ll = extract(HERE / "functions" / args.entry / "src.c")
     tgt_ll = args.rewrite.read_text()
+    attempt = None
     if args.rewrite.suffix == ".json":
         res = json.loads(tgt_ll)
-        tgt_ll = next(a for a in res["attempts"] if a["n"] == res["best"]["n"])["tgt_ll"]
-    proof = verify(src_ll, tgt_ll)
-    if proof.status is not Status.PROVEN:
-        raise SystemExit(f"rewrite refused, not proven: {proof.status.value}")
+        attempt = next(a for a in res["attempts"] if a["n"] == res["best"]["n"])
+        tgt_ll = attempt["tgt_ll"]
+    if config.ALIVE_TV.exists():
+        proof = verify(src_ll, tgt_ll)
+        if proof.status is not Status.PROVEN:
+            raise SystemExit(f"rewrite refused, not proven: {proof.status.value}")
+        alive2 = proof.output
+    else:
+        alive2 = recorded_proof(src_ll, res if attempt else None, attempt)
 
     flags, llc_cpu = tools(args.smoke)
     ir = module(flags)
@@ -166,7 +184,7 @@ def main() -> None:
     print("every launch above", MIN_SPEEDUP, "on this CPU" if win else "NOT met on this CPU")
     rec = {"entry": args.entry, "machine": args.machine, "cpu": platform.processor()}
     rec |= {"images": len(images), "min_speedup": MIN_SPEEDUP, "win_on_this_cpu": win}
-    rec |= {"launches": rows, "tgt_ll": tgt_ll, "alive2": proof.output}
+    rec |= {"launches": rows, "tgt_ll": tgt_ll, "alive2": alive2}
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(rec, indent=2) + "\n")
 
