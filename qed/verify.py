@@ -65,6 +65,21 @@ def sha256(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
 
+def _cycle_error(ll: Path) -> str | None:
+    """Why this IR cannot be proven here. Alive2 checks a loop for a bounded number of iterations
+    and still prints its success message, so a wrong loop would pass: no cycle may reach it."""
+    p = subprocess.run(
+        [config.OPT, "-disable-output", "-passes=print<cycles>", ll],
+        capture_output=True,
+        text=True,
+    )
+    if p.returncode:
+        return f"qed: invalid IR: {p.stderr.strip()}"
+    if "depth=" in p.stdout + p.stderr:
+        return "qed: the IR has a loop, which Alive2 does not prove for every iteration"
+    return None
+
+
 def verify(src_ll: str, tgt_ll: str) -> VerifyResult:
     """Ask Alive2 whether `tgt_ll` refines `src_ll` (two modules, same function name)."""
     start = time.monotonic()
@@ -72,16 +87,18 @@ def verify(src_ll: str, tgt_ll: str) -> VerifyResult:
         src, tgt = Path(d) / "src.ll", Path(d) / "tgt.ll"
         src.write_text(src_ll)
         tgt.write_text(tgt_ll)
-        try:
-            p = subprocess.run(
-                [config.ALIVE_TV, f"--smt-to={config.ALIVE_TIMEOUT_MS}", src, tgt],
-                capture_output=True,
-                text=True,
-                timeout=config.ALIVE_WALL_TIMEOUT_S,
-            )
-            output = p.stdout + p.stderr
-        except subprocess.TimeoutExpired:
-            output = "qed: alive-tv wall-clock timeout"
+        output = _cycle_error(src) or _cycle_error(tgt)
+        if not output:
+            try:
+                p = subprocess.run(
+                    [config.ALIVE_TV, f"--smt-to={config.ALIVE_TIMEOUT_MS}", src, tgt],
+                    capture_output=True,
+                    text=True,
+                    timeout=config.ALIVE_WALL_TIMEOUT_S,
+                )
+                output = p.stdout + p.stderr
+            except subprocess.TimeoutExpired:
+                output = "qed: alive-tv wall-clock timeout"
     elapsed = time.monotonic() - start
 
     status = classify(output)
