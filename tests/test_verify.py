@@ -39,6 +39,35 @@ def test_invalid_ir_is_not_proven():
     assert r.proof is None
 
 
+# The counter steps by 5 instead of 4: Alive2 alone prints its success message on this pair.
+LOOP = """define void @f(i64 %0, ptr %1) {
+  br label %3
+3:
+  %4 = phi i64 [ 0, %2 ], [ %6, %3 ]
+  %5 = getelementptr i64, ptr %1, i64 %4
+  store i64 %4, ptr %5, align 8
+  %6 = add i64 %4, 4
+  %7 = icmp eq i64 %6, %0
+  br i1 %7, label %8, label %3
+8:
+  ret void
+}
+"""
+
+
+def test_wrong_loop_is_not_proven():
+    r = verify(LOOP, LOOP.replace("%4, 4", "%4, 5"))
+    assert r.status is Status.NOT_PROVEN
+    assert r.proof is None
+    assert "loop" in r.output
+
+
+def test_candidate_with_a_loop_is_not_proven():
+    r = verify(SRC_NSW, splice(SRC_NSW, "  br label %2\n2:\n  br label %2"))
+    assert r.status is Status.NOT_PROVEN
+    assert r.proof is None
+
+
 def test_unexpected_output_is_not_proven():
     assert classify("") is Status.NOT_PROVEN
     assert classify("Transformation seems to be correct!\n") is Status.NOT_PROVEN  # no summary
