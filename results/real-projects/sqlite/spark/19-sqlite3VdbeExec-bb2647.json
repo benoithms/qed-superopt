@@ -1,0 +1,82 @@
+{
+ "id": "19-sqlite3VdbeExec-bb2647",
+ "category": "entries",
+ "backend": "muse",
+ "model": "muse-spark-1.3",
+ "settings": {
+  "model": "muse-spark-1.3",
+  "show_asm": "never",
+  "feedback": "full",
+  "max_tokens": 64000,
+  "max_tokens_after_win": 64000,
+  "large_insts": 10,
+  "max_tokens_large": 64000,
+  "max_tokens_after_win_large": 64000,
+  "stop_on_truncation": true
+ },
+ "src_ll": "; ModuleID = '/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.named.ll'\nsource_filename = \"/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\ndefine { i1 } @sqlite3VdbeExec.bb2647.split(i16 %i2648, i32 %i2308) {\nnewFuncRoot:\n  br label %bb2647.split\n\nbb2647.split:                                     ; preds = %newFuncRoot\n  %i2652 = zext i16 %i2648 to i32\n  %i2653 = icmp ult i32 %i2308, %i2652\n  br i1 %i2653, label %bb2677.exitStub, label %bb2654.exitStub\n\nbb2677.exitStub:                                  ; preds = %bb2647.split\n  %ret1.0 = insertvalue { i1 } poison, i1 true, 0\n  ret { i1 } %ret1.0\n\nbb2654.exitStub:                                  ; preds = %bb2647.split\n  %ret2.0 = insertvalue { i1 } poison, i1 false, 0\n  ret { i1 } %ret2.0\n}\n\n\n\n",
+ "src_sha256": "0f97355f9bae7a9f3c3b930d604c66bfacc7aea44fc23d3e460ddc1ee32b34ad",
+ "baseline": {
+  "ir_insts": 8,
+  "asm_insts": 7,
+  "mca_cycles": 2.1,
+  "asm": "sqlite3VdbeExec.bb2647.split:           # @sqlite3VdbeExec.bb2647.split\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovzwl\t%di, %eax\n\tcmpl\t%eax, %esi\n\tjae\t.LBB0_2\n# %bb.1:                                # %bb2677.exitStub\n\tmovb\t$1, %al\n\tretq\n.LBB0_2:                                # %bb2654.exitStub\n\txorl\t%eax, %eax\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      700\nTotal Cycles:      210\nTotal uOps:        1100\n\nDispatch Width:    6\nuOps Per Cycle:    5.24\nIPC:               3.33\nBlock RThroughput: 2.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        movzwl\t%di, %eax\n 1      1     0.25                        cmpl\t%eax, %esi\n 1      1     0.50                        jae\t.LBB0_2\n 1      1     0.25                        movb\t$1, %al\n 3      7     1.00                  U     retq\n 1      0     0.17                        xorl\t%eax, %eax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     2.00   1.99   1.00   1.00    -     2.00   2.01    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -      -     0.99    -      -      -      -     0.01    -     movzwl\t%di, %eax\n -      -      -     0.01    -      -      -     0.99    -      -     cmpl\t%eax, %esi\n -      -     1.00    -      -      -      -      -      -      -     jae\t.LBB0_2\n -      -      -     0.99    -      -      -     0.01    -      -     movb\t$1, %al\n -      -     1.00    -      -     1.00    -      -     1.00    -     retq\n -      -      -      -      -      -      -      -      -      -     xorl\t%eax, %eax\n -      -      -      -     1.00    -      -     1.00   1.00    -     retq\n"
+ },
+ "attempts": [
+  {
+   "n": 1,
+   "model": "muse-spark-1.3",
+   "response": "```llvm\nnewFuncRoot:\n  %t1 = zext i16 %i2648 to i32\n  %t2 = icmp ult i32 %i2308, %t1\n  %t3 = insertvalue {i1} poison, i1 %t2, 0\n  ret {i1} %t3\n```",
+   "finish_reason": "stop",
+   "tokens_in": 663,
+   "tokens_out": 2411,
+   "tokens_reasoning": 2326,
+   "cost_usd": 0.0110755,
+   "seconds": 29.51824604200374,
+   "cached": false,
+   "body": "newFuncRoot:\n  %t1 = zext i16 %i2648 to i32\n  %t2 = icmp ult i32 %i2308, %t1\n  %t3 = insertvalue {i1} poison, i1 %t2, 0\n  ret {i1} %t3",
+   "tgt_ll": "; ModuleID = '/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.named.ll'\nsource_filename = \"/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\ndefine { i1 } @sqlite3VdbeExec.bb2647.split(i16 %i2648, i32 %i2308) {\nnewFuncRoot:\n  %t1 = zext i16 %i2648 to i32\n  %t2 = icmp ult i32 %i2308, %t1\n  %t3 = insertvalue {i1} poison, i1 %t2, 0\n  ret {i1} %t3\n}\n\n\n\n",
+   "tgt_sha256": "14b81bcec4e09db5f0c0798243b6730a5d013672eee27f870fd0ff33a83a6890",
+   "check": "proven",
+   "alive2_output": "\n----------------------------------------\ndefine {i1} @sqlite3VdbeExec.bb2647.split(i16 %i2648, i32 %i2308) {\nnewFuncRoot:\n  br label %bb2647.split\n\nbb2647.split:\n  %i2652 = zext i16 %i2648 to i32\n  %i2653 = icmp ult i32 %i2308, %i2652\n  br i1 %i2653, label %bb2677.exitStub, label %bb2654.exitStub\n\nbb2677.exitStub:\n  %ret1.0 = insertvalue {i1} poison, i1 1, 0\n  ret {i1} %ret1.0\n\nbb2654.exitStub:\n  %ret2.0 = insertvalue {i1} poison, i1 0, 0\n  ret {i1} %ret2.0\n}\n=>\ndefine {i1} @sqlite3VdbeExec.bb2647.split(i16 %i2648, i32 %i2308) {\nnewFuncRoot:\n  %t1 = zext i16 %i2648 to i32\n  %t2 = icmp ult i32 %i2308, %t1\n  %t3 = insertvalue {i1} poison, i1 %t2, 0\n  ret {i1} %t3\n}\nTransformation seems to be correct!\n\nSummary:\n  1 correct transformations\n  0 incorrect transformations\n  0 failed-to-prove transformations\n  0 Alive2 errors\n",
+   "alive2_seconds": 0.16089120799733792,
+   "cost": {
+    "ir_insts": 4,
+    "asm_insts": 4,
+    "mca_cycles": 1.34,
+    "asm": "sqlite3VdbeExec.bb2647.split:           # @sqlite3VdbeExec.bb2647.split\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovzwl\t%di, %eax\n\tcmpl\t%eax, %esi\n\tsetb\t%al\n\tretq\n.Lfunc_end0:",
+    "mca_output": "Iterations:        100\nInstructions:      400\nTotal Cycles:      134\nTotal uOps:        600\n\nDispatch Width:    6\nuOps Per Cycle:    4.48\nIPC:               2.99\nBlock RThroughput: 1.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        movzwl\t%di, %eax\n 1      1     0.25                        cmpl\t%eax, %esi\n 1      1     0.50                        setb\t%al\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     1.25   1.24   0.50   0.50    -     1.25   1.26    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.01   0.49    -      -      -     0.25   0.25    -     movzwl\t%di, %eax\n -      -      -      -      -      -      -     1.00    -      -     cmpl\t%eax, %esi\n -      -     0.99    -      -      -      -      -     0.01    -     setb\t%al\n -      -     0.25   0.75   0.50   0.50    -      -     1.00    -     retq\n"
+   },
+   "faster": true,
+   "feedback": "Proven correct. Cost: 1.34 cycles per call, clang: 2.10.\nCan you make it even faster? If you believe this version is optimal, answer NO_IMPROVEMENT and one sentence why."
+  },
+  {
+   "n": 2,
+   "model": "muse-spark-1.3",
+   "response": "NO_IMPROVEMENT\nThe unsigned 16-vs-32-bit compare already lowers to the minimal branchless movzx/cmp/setcc sequence with no further folds possible.",
+   "finish_reason": "stop",
+   "tokens_in": 796,
+   "tokens_out": 11568,
+   "tokens_reasoning": 11524,
+   "cost_usd": 0.050159,
+   "seconds": 133.71756937500322,
+   "cached": false,
+   "check": "no_improvement"
+  }
+ ],
+ "best": {
+  "n": 1,
+  "ir_insts": 4,
+  "asm_insts": 4,
+  "mca_cycles": 1.34,
+  "asm": "sqlite3VdbeExec.bb2647.split:           # @sqlite3VdbeExec.bb2647.split\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovzwl\t%di, %eax\n\tcmpl\t%eax, %esi\n\tsetb\t%al\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      400\nTotal Cycles:      134\nTotal uOps:        600\n\nDispatch Width:    6\nuOps Per Cycle:    4.48\nIPC:               2.99\nBlock RThroughput: 1.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        movzwl\t%di, %eax\n 1      1     0.25                        cmpl\t%eax, %esi\n 1      1     0.50                        setb\t%al\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     1.25   1.24   0.50   0.50    -     1.25   1.26    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.01   0.49    -      -      -     0.25   0.25    -     movzwl\t%di, %eax\n -      -      -      -      -      -      -     1.00    -      -     cmpl\t%eax, %esi\n -      -     0.99    -      -      -      -      -     0.01    -     setb\t%al\n -      -     0.25   0.75   0.50   0.50    -      -     1.00    -     retq\n",
+  "speedup": 1.5671641791044777
+ },
+ "stop": "no_improvement",
+ "cost_usd": 0.061234500000000004,
+ "large": false,
+ "budget_usd": 1.5,
+ "verified_by": "alive-tv, reference toolchain"
+}

@@ -1,0 +1,32 @@
+{
+  "machine": "i7-12700H, WSL2, boost disabled (PERFBOOSTMODE 0), max state 99%, min 100%, plugged in, apps closed",
+  "cpu": "x86_64",
+  "images": 24,
+  "launches": [
+    {
+      "total": 2130799342,
+      "paeth": 115560292,
+      "share": 0.05423330565304821
+    },
+    {
+      "total": 2132999908,
+      "paeth": 115580470,
+      "share": 0.054186814339046846
+    },
+    {
+      "total": 2138735912,
+      "paeth": 115721888,
+      "share": 0.05410760971034745
+    },
+    {
+      "total": 2130110406,
+      "paeth": 115569626,
+      "share": 0.05425522812079066
+    },
+    {
+      "total": 1942840528,
+      "paeth": 108647870,
+      "share": 0.05592217602740888
+    }
+  ]
+}
