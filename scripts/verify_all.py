@@ -44,11 +44,13 @@ def check_corpus() -> list[str]:
 
 
 def recorded_proofs():
-    for p in sorted(Path("results").glob("*/*.json")):
+    for p in sorted(Path("results").glob("**/*.json")):
         # results/bench-*: CPU timings of wins recorded elsewhere, they hold no proof
-        if p.name == "run.json" or p.parent.name.startswith("bench-"):
+        if p.name == "run.json" or p.parts[1].startswith("bench-"):
             continue
         res = json.loads(p.read_text())
+        if "attempts" not in res:
+            continue  # real-projects: profiles, timings and zone lists, no proof
         for run in [res] + ([res["fallback"]] if res.get("fallback") else []):
             for a in run["attempts"]:
                 if a.get("check") == "proven":
