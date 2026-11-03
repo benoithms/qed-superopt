@@ -60,6 +60,7 @@ class Settings:
     # A truncated answer loses all its reasoning, so a retry restarts the same search from
     # scratch: with a high cap, a truncation means the model is going in circles. Stop.
     stop_on_truncation: bool = True
+    fresh: bool = False  # call the model even when the answer is cached (filmed demo)
 
 
 DEFAULT = Settings()
@@ -197,7 +198,7 @@ def generate(ir: str, history: list, *, c_source=None, baseline=None, settings=D
     key = hashlib.sha256(json.dumps(request, sort_keys=True).encode()).hexdigest()
     path = config.CACHE_DIR / f"{key}.json"
 
-    if path.exists():
+    if path.exists() and not settings.fresh:
         record = json.loads(path.read_text())
         record["cached"] = True
     else:
