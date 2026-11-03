@@ -1,0 +1,82 @@
+{
+ "id": "06-vdbeRecordCompareInt-bb11",
+ "category": "entries",
+ "backend": "muse",
+ "model": "muse-spark-1.3",
+ "settings": {
+  "model": "muse-spark-1.3",
+  "show_asm": "never",
+  "feedback": "full",
+  "max_tokens": 64000,
+  "max_tokens_after_win": 64000,
+  "large_insts": 10,
+  "max_tokens_large": 64000,
+  "max_tokens_after_win_large": 64000,
+  "stop_on_truncation": true
+ },
+ "src_ll": "; ModuleID = '/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.named.ll'\nsource_filename = \"/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\ndefine { i64 } @vdbeRecordCompareInt.bb11(ptr %i5) {\nnewFuncRoot:\n  br label %bb11\n\nbb11:                                             ; preds = %newFuncRoot\n  %i12 = load i8, ptr %i5, align 1\n  %i13 = sext i8 %i12 to i32\n  %i14 = shl nsw i32 %i13, 8\n  %i15 = getelementptr inbounds nuw i8, ptr %i5, i64 1\n  %i16 = load i8, ptr %i15, align 1\n  %i17 = zext i8 %i16 to i32\n  %i18 = or disjoint i32 %i14, %i17\n  %i19 = sext i32 %i18 to i64\n  br label %bb67.exitStub\n\nbb67.exitStub:                                    ; preds = %bb11\n  %ret1.0 = insertvalue { i64 } poison, i64 %i19, 0\n  ret { i64 } %ret1.0\n}\n\n\n\n",
+ "src_sha256": "6e728e6f2ce220617af2953fc41918793d1971ed79f058fcc1a9fc5b0ee16544",
+ "baseline": {
+  "ir_insts": 12,
+  "asm_insts": 5,
+  "mca_cycles": 1.59,
+  "asm": "vdbeRecordCompareInt.bb11:              # @vdbeRecordCompareInt.bb11\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovsbq\t(%rdi), %rcx\n\tshlq\t$8, %rcx\n\tmovzbl\t1(%rdi), %eax\n\torq\t%rcx, %rax\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      500\nTotal Cycles:      159\nTotal uOps:        700\n\nDispatch Width:    6\nuOps Per Cycle:    4.40\nIPC:               3.14\nBlock RThroughput: 1.5\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      5     0.50    *                   movsbq\t(%rdi), %rcx\n 1      1     0.50                        shlq\t$8, %rcx\n 1      5     0.50    *                   movzbl\t1(%rdi), %eax\n 1      1     0.25                        orq\t%rcx, %rax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     1.00   0.99   1.50   1.50    -     1.00   1.01    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -      -      -     0.50   0.50    -      -      -      -     movsbq\t(%rdi), %rcx\n -      -     0.99    -      -      -      -      -     0.01    -     shlq\t$8, %rcx\n -      -      -      -     0.50   0.50    -      -      -      -     movzbl\t1(%rdi), %eax\n -      -      -     0.50    -      -      -     0.50    -      -     orq\t%rcx, %rax\n -      -     0.01   0.49   0.50   0.50    -     0.50   1.00    -     retq\n"
+ },
+ "attempts": [
+  {
+   "n": 1,
+   "model": "muse-spark-1.3",
+   "response": "```llvm\nnewFuncRoot:\n  %t1 = load i16, ptr %i5, align 1\n  %t2 = call i16 @llvm.bswap.i16(i16 %t1)\n  %t3 = sext i16 %t2 to i64\n  %t4 = insertvalue { i64 } poison, i64 %t3, 0\n  ret { i64 } %t4\n```",
+   "finish_reason": "stop",
+   "tokens_in": 684,
+   "tokens_out": 6387,
+   "tokens_reasoning": 6285,
+   "cost_usd": 0.02799975,
+   "seconds": 36.471952084000804,
+   "cached": false,
+   "body": "newFuncRoot:\n  %t1 = load i16, ptr %i5, align 1\n  %t2 = call i16 @llvm.bswap.i16(i16 %t1)\n  %t3 = sext i16 %t2 to i64\n  %t4 = insertvalue { i64 } poison, i64 %t3, 0\n  ret { i64 } %t4",
+   "tgt_ll": "; ModuleID = '/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.named.ll'\nsource_filename = \"/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\ndefine { i64 } @vdbeRecordCompareInt.bb11(ptr %i5) {\nnewFuncRoot:\n  %t1 = load i16, ptr %i5, align 1\n  %t2 = call i16 @llvm.bswap.i16(i16 %t1)\n  %t3 = sext i16 %t2 to i64\n  %t4 = insertvalue { i64 } poison, i64 %t3, 0\n  ret { i64 } %t4\n}\n\n\n\n",
+   "tgt_sha256": "da11c50e3c31b82c72a6be67dd86e3b669d260006898f8a8d13c7ff720ce3891",
+   "check": "proven",
+   "alive2_output": "\n----------------------------------------\ndefine {i64} @vdbeRecordCompareInt.bb11(ptr %i5) {\nnewFuncRoot:\n  br label %bb11\n\nbb11:\n  %i12 = load i8, ptr %i5, align 1\n  %i13 = sext i8 %i12 to i32\n  %i14 = shl nsw i32 %i13, 8\n  %i15 = gep inbounds nuw ptr %i5, 1 x i64 1\n  %i16 = load i8, ptr %i15, align 1\n  %i17 = zext i8 %i16 to i32\n  %i18 = or disjoint i32 %i14, %i17\n  %i19 = sext i32 %i18 to i64\n  br label %bb67.exitStub\n\nbb67.exitStub:\n  %ret1.0 = insertvalue {i64} poison, i64 %i19, 0\n  ret {i64} %ret1.0\n}\n=>\ndefine {i64} @vdbeRecordCompareInt.bb11(ptr %i5) {\nnewFuncRoot:\n  %t1 = load i16, ptr %i5, align 1\n  %t2 = bswap i16 %t1\n  %t3 = sext i16 %t2 to i64\n  %t4 = insertvalue {i64} poison, i64 %t3, 0\n  ret {i64} %t4\n}\nTransformation seems to be correct!\n\nSummary:\n  1 correct transformations\n  0 incorrect transformations\n  0 failed-to-prove transformations\n  0 Alive2 errors\n",
+   "alive2_seconds": 0.16743545799545245,
+   "cost": {
+    "ir_insts": 5,
+    "asm_insts": 3,
+    "mca_cycles": 1.09,
+    "asm": "vdbeRecordCompareInt.bb11:              # @vdbeRecordCompareInt.bb11\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovbew\t(%rdi), %ax\n\tmovswq\t%ax, %rax\n\tretq\n.Lfunc_end0:",
+    "mca_output": "Iterations:        100\nInstructions:      300\nTotal Cycles:      109\nTotal uOps:        600\n\nDispatch Width:    6\nuOps Per Cycle:    5.50\nIPC:               2.75\nBlock RThroughput: 1.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 2      6     0.50    *                   movbew\t(%rdi), %ax\n 1      1     0.25                        movswq\t%ax, %rax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     0.99   1.00   1.00   1.00    -     1.00   1.01    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -      -     0.96    -     1.00    -     0.04    -      -     movbew\t(%rdi), %ax\n -      -     0.01   0.02    -      -      -     0.96   0.01    -     movswq\t%ax, %rax\n -      -     0.98   0.02   1.00    -      -      -     1.00    -     retq\n"
+   },
+   "faster": true,
+   "feedback": "Proven correct. Cost: 1.09 cycles per call, clang: 1.59.\nCan you make it even faster? If you believe this version is optimal, answer NO_IMPROVEMENT and one sentence why."
+  },
+  {
+   "n": 2,
+   "model": "muse-spark-1.3",
+   "response": "NO_IMPROVEMENT\nThe single unaligned i16 load + bswap + sext already compiles to the minimal 1 load plus rol + movsx sequence, and any alternative needs at least the same swap and sign-extension work or a slower movbe or 2-load sequence.",
+   "finish_reason": "stop",
+   "tokens_in": 834,
+   "tokens_out": 12320,
+   "tokens_reasoning": 12254,
+   "cost_usd": 0.0534025,
+   "seconds": 57.4095318749969,
+   "cached": false,
+   "check": "no_improvement"
+  }
+ ],
+ "best": {
+  "n": 1,
+  "ir_insts": 5,
+  "asm_insts": 3,
+  "mca_cycles": 1.09,
+  "asm": "vdbeRecordCompareInt.bb11:              # @vdbeRecordCompareInt.bb11\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovbew\t(%rdi), %ax\n\tmovswq\t%ax, %rax\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      300\nTotal Cycles:      109\nTotal uOps:        600\n\nDispatch Width:    6\nuOps Per Cycle:    5.50\nIPC:               2.75\nBlock RThroughput: 1.0\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 2      6     0.50    *                   movbew\t(%rdi), %ax\n 1      1     0.25                        movswq\t%ax, %rax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     0.99   1.00   1.00   1.00    -     1.00   1.01    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -      -     0.96    -     1.00    -     0.04    -      -     movbew\t(%rdi), %ax\n -      -     0.01   0.02    -      -      -     0.96   0.01    -     movswq\t%ax, %rax\n -      -     0.98   0.02   1.00    -      -      -     1.00    -     retq\n",
+  "speedup": 1.4587155963302751
+ },
+ "stop": "no_improvement",
+ "cost_usd": 0.08140225,
+ "large": true,
+ "budget_usd": 3.0,
+ "verified_by": "alive-tv, reference toolchain"
+}
