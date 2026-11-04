@@ -106,15 +106,17 @@ On the frozen corpus `corpus-v1`: 134 functions (24 control, 61 known misses, 49
 
 ![51 of 134 small functions are confirmed faster than clang -O3, by group](docs/images/groups.png)
 
-| | Muse Spark | LLM Compiler |
-|---|---:|---:|
-| Functions with a proven rewrite | 132 | 80 |
-| Faster than `clang -O3`, gain estimated by `llvm-mca` | 105 | 30 |
-| Kept: not undone by `opt -O3`, and over 5% in throughput or latency with neither worse | 79 | 22 |
-| Confirmed on the i7-9700K | 60 | 15 |
-| Confirmed on the i7-12700H | 59 | 10 |
-| **Confirmed on both CPUs** | **51** | **8** |
-| Cost | about $36.50, failed calls included | none: local, 57 min on a GPU |
+| | Muse Spark | Muse Spark Open | LLM Compiler |
+|---|---:|---:|---:|
+| Functions with a proven rewrite | 132 | 127 | 80 |
+| Faster than `clang -O3`, gain estimated by `llvm-mca` | 105 | 98 | 30 |
+| Kept: not undone by `opt -O3`, and over 5% in throughput or latency with neither worse | 79 | 73 | 22 |
+| Confirmed on the i7-9700K | 60 | not timed yet | 15 |
+| Confirmed on the i7-12700H | 59 | not timed yet | 10 |
+| **Confirmed on both CPUs** | **51** | not timed yet | **8** |
+| Cost | about $36.50, failed calls included | $9.72, on a Modal Shared Endpoint | none: local, 57 min on a GPU |
+
+**Open weights.** Muse Spark Open (`meta-models/Muse-Spark-Open-816B-A42B`) is the open-weight member of the Muse Spark family. It runs the same loop, prompts, feedback and 5 attempts, served by a [Modal](https://modal.com) Shared Endpoint (`--model muse-spark-open`; every attempt records the model name the server returned, in [`results/spark-open-full-v1/`](results/spark-open-full-v1/)). It gets close to Muse Spark at about a quarter of the cost: 98 wins against 105 before the CPU timings, 73 against 79 kept. Its answers are much shorter (median 3.5k output tokens against 19k for Muse Spark), and it gets more counterexamples from Alive2 (55 against 10).
 
 Each kept win is timed on each CPU in four ways: called as a function and pasted inline in a loop, each with predictable and with random inputs. **Confirmed** means over 5% faster in every launch in at least one of the four, and slower in none (under 0.98 in every launch). Otherwise a win depends on the context, shows no clear gain, or is slower. We chose this rule after seeing the data, so the four numbers of every win are in [`results/bench-9700k/`](results/bench-9700k/) and [`results/bench-12700h/`](results/bench-12700h/).
 
@@ -175,10 +177,10 @@ Everything in this repository was written during the hackathon. We build on the 
 |---|---|
 | The propose → prove → repair loop and its orchestration | [LLVM / clang](https://llvm.org) (Apache 2.0 with LLVM Exceptions) |
 | Prompts and counterexample feedback | [Alive2](https://github.com/AliveToolkit/alive2) (MIT) and [Z3](https://github.com/Z3Prover/z3) (MIT) |
-| The rigor layer: strict proof parsing, signature checks, verifier regression suite | Meta's Muse Spark model (and Muse Wonder, in experiments), via the Meta Model API |
+| The rigor layer: strict proof parsing, signature checks, verifier regression suite | Meta's Muse Spark model (and Muse Wonder, in experiments), via the Meta Model API; Meta's open-weight Muse Spark Open, via a [Modal](https://modal.com) Shared Endpoint |
 | The benchmark corpus, its evaluation and its charts | Meta's LLM Compiler, run locally with [llama.cpp](https://github.com/ggml-org/llama.cpp) |
 | Spending controls: hard cap per run, response cache | `llvm-mca` for performance estimates |
-| Measurement harness (`scripts/bench_cpu.py`) and result checks (`scripts/fold_back.py`) | The `openai` Python client, only as the HTTP client of the Meta Model API (requests go to Meta, no OpenAI model is used) |
+| Measurement harness (`scripts/bench_cpu.py`) and result checks (`scripts/fold_back.py`) | The `openai` Python client, only as the HTTP client of the Meta Model API and of Modal (requests go to Meta models, no OpenAI model is used) |
 
 For the demo video only, we also use [Manim](https://github.com/ManimCommunity/manim) for the animations and [Kokoro](https://github.com/hexgrad/kokoro) for the AI-generated voice.
 
