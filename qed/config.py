@@ -44,7 +44,15 @@ META_MODEL = os.environ.get("META_MODEL", "muse-spark-1.3")
 PRICES = {
     "muse-spark-1.3": (1.25, 4.25),
     "muse-wonder-1.0": (4.00, 20.00),
+    # Modal Shared Endpoint price for meta-models/Muse-Spark-Open-816B-A42B (Nov 3, 2026).
+    "muse-spark-open": (1.25, 4.25),
 }
+
+# Open-weight models, served by Modal Shared Endpoints (OpenAI-compatible). Every Shared
+# Endpoint sits behind one gateway; the model id of a request is the endpoint's hostname.
+MODAL_API_BASE = os.environ.get("MODAL_API_BASE", "https://inference.us-west.modal.direct/v1")
+MODAL_API_KEY = os.environ.get("MODAL_API_KEY", "")  # a workspace proxy token
+MODAL_ENDPOINTS = {"muse-spark-open": os.environ.get("MODAL_SPARK_OPEN_ENDPOINT", "")}
 
 
 def price(model: str) -> tuple[float, float]:
