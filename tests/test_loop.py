@@ -358,3 +358,36 @@ def test_llmc_run_records_no_muse_settings(entry, monkeypatch, tmp_path):
     assert run["settings"] is None and run["model"] == "llm-compiler-7b"
     assert res["settings"] is None and res["budget_usd"] is None
     assert res["best"] is not None
+
+
+def test_live_shows_each_step(entry, fake_muse, monkeypatch, capsys):
+    monkeypatch.setattr(loop, "LIVE", True)
+    fake_muse(WRONG, RIGHT, f"{NO_IMPROVEMENT}: already a single range check.")
+    loop.run_function(entry, attempts=5)
+    out = capsys.readouterr().out
+    assert "REJECTED, counterexample" in out
+    assert "proven correct (refinement)" in out
+    assert "gain estimated by llvm-mca" in out
+
+
+def test_fresh_ignores_the_cache(tmp_path, monkeypatch):
+    monkeypatch.setattr(llm.config, "CACHE_DIR", tmp_path)
+    calls = []
+
+    class Usage:
+        prompt_tokens, completion_tokens, completion_tokens_details = 10, 5, None
+
+    def stream(request):
+        calls.append(request)
+        return request["model"], "  ret i1 true", "stop", Usage()
+
+    monkeypatch.setattr(llm, "_stream", stream)
+    ir = "define i1 @f(i64 %0) {\n  ret i1 false\n}\n"
+    llm.generate(ir, [])
+    llm.generate(ir, [])
+    assert len(calls) == 1
+    (cached,) = tmp_path.glob("*.json")
+    before = cached.read_text()
+    llm.generate(ir, [], settings=Settings(fresh=True))
+    assert len(calls) == 2
+    assert cached.read_text() == before  # the earlier answer stays the one cached
