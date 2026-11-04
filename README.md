@@ -88,7 +88,7 @@ A superoptimizer is only as good as its proofs, so rigor is the core of the proj
 - **We test the tester**: a regression suite of deliberately wrong rewrites (`abs(INT_MIN)`, oversized shifts, introduced division by zero…) that the pipeline must reject, every time.
 - **Reproducible**: one command (`scripts/verify_all.py`) re-checks the corpus and re-runs the prover on every recorded result, checking the stored hashes.
 - **Honest numbers**: one pinned LLVM commit, same target CPU on both sides, gains measured on the final assembly rather than on the IR.
-- **Measurement conditions**: `scripts/bench_cpu.py` times each win on the real CPU (i7-9700K, then i7-12700H) with the same inputs in a predictable and in a random order, turbo off, core frequency measured at the start and end of every launch, median of 201 repetitions, 5 separate launches, and records these conditions with the results. It runs under WSL2, which executes natively on the CPU (no emulation): the spread between launches and the branch-free wins, used as controls, check the noise. The median spread is 0.9% on both CPUs, but some measures are noisier: over 2% on 61 of 316 on the i7-9700K and on 138 of 316 on the i7-12700H. A win only counts if every launch clears the threshold, and the spread of each measure is in the results.
+- **Measurement conditions**: `scripts/bench_cpu.py` times each win on the real CPU (i7-9700K, then i7-12700H) with the same inputs in a predictable and in a random order, turbo off, core frequency measured at the start and end of every launch, median of 201 repetitions, 5 separate launches, and records these conditions with the results. It runs under WSL2, which executes natively on the CPU (no emulation): the spread between launches and the branch-free wins, used as controls, check the noise. The median spread is 0.9% on both CPUs, but some measures are noisier: over 2% on 61 of 316 on the i7-9700K and on 138 of 316 on the i7-12700H. The Muse Spark Open timings, on the i7-12700H, are noisier: median spread 1.8%, over 2% on 142 of 292. A win only counts if every launch clears the threshold, and the spread of each measure is in the results.
 
 ## Benchmark
 
@@ -106,15 +106,17 @@ On the frozen corpus `corpus-v1`: 134 functions (24 control, 61 known misses, 49
 
 ![51 of 134 small functions are confirmed faster than clang -O3, by group](docs/images/groups.png)
 
-| | Muse Spark | LLM Compiler |
-|---|---:|---:|
-| Functions with a proven rewrite | 132 | 80 |
-| Faster than `clang -O3`, gain estimated by `llvm-mca` | 105 | 30 |
-| Kept: not undone by `opt -O3`, and over 5% in throughput or latency with neither worse | 79 | 22 |
-| Confirmed on the i7-9700K | 60 | 15 |
-| Confirmed on the i7-12700H | 59 | 10 |
-| **Confirmed on both CPUs** | **51** | **8** |
-| Cost | about $36.50, failed calls included | none: local, 57 min on a GPU |
+| | Muse Spark | Muse Spark Open | LLM Compiler |
+|---|---:|---:|---:|
+| Functions with a proven rewrite | 132 | 127 | 80 |
+| Faster than `clang -O3`, gain estimated by `llvm-mca` | 105 | 98 | 30 |
+| Kept: not undone by `opt -O3`, and over 5% in throughput or latency with neither worse | 79 | 73 | 22 |
+| Confirmed on the i7-9700K | 60 | not timed | 15 |
+| Confirmed on the i7-12700H | 59 | 54 | 10 |
+| **Confirmed on both CPUs** | **51** | not timed: one CPU only | **8** |
+| Cost | about $36.50, failed calls included | $9.72, on a Modal Shared Endpoint | none: local, 57 min on a GPU |
+
+**Open weights.** Muse Spark Open (`meta-models/Muse-Spark-Open-816B-A42B`) is the open-weight member of the Muse Spark family. It runs the same loop, prompts, feedback and 5 attempts, served by a [Modal](https://modal.com) Shared Endpoint (`--model muse-spark-open`; every attempt records the model name the server returned, in [`results/spark-open-full-v1/`](results/spark-open-full-v1/)). It gets close to Muse Spark at about a quarter of the cost: 98 wins against 105 before the CPU timings, 73 against 79 kept. Its answers are much shorter (median 3.5k output tokens against 19k for Muse Spark), and it gets more counterexamples from Alive2 (55 against 10). Its kept wins were timed on the i7-12700H only, not on the i7-9700K, so it has no "confirmed on both CPUs" number: 54 of 73 are confirmed there, against 59 of 79 for Muse Spark, and 3 are slower.
 
 Each kept win is timed on each CPU in four ways: called as a function and pasted inline in a loop, each with predictable and with random inputs. **Confirmed** means over 5% faster in every launch in at least one of the four, and slower in none (under 0.98 in every launch). Otherwise a win depends on the context, shows no clear gain, or is slower. We chose this rule after seeing the data, so the four numbers of every win are in [`results/bench-9700k/`](results/bench-9700k/) and [`results/bench-12700h/`](results/bench-12700h/).
 
@@ -154,7 +156,7 @@ On the i7-12700H it runs 1.39x faster as a call and about 1.49x inline; the i7-9
 
 **One rejection.** On `linux-mult-frac`, `x / d * n + x % d * n / d` in 32 bits, Muse Spark's attempt 4 widens to 64 bits, multiplies, then divides. It looks right, but the source wraps around in 32 bits. Alive2 finds the input that tells them apart: `x = 9, n = 2747760640, d = 12` gives 271250773 in the source and 2060820480 in the rewrite. The attempt is rejected.
 
-**Controls.** `llvm-mca` kept 2 of the 24 controls, which were supposed to have nothing to gain. `rot-lr-xor` is no reliable gain: as a call and inline, 0.88x and 1.05x on the i7-9700K, but 1.12x and 0.96x on the i7-12700H. `align-up-pow2` shows a gain only inline, 1.14x and 1.11x, and about 1.00x as a call: it rediscovers a miss LLVM already tracks ([#125354](https://github.com/llvm/llvm-project/issues/125354)), so its control label looks wrong.
+**Controls.** `llvm-mca` kept 2 of the 24 controls, which were supposed to have nothing to gain. `rot-lr-xor` is no reliable gain: as a call and inline, 0.88x and 1.05x on the i7-9700K, but 1.12x and 0.96x on the i7-12700H. `align-up-pow2` shows a gain only inline, 1.14x and 1.11x, and about 1.00x as a call: it rediscovers a miss LLVM already tracks ([#125354](https://github.com/llvm/llvm-project/issues/125354)), so its control label looks wrong. Muse Spark Open, timed on the i7-12700H only, kept 3 controls: `align-up-pow2` again (1.11x inline only), `rot-lr-xor` with no clear gain (1.04x), and `umin-umax-clamp`, 1.13x as a call and 1.04x inline, a control we had checked as already optimal on clang trunk.
 
 **What the feedback brings.** On 30 functions drawn at random, we compared independent attempts, feedback with the verdict only, and feedback with the counterexample: 16, 18 and 18 kept wins. Only 4 functions change between the first and the last, 3 against 1, which is no evidence that memory helps. Counterexamples are rare: 10 in the whole Muse Spark run, on 8 functions, and they changed no result. So far Alive2 works as a judge that guarantees what we keep, more than as a teacher.
 
@@ -175,10 +177,10 @@ Everything in this repository was written during the hackathon. We build on the 
 |---|---|
 | The propose → prove → repair loop and its orchestration | [LLVM / clang](https://llvm.org) (Apache 2.0 with LLVM Exceptions) |
 | Prompts and counterexample feedback | [Alive2](https://github.com/AliveToolkit/alive2) (MIT) and [Z3](https://github.com/Z3Prover/z3) (MIT) |
-| The rigor layer: strict proof parsing, signature checks, verifier regression suite | Meta's Muse Spark model (and Muse Wonder, in experiments), via the Meta Model API |
+| The rigor layer: strict proof parsing, signature checks, verifier regression suite | Meta's Muse Spark model (and Muse Wonder, in experiments), via the Meta Model API; Meta's open-weight Muse Spark Open, via a [Modal](https://modal.com) Shared Endpoint |
 | The benchmark corpus, its evaluation and its charts | Meta's LLM Compiler, run locally with [llama.cpp](https://github.com/ggml-org/llama.cpp) |
 | Spending controls: hard cap per run, response cache | `llvm-mca` for performance estimates |
-| Measurement harness (`scripts/bench_cpu.py`) and result checks (`scripts/fold_back.py`) | The `openai` Python client, only as the HTTP client of the Meta Model API (requests go to Meta, no OpenAI model is used) |
+| Measurement harness (`scripts/bench_cpu.py`) and result checks (`scripts/fold_back.py`) | The `openai` Python client, only as the HTTP client of the Meta Model API and of Modal (requests go to Meta models, no OpenAI model is used) |
 
 For the demo video only, we also use [Manim](https://github.com/ManimCommunity/manim) for the animations and [Kokoro](https://github.com/hexgrad/kokoro) for the AI-generated voice.
 

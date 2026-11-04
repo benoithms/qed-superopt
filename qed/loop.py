@@ -61,6 +61,57 @@ class Wallet:
 
 
 WALLET: Wallet | None = None  # set by main() from --max-total
+LIVE = False  # set by main() from --live: show each step as it happens
+
+
+def _say(text: str) -> None:
+    if LIVE:
+        print(text, flush=True)
+
+
+class _Waiting:
+    """While the model works, count the seconds on one line (--live only)."""
+
+    def __init__(self, what: str):
+        self.what, self.done = what, threading.Event()
+
+    def __enter__(self):
+        if LIVE:
+            self.thread = threading.Thread(target=self._tick, daemon=True)
+            self.thread.start()
+
+    def _tick(self):
+        n = 0
+        while not self.done.wait(1 if n else 0):
+            print(f"\r{self.what}: thinking, {n} s", end="", flush=True)
+            n += 1
+
+    def __exit__(self, *exc):
+        self.done.set()
+        if LIVE:
+            self.thread.join()
+            print(flush=True)
+
+
+def _say_check(att: dict, base) -> None:
+    if not LIVE:
+        return
+    n = att["n"]
+    print("\n".join("    " + x for x in att.get("body", att["response"]).strip().splitlines()))
+    check = att["check"]
+    if check == "proven":
+        c = att["cost"]
+        print(f"[{n}] Alive2: proven correct (refinement), in {att['alive2_seconds']:.1f} s")
+        gain = base.mca_cycles / c["mca_cycles"]
+        verdict = f"x{gain:.2f}, gain estimated by llvm-mca" if att["faster"] else "not faster"
+        print(f"[{n}] {c['asm_insts']} instructions, {c['mca_cycles']:.2f} cycles: {verdict}")
+    elif check == "counterexample":
+        cex = att["feedback"].split("Counterexample:", 1)[-1].strip()
+        print(f"[{n}] Alive2: REJECTED, counterexample:")
+        print("\n".join("    " + x for x in cex.splitlines()[:12]))
+    else:
+        print(f"[{n}] {check.replace('_', ' ')}")
+    print(flush=True)
 
 
 def run_function(
@@ -79,6 +130,10 @@ def run_function(
     c_source = (entry / "src.c").read_text()
     src_ll = extract(entry / "src.c")
     base = cost(src_ll)
+    _say(
+        f"{entry.name}: clang -O3 gives {base.asm_insts} x86-64 instructions, "
+        f"{base.mca_cycles:.2f} cycles per call (llvm-mca)\n"
+    )
     large = base.ir_insts >= settings.large_insts
     if large:
         budget_usd *= 2  # each attempt may cost twice as much
@@ -98,9 +153,10 @@ def run_function(
                 stop = "max_total"
                 break
             try:
-                response = llm.generate(
-                    src_ll, history, c_source=c_source, baseline=base, settings=call
-                )
+                with _Waiting(f"[{n}] {call.model}, Meta Model API"):
+                    response = llm.generate(
+                        src_ll, history, c_source=c_source, baseline=base, settings=call
+                    )
             except BaseException as exc:
                 # a failed call may still have been billed: keep its worst case as paid
                 if WALLET is not None:
@@ -121,6 +177,12 @@ def run_function(
             stats = dict(llm_compiler.last_call, cost_usd=0.0)
         spent += stats.get("cost_usd", 0.0)
         att = {"n": n, **stats, "response": response}
+        if backend == "muse":
+            cached = " (cached answer, not a new call)" if stats.get("cached") else ""
+            _say(
+                f"[{n}] answer: {stats.get('tokens_out', 0)} tokens, "
+                f"${stats.get('cost_usd', 0.0):.4f}{cached}"
+            )
 
         if stats.get("finish_reason") == "length":
             # The model hit the token limit while reasoning and gave no usable answer.
@@ -143,6 +205,7 @@ def run_function(
             if n > 1:
                 att["check"] = "no_improvement"
                 log.append(att)
+                _say_check(att, base)
                 stop = "no_improvement"
                 break
             att["check"] = "no_improvement_refused"
@@ -154,6 +217,7 @@ def run_function(
         )
         att["feedback"] = feedback
         log.append(att)
+        _say_check(att, base)
 
     return {
         "id": entry.name,
@@ -323,8 +387,17 @@ def main(argv=None):
         help="stop a function at its first truncated answer (default) or retry, as runs "
         "before results/highcap-cascade did",
     )
+    ap.add_argument(
+        "--live", action="store_true", help="show each call, answer and proof as it happens"
+    )
+    ap.add_argument(
+        "--fresh",
+        action="store_true",
+        help="call the model even when the answer is cached (the cache keeps the old answer)",
+    )
     args = ap.parse_args(argv)
-    jobs = 1 if args.backend == "llmc" else args.jobs  # one local llama-server
+    # one local llama-server; --live shows one function at a time
+    jobs = 1 if args.backend == "llmc" or args.live else args.jobs
     if args.fallback_model and args.backend != "muse":
         ap.error("--fallback-model needs --backend muse")
 
@@ -333,6 +406,7 @@ def main(argv=None):
         show_asm=args.show_asm,
         feedback=args.feedback,
         stop_on_truncation=args.stop_on_truncation,
+        fresh=args.fresh,
     )
     if args.max_tokens:
         settings = replace(
@@ -404,7 +478,8 @@ def main(argv=None):
     missing = [str(e) for e in args.entries if not (e / "src.c").is_file()]
     if missing:  # checked before any call is paid
         ap.error(f"no src.c in: {', '.join(missing)}")
-    global WALLET
+    global WALLET, LIVE
+    LIVE = args.live
     WALLET = Wallet(args.max_total) if args.max_total is not None else None
     total, todo, skipped, errors = 0.0, list(args.entries), [], {}
     with ThreadPoolExecutor(max_workers=jobs) as pool:

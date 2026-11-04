@@ -1,0 +1,82 @@
+{
+ "id": "03-sqlite3VdbeExec-bb2677",
+ "category": "entries",
+ "backend": "muse",
+ "model": "muse-spark-1.3",
+ "settings": {
+  "model": "muse-spark-1.3",
+  "show_asm": "never",
+  "feedback": "full",
+  "max_tokens": 64000,
+  "max_tokens_after_win": 64000,
+  "large_insts": 10,
+  "max_tokens_large": 64000,
+  "max_tokens_after_win_large": 64000,
+  "stop_on_truncation": true
+ },
+ "src_ll": "; ModuleID = '/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.named.ll'\nsource_filename = \"/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\ndefine { i1, ptr, ptr } @sqlite3VdbeExec.bb2677.split(ptr %i328, ptr %i322) {\nnewFuncRoot:\n  br label %bb2677.split\n\nbb2677.split:                                     ; preds = %newFuncRoot\n  %i2681 = getelementptr inbounds nuw i8, ptr %i328, i64 12\n  %i2682 = load i32, ptr %i2681, align 4\n  %i2683 = sext i32 %i2682 to i64\n  %i2684 = getelementptr inbounds [56 x i8], ptr %i322, i64 %i2683\n  %i2685 = getelementptr inbounds nuw i8, ptr %i2684, i64 20\n  %i2686 = load i16, ptr %i2685, align 4\n  %i2687 = and i16 %i2686, -28672\n  %i2688 = icmp eq i16 %i2687, 0\n  br i1 %i2688, label %bb2690.exitStub, label %bb2689.exitStub\n\nbb2690.exitStub:                                  ; preds = %bb2677.split\n  %ret1.0 = insertvalue { i1, ptr, ptr } poison, i1 true, 0\n  %ret1.1 = insertvalue { i1, ptr, ptr } %ret1.0, ptr %i2684, 1\n  %ret1.2 = insertvalue { i1, ptr, ptr } %ret1.1, ptr %i2685, 2\n  ret { i1, ptr, ptr } %ret1.2\n\nbb2689.exitStub:                                  ; preds = %bb2677.split\n  %ret2.0 = insertvalue { i1, ptr, ptr } poison, i1 false, 0\n  %ret2.1 = insertvalue { i1, ptr, ptr } %ret2.0, ptr %i2684, 1\n  %ret2.2 = insertvalue { i1, ptr, ptr } %ret2.1, ptr %i2685, 2\n  ret { i1, ptr, ptr } %ret2.2\n}\n\n\n\n",
+ "src_sha256": "87782bde9a0711eec6379ac6617a3191c0080ef5ecf7d577f62ae57ef5f4299f",
+ "baseline": {
+  "ir_insts": 18,
+  "asm_insts": 11,
+  "mca_cycles": 3.17,
+  "asm": "sqlite3VdbeExec.bb2677.split:           # @sqlite3VdbeExec.bb2677.split\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovslq\t12(%rdi), %rax\n\timulq\t$56, %rax, %rax\n\tleaq\t(%rsi,%rax), %rdx\n\tleaq\t(%rsi,%rax), %rcx\n\taddq\t$20, %rcx\n\ttestb\t$-112, 21(%rsi,%rax)\n\tje\t.LBB0_1\n# %bb.2:                                # %bb2689.exitStub\n\txorl\t%eax, %eax\n\tretq\n.LBB0_1:                                # %bb2690.exitStub\n\tmovb\t$1, %al\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      1100\nTotal Cycles:      317\nTotal uOps:        1600\n\nDispatch Width:    6\nuOps Per Cycle:    5.05\nIPC:               3.47\nBlock RThroughput: 2.7\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      5     0.50    *                   movslq\t12(%rdi), %rax\n 1      3     1.00                        imulq\t$56, %rax, %rax\n 1      1     0.50                        leaq\t(%rsi,%rax), %rdx\n 1      1     0.50                        leaq\t(%rsi,%rax), %rcx\n 1      1     0.25                        addq\t$20, %rcx\n 2      6     0.50    *                   testb\t$-112, 21(%rsi,%rax)\n 1      1     0.50                        je\t.LBB0_1\n 1      0     0.17                        xorl\t%eax, %eax\n 3      7     1.00                  U     retq\n 1      1     0.25                        movb\t$1, %al\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     2.51   2.50   2.00   2.00    -     2.99   3.00    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -      -      -     0.95   0.05    -      -      -      -     movslq\t12(%rdi), %rax\n -      -      -     1.00    -      -      -      -      -      -     imulq\t$56, %rax, %rax\n -      -      -     1.00    -      -      -      -      -      -     leaq\t(%rsi,%rax), %rdx\n -      -      -     0.48    -      -      -     0.52    -      -     leaq\t(%rsi,%rax), %rcx\n -      -     0.01   0.01    -      -      -     0.96   0.02    -     addq\t$20, %rcx\n -      -     0.04    -     0.50   0.50    -      -     0.96    -     testb\t$-112, 21(%rsi,%rax)\n -      -     0.99    -      -      -      -      -     0.01    -     je\t.LBB0_1\n -      -      -      -      -      -      -      -      -      -     xorl\t%eax, %eax\n -      -     0.03    -     0.52   0.48    -     0.97   1.00    -     retq\n -      -     0.96   0.01    -      -      -     0.02   0.01    -     movb\t$1, %al\n -      -     0.48    -     0.03   0.97    -     0.52   1.00    -     retq\n"
+ },
+ "attempts": [
+  {
+   "n": 1,
+   "model": "muse-spark-1.3",
+   "response": "```llvm\nnewFuncRoot:\n  %t1 = getelementptr inbounds nuw i8, ptr %i328, i64 12\n  %t2 = load i32, ptr %t1, align 4\n  %t3 = sext i32 %t2 to i64\n  %t4 = getelementptr inbounds [56 x i8], ptr %i322, i64 %t3\n  %t5 = getelementptr inbounds nuw i8, ptr %t4, i64 20\n  %t6 = getelementptr i8, ptr %t5, i64 1\n  %t7 = load i8, ptr %t6, align 1\n  %t8 = and i8 %t7, -112\n  %t9 = icmp eq i8 %t8, 0\n  %t10 = insertvalue { i1, ptr, ptr } poison, i1 %t9, 0\n  %t11 = insertvalue { i1, ptr, ptr } %t10, ptr %t4, 1\n  %t12 = insertvalue { i1, ptr, ptr } %t11, ptr %t5, 2\n  ret { i1, ptr, ptr } %t12\n```",
+   "finish_reason": "stop",
+   "tokens_in": 944,
+   "tokens_out": 13949,
+   "tokens_reasoning": 13657,
+   "cost_usd": 0.06046325,
+   "seconds": 70.97438258300099,
+   "cached": false,
+   "body": "newFuncRoot:\n  %t1 = getelementptr inbounds nuw i8, ptr %i328, i64 12\n  %t2 = load i32, ptr %t1, align 4\n  %t3 = sext i32 %t2 to i64\n  %t4 = getelementptr inbounds [56 x i8], ptr %i322, i64 %t3\n  %t5 = getelementptr inbounds nuw i8, ptr %t4, i64 20\n  %t6 = getelementptr i8, ptr %t5, i64 1\n  %t7 = load i8, ptr %t6, align 1\n  %t8 = and i8 %t7, -112\n  %t9 = icmp eq i8 %t8, 0\n  %t10 = insertvalue { i1, ptr, ptr } poison, i1 %t9, 0\n  %t11 = insertvalue { i1, ptr, ptr } %t10, ptr %t4, 1\n  %t12 = insertvalue { i1, ptr, ptr } %t11, ptr %t5, 2\n  ret { i1, ptr, ptr } %t12",
+   "tgt_ll": "; ModuleID = '/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.named.ll'\nsource_filename = \"/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\ndefine { i1, ptr, ptr } @sqlite3VdbeExec.bb2677.split(ptr %i328, ptr %i322) {\nnewFuncRoot:\n  %t1 = getelementptr inbounds nuw i8, ptr %i328, i64 12\n  %t2 = load i32, ptr %t1, align 4\n  %t3 = sext i32 %t2 to i64\n  %t4 = getelementptr inbounds [56 x i8], ptr %i322, i64 %t3\n  %t5 = getelementptr inbounds nuw i8, ptr %t4, i64 20\n  %t6 = getelementptr i8, ptr %t5, i64 1\n  %t7 = load i8, ptr %t6, align 1\n  %t8 = and i8 %t7, -112\n  %t9 = icmp eq i8 %t8, 0\n  %t10 = insertvalue { i1, ptr, ptr } poison, i1 %t9, 0\n  %t11 = insertvalue { i1, ptr, ptr } %t10, ptr %t4, 1\n  %t12 = insertvalue { i1, ptr, ptr } %t11, ptr %t5, 2\n  ret { i1, ptr, ptr } %t12\n}\n\n\n\n",
+   "tgt_sha256": "6a660f039b7782591b306c3ceeac4774971134a607207605df9feafe794d3ce5",
+   "check": "proven",
+   "alive2_output": "\n----------------------------------------\ndefine {i1, i56, ptr, ptr} @sqlite3VdbeExec.bb2677.split(ptr %i328, ptr %i322) {\nnewFuncRoot:\n  br label %bb2677.split\n\nbb2677.split:\n  %i2681 = gep inbounds nuw ptr %i328, 1 x i64 12\n  %i2682 = load i32, ptr %i2681, align 4\n  %i2683 = sext i32 %i2682 to i64\n  %i2684 = gep inbounds ptr %i322, 56 x i64 %i2683\n  %i2685 = gep inbounds nuw ptr %i2684, 1 x i64 20\n  %i2686 = load i16, ptr %i2685, align 4\n  %i2687 = and i16 %i2686, 36864\n  %i2688 = icmp eq i16 %i2687, 0\n  br i1 %i2688, label %bb2690.exitStub, label %bb2689.exitStub\n\nbb2690.exitStub:\n  %ret1.0 = insertvalue {i1, i56, ptr, ptr} poison, i1 1, 0\n  %ret1.1 = insertvalue {i1, i56, ptr, ptr} %ret1.0, ptr %i2684, 2\n  %ret1.2 = insertvalue {i1, i56, ptr, ptr} %ret1.1, ptr %i2685, 3\n  ret {i1, i56, ptr, ptr} %ret1.2\n\nbb2689.exitStub:\n  %ret2.0 = insertvalue {i1, i56, ptr, ptr} poison, i1 0, 0\n  %ret2.1 = insertvalue {i1, i56, ptr, ptr} %ret2.0, ptr %i2684, 2\n  %ret2.2 = insertvalue {i1, i56, ptr, ptr} %ret2.1, ptr %i2685, 3\n  ret {i1, i56, ptr, ptr} %ret2.2\n}\n=>\ndefine {i1, i56, ptr, ptr} @sqlite3VdbeExec.bb2677.split(ptr %i328, ptr %i322) {\nnewFuncRoot:\n  %t1 = gep inbounds nuw ptr %i328, 1 x i64 12\n  %t2 = load i32, ptr %t1, align 4\n  %t3 = sext i32 %t2 to i64\n  %t4 = gep inbounds ptr %i322, 56 x i64 %t3\n  %t5 = gep inbounds nuw ptr %t4, 1 x i64 20\n  %t6 = gep ptr %t5, 1 x i64 1\n  %t7 = load i8, ptr %t6, align 1\n  %t8 = and i8 %t7, 144\n  %t9 = icmp eq i8 %t8, 0\n  %t10 = insertvalue {i1, i56, ptr, ptr} poison, i1 %t9, 0\n  %t11 = insertvalue {i1, i56, ptr, ptr} %t10, ptr %t4, 2\n  %t12 = insertvalue {i1, i56, ptr, ptr} %t11, ptr %t5, 3\n  ret {i1, i56, ptr, ptr} %t12\n}\nTransformation seems to be correct!\n\nSummary:\n  1 correct transformations\n  0 incorrect transformations\n  0 failed-to-prove transformations\n  0 Alive2 errors\n",
+   "alive2_seconds": 0.42618604200106347,
+   "cost": {
+    "ir_insts": 13,
+    "asm_insts": 8,
+    "mca_cycles": 2.16,
+    "asm": "sqlite3VdbeExec.bb2677.split:           # @sqlite3VdbeExec.bb2677.split\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovslq\t12(%rdi), %rax\n\timulq\t$56, %rax, %rax\n\tleaq\t(%rsi,%rax), %rdx\n\tleaq\t(%rsi,%rax), %rcx\n\taddq\t$20, %rcx\n\ttestb\t$-112, 21(%rsi,%rax)\n\tsete\t%al\n\tretq\n.Lfunc_end0:",
+    "mca_output": "Iterations:        100\nInstructions:      800\nTotal Cycles:      216\nTotal uOps:        1100\n\nDispatch Width:    6\nuOps Per Cycle:    5.09\nIPC:               3.70\nBlock RThroughput: 1.8\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      5     0.50    *                   movslq\t12(%rdi), %rax\n 1      3     1.00                        imulq\t$56, %rax, %rax\n 1      1     0.50                        leaq\t(%rsi,%rax), %rdx\n 1      1     0.50                        leaq\t(%rsi,%rax), %rcx\n 1      1     0.25                        addq\t$20, %rcx\n 2      6     0.50    *                   testb\t$-112, 21(%rsi,%rax)\n 1      1     0.50                        sete\t%al\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     2.00   2.01   1.50   1.50    -     1.98   2.01    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -      -      -     0.47   0.53    -      -      -      -     movslq\t12(%rdi), %rax\n -      -      -     1.00    -      -      -      -      -      -     imulq\t$56, %rax, %rax\n -      -      -      -      -      -      -     1.00    -      -     leaq\t(%rsi,%rax), %rdx\n -      -      -     1.00    -      -      -      -      -      -     leaq\t(%rsi,%rax), %rcx\n -      -     0.97    -      -      -      -      -     0.03    -     addq\t$20, %rcx\n -      -     0.04    -     0.50   0.50    -      -     0.96    -     testb\t$-112, 21(%rsi,%rax)\n -      -     0.98    -      -      -      -      -     0.02    -     sete\t%al\n -      -     0.01   0.01   0.53   0.47    -     0.98   1.00    -     retq\n"
+   },
+   "faster": true,
+   "feedback": "Proven correct. Cost: 2.16 cycles per call, clang: 3.17.\nCan you make it even faster? If you believe this version is optimal, answer NO_IMPROVEMENT and one sentence why."
+  },
+  {
+   "n": 2,
+   "model": "muse-spark-1.3",
+   "response": "NO_IMPROVEMENT The current branchless byte-TEST version is optimal because the two dependent loads, scaled address multiply plus LEAs, and return stores are all semantically mandatory.",
+   "finish_reason": "stop",
+   "tokens_in": 1284,
+   "tokens_out": 19096,
+   "tokens_reasoning": 19050,
+   "cost_usd": 0.082763,
+   "seconds": 102.94044279099762,
+   "cached": false,
+   "check": "no_improvement"
+  }
+ ],
+ "best": {
+  "n": 1,
+  "ir_insts": 13,
+  "asm_insts": 8,
+  "mca_cycles": 2.16,
+  "asm": "sqlite3VdbeExec.bb2677.split:           # @sqlite3VdbeExec.bb2677.split\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovslq\t12(%rdi), %rax\n\timulq\t$56, %rax, %rax\n\tleaq\t(%rsi,%rax), %rdx\n\tleaq\t(%rsi,%rax), %rcx\n\taddq\t$20, %rcx\n\ttestb\t$-112, 21(%rsi,%rax)\n\tsete\t%al\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      800\nTotal Cycles:      216\nTotal uOps:        1100\n\nDispatch Width:    6\nuOps Per Cycle:    5.09\nIPC:               3.70\nBlock RThroughput: 1.8\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      5     0.50    *                   movslq\t12(%rdi), %rax\n 1      3     1.00                        imulq\t$56, %rax, %rax\n 1      1     0.50                        leaq\t(%rsi,%rax), %rdx\n 1      1     0.50                        leaq\t(%rsi,%rax), %rcx\n 1      1     0.25                        addq\t$20, %rcx\n 2      6     0.50    *                   testb\t$-112, 21(%rsi,%rax)\n 1      1     0.50                        sete\t%al\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     2.00   2.01   1.50   1.50    -     1.98   2.01    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -      -      -     0.47   0.53    -      -      -      -     movslq\t12(%rdi), %rax\n -      -      -     1.00    -      -      -      -      -      -     imulq\t$56, %rax, %rax\n -      -      -      -      -      -      -     1.00    -      -     leaq\t(%rsi,%rax), %rdx\n -      -      -     1.00    -      -      -      -      -      -     leaq\t(%rsi,%rax), %rcx\n -      -     0.97    -      -      -      -      -     0.03    -     addq\t$20, %rcx\n -      -     0.04    -     0.50   0.50    -      -     0.96    -     testb\t$-112, 21(%rsi,%rax)\n -      -     0.98    -      -      -      -      -     0.02    -     sete\t%al\n -      -     0.01   0.01   0.53   0.47    -     0.98   1.00    -     retq\n",
+  "speedup": 1.4675925925925926
+ },
+ "stop": "no_improvement",
+ "cost_usd": 0.14322625,
+ "large": true,
+ "budget_usd": 3.0,
+ "verified_by": "alive-tv, reference toolchain"
+}

@@ -1,0 +1,109 @@
+{
+ "id": "17-freeSpace-bb20",
+ "category": "entries",
+ "backend": "muse",
+ "model": "muse-spark-1.3",
+ "settings": {
+  "model": "muse-spark-1.3",
+  "show_asm": "never",
+  "feedback": "full",
+  "max_tokens": 64000,
+  "max_tokens_after_win": 64000,
+  "large_insts": 10,
+  "max_tokens_large": 64000,
+  "max_tokens_after_win_large": 64000,
+  "stop_on_truncation": true
+ },
+ "src_ll": "; ModuleID = '/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.named.ll'\nsource_filename = \"/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\ndefine { i1, ptr, i32 } @freeSpace.bb20.split(i32 %i21, ptr %i4, i32 %arg1) {\nnewFuncRoot:\n  br label %bb20.split\n\nbb20.split:                                       ; preds = %newFuncRoot\n  %i22 = zext nneg i32 %i21 to i64\n  %i23 = getelementptr inbounds nuw i8, ptr %i4, i64 %i22\n  %i24 = load i8, ptr %i23, align 1\n  %i25 = zext i8 %i24 to i32\n  %i26 = shl nuw nsw i32 %i25, 8\n  %i27 = getelementptr inbounds nuw i8, ptr %i23, i64 1\n  %i28 = load i8, ptr %i27, align 1\n  %i29 = zext i8 %i28 to i32\n  %i30 = or disjoint i32 %i26, %i29\n  %i31 = icmp slt i32 %i30, %arg1\n  br i1 %i31, label %bb32.exitStub, label %bb37.exitStub\n\nbb32.exitStub:                                    ; preds = %bb20.split\n  %ret1.0 = insertvalue { i1, ptr, i32 } poison, i1 true, 0\n  %ret1.1 = insertvalue { i1, ptr, i32 } %ret1.0, ptr %i23, 1\n  %ret1.2 = insertvalue { i1, ptr, i32 } %ret1.1, i32 %i30, 2\n  ret { i1, ptr, i32 } %ret1.2\n\nbb37.exitStub:                                    ; preds = %bb20.split\n  %ret2.0 = insertvalue { i1, ptr, i32 } poison, i1 false, 0\n  %ret2.1 = insertvalue { i1, ptr, i32 } %ret2.0, ptr %i23, 1\n  %ret2.2 = insertvalue { i1, ptr, i32 } %ret2.1, i32 %i30, 2\n  ret { i1, ptr, i32 } %ret2.2\n}\n\n\n\n",
+ "src_sha256": "f1714b3d268b9b3cbd7086646476e5ae5e238d2f404575b4b365091c90d9648a",
+ "baseline": {
+  "ir_insts": 20,
+  "asm_insts": 11,
+  "mca_cycles": 3.11,
+  "asm": "freeSpace.bb20.split:                   # @freeSpace.bb20.split\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovl\t%edx, %eax\n\tmovl\t%edi, %ecx\n\tleaq\t(%rsi,%rcx), %rdx\n\tmovbew\t(%rsi,%rcx), %cx\n\tmovzwl\t%cx, %ecx\n\tcmpl\t%eax, %ecx\n\tjge\t.LBB0_2\n# %bb.1:                                # %bb32.exitStub\n\tmovb\t$1, %al\n\tretq\n.LBB0_2:                                # %bb37.exitStub\n\txorl\t%eax, %eax\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      1100\nTotal Cycles:      311\nTotal uOps:        1600\n\nDispatch Width:    6\nuOps Per Cycle:    5.14\nIPC:               3.54\nBlock RThroughput: 2.7\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        movl\t%edx, %eax\n 1      1     0.25                        movl\t%edi, %ecx\n 1      1     0.50                        leaq\t(%rsi,%rcx), %rdx\n 2      6     0.50    *                   movbew\t(%rsi,%rcx), %cx\n 1      1     0.25                        movzwl\t%cx, %ecx\n 1      1     0.25                        cmpl\t%eax, %ecx\n 1      1     0.50                        jge\t.LBB0_2\n 1      1     0.25                        movb\t$1, %al\n 3      7     1.00                  U     retq\n 1      0     0.17                        xorl\t%eax, %eax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     2.99   3.01   1.50   1.50    -     3.01   2.99    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.05   0.05    -      -      -     0.40   0.50    -     movl\t%edx, %eax\n -      -     0.03   0.21    -      -      -     0.57   0.19    -     movl\t%edi, %ecx\n -      -      -     0.08    -      -      -     0.92    -      -     leaq\t(%rsi,%rcx), %rdx\n -      -      -     0.23   0.50   0.50    -     0.77    -      -     movbew\t(%rsi,%rcx), %cx\n -      -     0.01   0.91    -      -      -     0.06   0.02    -     movzwl\t%cx, %ecx\n -      -     0.02   0.93    -      -      -     0.03   0.02    -     cmpl\t%eax, %ecx\n -      -     0.96    -      -      -      -      -     0.04    -     jge\t.LBB0_2\n -      -     0.78    -      -      -      -      -     0.22    -     movb\t$1, %al\n -      -     0.57   0.20   0.49   0.51    -     0.23   1.00    -     retq\n -      -      -      -      -      -      -      -      -      -     xorl\t%eax, %eax\n -      -     0.57   0.40   0.51   0.49    -     0.03   1.00    -     retq\n"
+ },
+ "attempts": [
+  {
+   "n": 1,
+   "model": "muse-spark-1.3",
+   "response": "```llvm\nnewFuncRoot:\n  %t1 = zext i32 %i21 to i64\n  %t2 = getelementptr i8, ptr %i4, i64 %t1\n  %t3 = load i16, ptr %t2, align 1\n  %t4 = call i16 @llvm.bswap.i16(i16 %t3)\n  %t5 = zext i16 %t4 to i32\n  %t6 = icmp slt i32 %t5, %arg1\n  %t7 = insertvalue { i1, ptr, i32 } poison, i1 %t6, 0\n  %t8 = insertvalue { i1, ptr, i32 } %t7, ptr %t2, 1\n  %t9 = insertvalue { i1, ptr, i32 } %t8, i32 %t5, 2\n  ret { i1, ptr, i32 } %t9\n```",
+   "finish_reason": "stop",
+   "tokens_in": 962,
+   "tokens_out": 8834,
+   "tokens_reasoning": 8607,
+   "cost_usd": 0.038747,
+   "seconds": 105.03683062499476,
+   "cached": false,
+   "body": "newFuncRoot:\n  %t1 = zext i32 %i21 to i64\n  %t2 = getelementptr i8, ptr %i4, i64 %t1\n  %t3 = load i16, ptr %t2, align 1\n  %t4 = call i16 @llvm.bswap.i16(i16 %t3)\n  %t5 = zext i16 %t4 to i32\n  %t6 = icmp slt i32 %t5, %arg1\n  %t7 = insertvalue { i1, ptr, i32 } poison, i1 %t6, 0\n  %t8 = insertvalue { i1, ptr, i32 } %t7, ptr %t2, 1\n  %t9 = insertvalue { i1, ptr, i32 } %t8, i32 %t5, 2\n  ret { i1, ptr, i32 } %t9",
+   "tgt_ll": "; ModuleID = '/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.named.ll'\nsource_filename = \"/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\ndefine { i1, ptr, i32 } @freeSpace.bb20.split(i32 %i21, ptr %i4, i32 %arg1) {\nnewFuncRoot:\n  %t1 = zext i32 %i21 to i64\n  %t2 = getelementptr i8, ptr %i4, i64 %t1\n  %t3 = load i16, ptr %t2, align 1\n  %t4 = call i16 @llvm.bswap.i16(i16 %t3)\n  %t5 = zext i16 %t4 to i32\n  %t6 = icmp slt i32 %t5, %arg1\n  %t7 = insertvalue { i1, ptr, i32 } poison, i1 %t6, 0\n  %t8 = insertvalue { i1, ptr, i32 } %t7, ptr %t2, 1\n  %t9 = insertvalue { i1, ptr, i32 } %t8, i32 %t5, 2\n  ret { i1, ptr, i32 } %t9\n}\n\n\n\n",
+   "tgt_sha256": "1117601293cbf49f37159aa2c579185ec5cf8e2305526d18384b3bce4a1f6e01",
+   "check": "proven",
+   "alive2_output": "\n----------------------------------------\ndefine {i1, i56, ptr, i32, i32} @freeSpace.bb20.split(i32 %i21, ptr %i4, i32 %arg1) {\nnewFuncRoot:\n  br label %bb20.split\n\nbb20.split:\n  %i22 = zext nneg i32 %i21 to i64\n  %i23 = gep inbounds nuw ptr %i4, 1 x i64 %i22\n  %i24 = load i8, ptr %i23, align 1\n  %i25 = zext i8 %i24 to i32\n  %i26 = shl nsw nuw i32 %i25, 8\n  %i27 = gep inbounds nuw ptr %i23, 1 x i64 1\n  %i28 = load i8, ptr %i27, align 1\n  %i29 = zext i8 %i28 to i32\n  %i30 = or disjoint i32 %i26, %i29\n  %i31 = icmp slt i32 %i30, %arg1\n  br i1 %i31, label %bb32.exitStub, label %bb37.exitStub\n\nbb32.exitStub:\n  %ret1.0 = insertvalue {i1, i56, ptr, i32, i32} poison, i1 1, 0\n  %ret1.1 = insertvalue {i1, i56, ptr, i32, i32} %ret1.0, ptr %i23, 2\n  %ret1.2 = insertvalue {i1, i56, ptr, i32, i32} %ret1.1, i32 %i30, 3\n  ret {i1, i56, ptr, i32, i32} %ret1.2\n\nbb37.exitStub:\n  %ret2.0 = insertvalue {i1, i56, ptr, i32, i32} poison, i1 0, 0\n  %ret2.1 = insertvalue {i1, i56, ptr, i32, i32} %ret2.0, ptr %i23, 2\n  %ret2.2 = insertvalue {i1, i56, ptr, i32, i32} %ret2.1, i32 %i30, 3\n  ret {i1, i56, ptr, i32, i32} %ret2.2\n}\n=>\ndefine {i1, i56, ptr, i32, i32} @freeSpace.bb20.split(i32 %i21, ptr %i4, i32 %arg1) {\nnewFuncRoot:\n  %t1 = zext i32 %i21 to i64\n  %t2 = gep ptr %i4, 1 x i64 %t1\n  %t3 = load i16, ptr %t2, align 1\n  %t4 = bswap i16 %t3\n  %t5 = zext i16 %t4 to i32\n  %t6 = icmp slt i32 %t5, %arg1\n  %t7 = insertvalue {i1, i56, ptr, i32, i32} poison, i1 %t6, 0\n  %t8 = insertvalue {i1, i56, ptr, i32, i32} %t7, ptr %t2, 2\n  %t9 = insertvalue {i1, i56, ptr, i32, i32} %t8, i32 %t5, 3\n  ret {i1, i56, ptr, i32, i32} %t9\n}\nTransformation seems to be correct!\n\nSummary:\n  1 correct transformations\n  0 incorrect transformations\n  0 failed-to-prove transformations\n  0 Alive2 errors\n",
+   "alive2_seconds": 0.25531491699803155,
+   "cost": {
+    "ir_insts": 10,
+    "asm_insts": 8,
+    "mca_cycles": 2.6,
+    "asm": "freeSpace.bb20.split:                   # @freeSpace.bb20.split\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovl\t%edi, %eax\n\tleaq\t(%rsi,%rax), %rdi\n\tmovbew\t(%rsi,%rax), %ax\n\tmovzwl\t%ax, %ecx\n\tcmpl\t%edx, %ecx\n\tsetl\t%al\n\tmovq\t%rdi, %rdx\n\tretq\n.Lfunc_end0:",
+    "mca_output": "Iterations:        100\nInstructions:      800\nTotal Cycles:      260\nTotal uOps:        1100\n\nDispatch Width:    6\nuOps Per Cycle:    4.23\nIPC:               3.08\nBlock RThroughput: 1.8\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        movl\t%edi, %eax\n 1      1     0.50                        leaq\t(%rsi,%rax), %rdi\n 2      6     0.50    *                   movbew\t(%rsi,%rax), %ax\n 1      1     0.25                        movzwl\t%ax, %ecx\n 1      1     0.25                        cmpl\t%edx, %ecx\n 1      1     0.50                        setl\t%al\n 1      1     0.25                        movq\t%rdi, %rdx\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     2.21   2.29   1.00   1.00    -     2.29   2.21    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.14   0.19    -      -      -     0.26   0.41    -     movl\t%edi, %eax\n -      -      -     0.37    -      -      -     0.63    -      -     leaq\t(%rsi,%rax), %rdi\n -      -      -     0.51   0.28   0.72    -     0.49    -      -     movbew\t(%rsi,%rax), %ax\n -      -     0.20   0.46    -      -      -     0.27   0.07    -     movzwl\t%ax, %ecx\n -      -     0.25   0.38    -      -      -     0.21   0.16    -     cmpl\t%edx, %ecx\n -      -     0.82    -      -      -      -      -     0.18    -     setl\t%al\n -      -     0.37   0.16    -      -      -     0.08   0.39    -     movq\t%rdi, %rdx\n -      -     0.43   0.22   0.72   0.28    -     0.35   1.00    -     retq\n"
+   },
+   "faster": true,
+   "feedback": "Proven correct. Cost: 2.60 cycles per call, clang: 3.11.\nCan you make it even faster? If you believe this version is optimal, answer NO_IMPROVEMENT and one sentence why."
+  },
+  {
+   "n": 2,
+   "model": "muse-spark-1.3",
+   "response": "```llvm\nnewFuncRoot:\n  %t1 = getelementptr inbounds nuw i8, ptr %i4, i32 %i21\n  %t2 = load i16, ptr %t1, align 1\n  %t3 = call i16 @llvm.bswap.i16(i16 %t2)\n  %t4 = zext i16 %t3 to i32\n  %t5 = icmp slt i32 %t4, %arg1\n  %t6 = insertvalue { i1, ptr, i32 } poison, i1 %t5, 0\n  %t7 = insertvalue { i1, ptr, i32 } %t6, ptr %t1, 1\n  %t8 = insertvalue { i1, ptr, i32 } %t7, i32 %t4, 2\n  ret { i1, ptr, i32 } %t8\n```",
+   "finish_reason": "stop",
+   "tokens_in": 1237,
+   "tokens_out": 9410,
+   "tokens_reasoning": 9195,
+   "cost_usd": 0.04153875,
+   "seconds": 110.177995500002,
+   "cached": false,
+   "body": "newFuncRoot:\n  %t1 = getelementptr inbounds nuw i8, ptr %i4, i32 %i21\n  %t2 = load i16, ptr %t1, align 1\n  %t3 = call i16 @llvm.bswap.i16(i16 %t2)\n  %t4 = zext i16 %t3 to i32\n  %t5 = icmp slt i32 %t4, %arg1\n  %t6 = insertvalue { i1, ptr, i32 } poison, i1 %t5, 0\n  %t7 = insertvalue { i1, ptr, i32 } %t6, ptr %t1, 1\n  %t8 = insertvalue { i1, ptr, i32 } %t7, i32 %t4, 2\n  ret { i1, ptr, i32 } %t8",
+   "tgt_ll": "; ModuleID = '/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.named.ll'\nsource_filename = \"/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\ndefine { i1, ptr, i32 } @freeSpace.bb20.split(i32 %i21, ptr %i4, i32 %arg1) {\nnewFuncRoot:\n  %t1 = getelementptr inbounds nuw i8, ptr %i4, i32 %i21\n  %t2 = load i16, ptr %t1, align 1\n  %t3 = call i16 @llvm.bswap.i16(i16 %t2)\n  %t4 = zext i16 %t3 to i32\n  %t5 = icmp slt i32 %t4, %arg1\n  %t6 = insertvalue { i1, ptr, i32 } poison, i1 %t5, 0\n  %t7 = insertvalue { i1, ptr, i32 } %t6, ptr %t1, 1\n  %t8 = insertvalue { i1, ptr, i32 } %t7, i32 %t4, 2\n  ret { i1, ptr, i32 } %t8\n}\n\n\n\n",
+   "tgt_sha256": "e5030de8e6e7b2538b0a4114bbe66346d5973ec06ad240dc17cd8e21abca4a2d",
+   "check": "proven",
+   "alive2_output": "\n----------------------------------------\ndefine {i1, i56, ptr, i32, i32} @freeSpace.bb20.split(i32 %i21, ptr %i4, i32 %arg1) {\nnewFuncRoot:\n  br label %bb20.split\n\nbb20.split:\n  %i22 = zext nneg i32 %i21 to i64\n  %i23 = gep inbounds nuw ptr %i4, 1 x i64 %i22\n  %i24 = load i8, ptr %i23, align 1\n  %i25 = zext i8 %i24 to i32\n  %i26 = shl nsw nuw i32 %i25, 8\n  %i27 = gep inbounds nuw ptr %i23, 1 x i64 1\n  %i28 = load i8, ptr %i27, align 1\n  %i29 = zext i8 %i28 to i32\n  %i30 = or disjoint i32 %i26, %i29\n  %i31 = icmp slt i32 %i30, %arg1\n  br i1 %i31, label %bb32.exitStub, label %bb37.exitStub\n\nbb32.exitStub:\n  %ret1.0 = insertvalue {i1, i56, ptr, i32, i32} poison, i1 1, 0\n  %ret1.1 = insertvalue {i1, i56, ptr, i32, i32} %ret1.0, ptr %i23, 2\n  %ret1.2 = insertvalue {i1, i56, ptr, i32, i32} %ret1.1, i32 %i30, 3\n  ret {i1, i56, ptr, i32, i32} %ret1.2\n\nbb37.exitStub:\n  %ret2.0 = insertvalue {i1, i56, ptr, i32, i32} poison, i1 0, 0\n  %ret2.1 = insertvalue {i1, i56, ptr, i32, i32} %ret2.0, ptr %i23, 2\n  %ret2.2 = insertvalue {i1, i56, ptr, i32, i32} %ret2.1, i32 %i30, 3\n  ret {i1, i56, ptr, i32, i32} %ret2.2\n}\n=>\ndefine {i1, i56, ptr, i32, i32} @freeSpace.bb20.split(i32 %i21, ptr %i4, i32 %arg1) {\nnewFuncRoot:\n  %t1 = gep inbounds nuw ptr %i4, 1 x i32 %i21\n  %t2 = load i16, ptr %t1, align 1\n  %t3 = bswap i16 %t2\n  %t4 = zext i16 %t3 to i32\n  %t5 = icmp slt i32 %t4, %arg1\n  %t6 = insertvalue {i1, i56, ptr, i32, i32} poison, i1 %t5, 0\n  %t7 = insertvalue {i1, i56, ptr, i32, i32} %t6, ptr %t1, 2\n  %t8 = insertvalue {i1, i56, ptr, i32, i32} %t7, i32 %t4, 3\n  ret {i1, i56, ptr, i32, i32} %t8\n}\nTransformation seems to be correct!\n\nSummary:\n  1 correct transformations\n  0 incorrect transformations\n  0 failed-to-prove transformations\n  0 Alive2 errors\n",
+   "alive2_seconds": 0.4331964169978164,
+   "cost": {
+    "ir_insts": 9,
+    "asm_insts": 8,
+    "mca_cycles": 2.6,
+    "asm": "freeSpace.bb20.split:                   # @freeSpace.bb20.split\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovslq\t%edi, %rax\n\tleaq\t(%rsi,%rax), %rdi\n\tmovbew\t(%rsi,%rax), %ax\n\tmovzwl\t%ax, %ecx\n\tcmpl\t%edx, %ecx\n\tsetl\t%al\n\tmovq\t%rdi, %rdx\n\tretq\n.Lfunc_end0:",
+    "mca_output": "Iterations:        100\nInstructions:      800\nTotal Cycles:      260\nTotal uOps:        1100\n\nDispatch Width:    6\nuOps Per Cycle:    4.23\nIPC:               3.08\nBlock RThroughput: 1.8\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        movslq\t%edi, %rax\n 1      1     0.50                        leaq\t(%rsi,%rax), %rdi\n 2      6     0.50    *                   movbew\t(%rsi,%rax), %ax\n 1      1     0.25                        movzwl\t%ax, %ecx\n 1      1     0.25                        cmpl\t%edx, %ecx\n 1      1     0.50                        setl\t%al\n 1      1     0.25                        movq\t%rdi, %rdx\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     2.21   2.29   1.00   1.00    -     2.29   2.21    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.14   0.19    -      -      -     0.26   0.41    -     movslq\t%edi, %rax\n -      -      -     0.37    -      -      -     0.63    -      -     leaq\t(%rsi,%rax), %rdi\n -      -      -     0.51   0.28   0.72    -     0.49    -      -     movbew\t(%rsi,%rax), %ax\n -      -     0.20   0.46    -      -      -     0.27   0.07    -     movzwl\t%ax, %ecx\n -      -     0.25   0.38    -      -      -     0.21   0.16    -     cmpl\t%edx, %ecx\n -      -     0.82    -      -      -      -      -     0.18    -     setl\t%al\n -      -     0.37   0.16    -      -      -     0.08   0.39    -     movq\t%rdi, %rdx\n -      -     0.43   0.22   0.72   0.28    -     0.35   1.00    -     retq\n"
+   },
+   "faster": true,
+   "feedback": "Proven correct. Cost: 2.60 cycles per call, clang: 3.11.\nCan you make it even faster? If you believe this version is optimal, answer NO_IMPROVEMENT and one sentence why."
+  },
+  {
+   "n": 3,
+   "model": "muse-spark-1.3",
+   "response": "NO_IMPROVEMENT\nThe current branchless 16-bit load plus bswap version already implements the mandatory big-endian load, byteswap, and signed compare with the minimal one load, one permute, and one compare with no branches to remove.",
+   "finish_reason": "stop",
+   "tokens_in": 1500,
+   "tokens_out": 8923,
+   "tokens_reasoning": 8862,
+   "cost_usd": 0.03979775,
+   "seconds": 108.17588045800221,
+   "cached": false,
+   "check": "no_improvement"
+  }
+ ],
+ "best": {
+  "n": 1,
+  "ir_insts": 10,
+  "asm_insts": 8,
+  "mca_cycles": 2.6,
+  "asm": "freeSpace.bb20.split:                   # @freeSpace.bb20.split\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovl\t%edi, %eax\n\tleaq\t(%rsi,%rax), %rdi\n\tmovbew\t(%rsi,%rax), %ax\n\tmovzwl\t%ax, %ecx\n\tcmpl\t%edx, %ecx\n\tsetl\t%al\n\tmovq\t%rdi, %rdx\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      800\nTotal Cycles:      260\nTotal uOps:        1100\n\nDispatch Width:    6\nuOps Per Cycle:    4.23\nIPC:               3.08\nBlock RThroughput: 1.8\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        movl\t%edi, %eax\n 1      1     0.50                        leaq\t(%rsi,%rax), %rdi\n 2      6     0.50    *                   movbew\t(%rsi,%rax), %ax\n 1      1     0.25                        movzwl\t%ax, %ecx\n 1      1     0.25                        cmpl\t%edx, %ecx\n 1      1     0.50                        setl\t%al\n 1      1     0.25                        movq\t%rdi, %rdx\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     2.21   2.29   1.00   1.00    -     2.29   2.21    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -     0.14   0.19    -      -      -     0.26   0.41    -     movl\t%edi, %eax\n -      -      -     0.37    -      -      -     0.63    -      -     leaq\t(%rsi,%rax), %rdi\n -      -      -     0.51   0.28   0.72    -     0.49    -      -     movbew\t(%rsi,%rax), %ax\n -      -     0.20   0.46    -      -      -     0.27   0.07    -     movzwl\t%ax, %ecx\n -      -     0.25   0.38    -      -      -     0.21   0.16    -     cmpl\t%edx, %ecx\n -      -     0.82    -      -      -      -      -     0.18    -     setl\t%al\n -      -     0.37   0.16    -      -      -     0.08   0.39    -     movq\t%rdi, %rdx\n -      -     0.43   0.22   0.72   0.28    -     0.35   1.00    -     retq\n",
+  "speedup": 1.1961538461538461
+ },
+ "stop": "no_improvement",
+ "cost_usd": 0.12008349999999998,
+ "large": true,
+ "budget_usd": 3.0,
+ "verified_by": "alive-tv, reference toolchain"
+}

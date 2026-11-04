@@ -1,0 +1,73 @@
+{
+ "run_id": "real-projects/sqlite/spark",
+ "started": "2026-11-02T22:18:01.965195+00:00",
+ "backend": "muse",
+ "model": "muse-spark-1.3",
+ "settings": {
+  "model": "muse-spark-1.3",
+  "show_asm": "never",
+  "feedback": "full",
+  "max_tokens": 64000,
+  "max_tokens_after_win": 64000,
+  "large_insts": 10,
+  "max_tokens_large": 64000,
+  "max_tokens_after_win_large": 64000,
+  "stop_on_truncation": true
+ },
+ "attempts": 5,
+ "budget_usd_per_function": null,
+ "jobs": 4,
+ "max_total_usd": 10.0,
+ "fallback": null,
+ "system_prompt": "You are a superoptimizer for LLVM IR. You receive one function compiled by clang -O3 for x86-64 (Skylake) and propose a faster version of it.\n\nYour rewrite is checked by Alive2, a formal verifier: it must be a refinement of the source.\n- For every input where the source has defined behavior, return the same value.\n- You may exploit undefined behavior that is already in the source (nsw, nuw, exact flags, poison, shifts past the bit width, division by zero): on those inputs, any result is allowed.\n- Never introduce undefined behavior the source does not have (no new nsw/nuw/exact flag, no possible division by zero, no new poison).\n- Only LLVM intrinsics may be called (llvm.ctpop, llvm.ctlz, llvm.cttz, llvm.abs, llvm.smin/smax/umin/umax, llvm.fshl/fshr, llvm.bswap, llvm.bitreverse, llvm.uadd.sat, ...). No other function. Loads and stores are allowed, and every write must stay the same for every input, in the same order relative to other memory accesses unless they cannot alias.\n\nSpeed is measured by llvm-mca on the x86-64 assembly that llc produces for your IR, in cycles per call. Fewer IR instructions is not the goal: a division or a branch can cost far more than several simple instructions.\n\nAnswer format:\n- Write only the function BODY in a ```llvm block: no `define` line, no closing brace. The original header (name, parameters, attributes) is kept as is.\n- Parameters keep their names. Give your own values names (%t1, %t2, ...), never new numbers.\n- If, after at least one attempt, you believe the source is already optimal, answer NO_IMPROVEMENT followed by one sentence explaining why.",
+ "llm_compiler": false,
+ "toolchain": {
+  "llvm": "b97454582dfbe2d5ebe7b7b1533de947bef16942",
+  "alive2": "adacbd5180ccf95075e9867c4f0c259f59c9fef2",
+  "clang_flags": [
+   "-O3",
+   "--target=x86_64-unknown-linux-gnu",
+   "-march=skylake",
+   "-S",
+   "-emit-llvm",
+   "-g0",
+   "-fdiscard-value-names"
+  ],
+  "llc_flags": [
+   "-O3",
+   "-mtriple=x86_64-unknown-linux-gnu",
+   "-mcpu=skylake"
+  ],
+  "mca_flags": [
+   "-mtriple=x86_64-unknown-linux-gnu",
+   "-mcpu=skylake"
+  ]
+ },
+ "entries": [
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/00-sqlite3VdbeExec-bb320",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/01-sqlite3VdbeExec-bb10720",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/02-sqlite3VdbeExec-bb2306",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/03-sqlite3VdbeExec-bb2677",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/04-sqlite3VdbeExec-bb2518",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/05-sqlite3VdbeExec-bb2297",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/06-vdbeRecordCompareInt-bb11",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/07-vdbeRecordCompareInt-bb",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/08-sqlite3VdbeExec-bb2690",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/09-sqlite3BtreeIndexMoveto-bb388",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/10-lengthFunc-bb67",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/11-sqlite3VdbeExec-bb2698",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/12-sqlite3BtreeNext-bb6",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/13-sqlite3VdbeExec-bb403",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/14-sqlite3VdbeExec-bb2446",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/15-sqlite3BtreeNext-bb",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/16-vdbeRecordCompareInt-bb67",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/17-freeSpace-bb20",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/18-sqlite3VdbeExec-bb339",
+  "/Users/delivery/delivery/qed-superopt/real-projects/sqlite/work/entries/19-sqlite3VdbeExec-bb2647"
+ ],
+ "finished": "2026-11-02T23:04:50.313777+00:00",
+ "cost_usd": 4.052018500000001,
+ "skipped_by_max_total": [],
+ "errors": {},
+ "paid_usd": 4.329207249999999
+}

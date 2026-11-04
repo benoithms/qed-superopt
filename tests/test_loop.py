@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from qed import llm, loop
+from qed import config, llm, loop
 from qed.llm import NO_IMPROVEMENT, Settings, messages
 
 SRC_C = "#include <stdbool.h>\n#include <stdint.h>\nbool f(int64_t x) { return x % 250 != x; }\n"
@@ -333,7 +333,7 @@ def test_a_cut_stream_records_when_it_failed(monkeypatch):
 
     create = lambda **kw: chunks()  # noqa: E731
     fake = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
-    monkeypatch.setattr(llm, "client", lambda: fake)
+    monkeypatch.setattr(llm, "client", lambda *_: fake)
     with pytest.raises(ConnectionError) as info:
         llm._stream({"model": "m", "messages": [], "max_tokens": 10})
     assert "1 content chunks" in info.value.__notes__[0]
@@ -358,3 +358,63 @@ def test_llmc_run_records_no_muse_settings(entry, monkeypatch, tmp_path):
     assert run["settings"] is None and run["model"] == "llm-compiler-7b"
     assert res["settings"] is None and res["budget_usd"] is None
     assert res["best"] is not None
+
+
+def test_live_shows_each_step(entry, fake_muse, monkeypatch, capsys):
+    monkeypatch.setattr(loop, "LIVE", True)
+    fake_muse(WRONG, RIGHT, f"{NO_IMPROVEMENT}: already a single range check.")
+    loop.run_function(entry, attempts=5)
+    out = capsys.readouterr().out
+    assert "REJECTED, counterexample" in out
+    assert "proven correct (refinement)" in out
+    assert "gain estimated by llvm-mca" in out
+
+
+def test_fresh_ignores_the_cache(tmp_path, monkeypatch):
+    monkeypatch.setattr(llm.config, "CACHE_DIR", tmp_path)
+    calls = []
+
+    class Usage:
+        prompt_tokens, completion_tokens, completion_tokens_details = 10, 5, None
+
+    def stream(request, api=None):
+        calls.append(request)
+        return request["model"], "  ret i1 true", "stop", Usage()
+
+    monkeypatch.setattr(llm, "_stream", stream)
+    ir = "define i1 @f(i64 %0) {\n  ret i1 false\n}\n"
+    llm.generate(ir, [])
+    llm.generate(ir, [])
+    assert len(calls) == 1
+    (cached,) = tmp_path.glob("*.json")
+    before = cached.read_text()
+    llm.generate(ir, [], settings=Settings(fresh=True))
+    assert len(calls) == 2
+    assert cached.read_text() == before  # the earlier answer stays the one cached
+
+
+def test_open_weights_go_to_the_modal_endpoint(monkeypatch):
+    monkeypatch.setattr(config, "MODAL_API_KEY", "wk-test")
+    monkeypatch.setitem(config.MODAL_ENDPOINTS, "muse-spark-open", "e.us-west.modal.direct")
+    assert llm.served_model("muse-spark-open") == "e.us-west.modal.direct"
+    assert llm.served_model("muse-spark-1.3") == "muse-spark-1.3"
+    assert str(llm.client("muse-spark-open").base_url).startswith(config.MODAL_API_BASE)
+
+
+def test_open_weights_without_endpoint_fail_before_any_call(monkeypatch):
+    monkeypatch.setitem(config.MODAL_ENDPOINTS, "muse-spark-open", "")
+    with pytest.raises(RuntimeError, match="MODAL_SPARK_OPEN_ENDPOINT"):
+        llm.served_model("muse-spark-open")
+
+
+def test_a_stream_for_open_weights_uses_the_modal_client(monkeypatch):
+    picked = []
+
+    def fake_client(api):
+        picked.append(api)
+        raise ConnectionError("stop here")
+
+    monkeypatch.setattr(llm, "client", fake_client)
+    with pytest.raises(ConnectionError):
+        llm._stream({"model": "e.us-west.modal.direct", "messages": []}, "muse-spark-open")
+    assert picked == ["muse-spark-open"]

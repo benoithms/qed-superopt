@@ -1,5 +1,6 @@
-"""Candidate generators. Only Meta models: Muse Spark (API, here) and LLM Compiler (local,
-qed/llm_compiler.py). Both expose generate(ir, history) -> body."""
+"""Candidate generators. Only Meta models: Muse Spark (Meta Model API, here), Muse Spark Open
+(open weights on a Modal Shared Endpoint, here) and LLM Compiler (local, qed/llm_compiler.py).
+All expose generate(ir, history) -> body."""
 
 import hashlib
 import json
@@ -60,6 +61,8 @@ class Settings:
     # A truncated answer loses all its reasoning, so a retry restarts the same search from
     # scratch: with a high cap, a truncation means the model is going in circles. Stop.
     stop_on_truncation: bool = True
+    # call the model even when the answer is cached; the cache keeps the old answer
+    fresh: bool = False
 
 
 DEFAULT = Settings()
@@ -105,16 +108,28 @@ def cost_usd(model: str, tokens_in: float, tokens_out: float) -> float:
     return (tokens_in * price_in + tokens_out * price_out) / 1e6
 
 
-def client() -> OpenAI:
-    if not config.META_API_KEY:
-        raise RuntimeError("META_API_KEY is missing: copy .env.example to .env and fill it in")
-    # The Meta Model API speaks the OpenAI wire format: this is only the HTTP client, every request
-    # goes to META_API_BASE. While the model reasons, a stream sends nothing: muse-wonder-1.0 was
-    # silent for more than the default 10 minutes at 60k tokens, hence 30. No automatic retry: a
-    # hidden retry could be billed twice without going through the run's spending cap.
-    return OpenAI(
-        api_key=config.META_API_KEY, base_url=config.META_API_BASE, timeout=1800, max_retries=0
-    )
+def served_model(model: str) -> str:
+    """The model id sent in the request: the endpoint hostname for a Modal Shared Endpoint."""
+    if model not in config.MODAL_ENDPOINTS:
+        return model
+    if not config.MODAL_ENDPOINTS[model]:
+        raise RuntimeError(f"no Modal endpoint for {model}: set MODAL_SPARK_OPEN_ENDPOINT in .env")
+    return config.MODAL_ENDPOINTS[model]
+
+
+def client(model: str = config.META_MODEL) -> OpenAI:
+    if model in config.MODAL_ENDPOINTS:
+        base_url, api_key, name = config.MODAL_API_BASE, config.MODAL_API_KEY, "MODAL_API_KEY"
+    else:
+        base_url, api_key, name = config.META_API_BASE, config.META_API_KEY, "META_API_KEY"
+    if not api_key:
+        raise RuntimeError(f"{name} is missing: copy .env.example to .env and fill it in")
+    # Both APIs speak the OpenAI wire format: this is only the HTTP client, every request goes to
+    # Meta (META_API_BASE) or to Meta's open weights on Modal (MODAL_API_BASE). While the model
+    # reasons, a stream sends nothing: muse-wonder-1.0 was silent for more than the default
+    # 10 minutes at 60k tokens, hence 30. No automatic retry: a hidden retry could be billed
+    # twice without going through the run's spending cap.
+    return OpenAI(api_key=api_key, base_url=base_url, timeout=1800, max_retries=0)
 
 
 def first_message(ir: str, c_source: str | None, baseline=None, show_asm: bool = False) -> str:
@@ -147,10 +162,11 @@ def messages(ir, history, c_source=None, baseline=None, settings=DEFAULT) -> lis
     return msgs
 
 
-def _stream(request: dict):
+def _stream(request: dict, api: str = config.META_MODEL):
     """Streamed call: a non-streamed request is cut by the server (504) when the model reasons
     for several minutes (muse-wonder-1.0 at 50k tokens). Same answer, received in pieces.
-    Returns (model, response, finish_reason, usage)."""
+    `api` is the model's name in config.PRICES, which picks the API. Returns (model, response,
+    finish_reason, usage)."""
     start = last = time.monotonic()
     model, parts, finish_reason, usage = request["model"], [], None, None
 
@@ -163,7 +179,7 @@ def _stream(request: dict):
         )
 
     try:
-        chunks = client().chat.completions.create(
+        chunks = client(api).chat.completions.create(
             **request, stream=True, stream_options={"include_usage": True}
         )
         for c in chunks:
@@ -191,19 +207,23 @@ def generate(ir: str, history: list, *, c_source=None, baseline=None, settings=D
     costs). Returns the model's answer: a function BODY (possibly in a ```llvm block), which
     the caller splices under the source header, or a NO_IMPROVEMENT sentence."""
     msgs = messages(ir, history, c_source, baseline, settings)
-    request = {"model": settings.model, "messages": msgs, "max_tokens": settings.max_tokens}
+    request = {
+        "model": served_model(settings.model),
+        "messages": msgs,
+        "max_tokens": settings.max_tokens,
+    }
     if settings.feedback == "independent":
         request["n_attempt"] = len(history)  # distinct cache key per independent sample
     key = hashlib.sha256(json.dumps(request, sort_keys=True).encode()).hexdigest()
     path = config.CACHE_DIR / f"{key}.json"
 
-    if path.exists():
+    if path.exists() and not settings.fresh:
         record = json.loads(path.read_text())
         record["cached"] = True
     else:
         request.pop("n_attempt", None)
         start = time.monotonic()
-        model, response, finish_reason, u = _stream(request)
+        model, response, finish_reason, u = _stream(request, settings.model)
         details = u.completion_tokens_details
         record = {
             "model": model,
@@ -216,8 +236,9 @@ def generate(ir: str, history: list, *, c_source=None, baseline=None, settings=D
             "seconds": time.monotonic() - start,
             "cached": False,
         }
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(record, indent=1))
+        if not path.exists():  # a fresh call never replaces the answer a run was made from
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(record, indent=1))
 
     last_call.clear()
     last_call.update(record, messages=msgs)

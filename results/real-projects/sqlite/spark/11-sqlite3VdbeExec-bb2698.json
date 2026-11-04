@@ -1,0 +1,82 @@
+{
+ "id": "11-sqlite3VdbeExec-bb2698",
+ "category": "entries",
+ "backend": "muse",
+ "model": "muse-spark-1.3",
+ "settings": {
+  "model": "muse-spark-1.3",
+  "show_asm": "never",
+  "feedback": "full",
+  "max_tokens": 64000,
+  "max_tokens_after_win": 64000,
+  "large_insts": 10,
+  "max_tokens_large": 64000,
+  "max_tokens_after_win_large": 64000,
+  "stop_on_truncation": true
+ },
+ "src_ll": "; ModuleID = '/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.named.ll'\nsource_filename = \"/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\ndefine { i1, ptr } @sqlite3VdbeExec.bb2698(ptr %i2311, ptr %i2694, i32 %i2679) {\nnewFuncRoot:\n  br label %bb2698\n\nbb2698:                                           ; preds = %newFuncRoot\n  %i2699 = getelementptr inbounds nuw i8, ptr %i2311, i64 88\n  %i2700 = load ptr, ptr %i2699, align 8\n  %i2701 = load i32, ptr %i2694, align 4\n  %i2702 = zext i32 %i2701 to i64\n  %i2703 = getelementptr inbounds nuw i8, ptr %i2700, i64 %i2702\n  %i2704 = icmp ult i32 %i2679, 12\n  br i1 %i2704, label %bb2705.exitStub, label %bb2706.exitStub\n\nbb2705.exitStub:                                  ; preds = %bb2698\n  %ret1.0 = insertvalue { i1, ptr } poison, i1 true, 0\n  %ret1.1 = insertvalue { i1, ptr } %ret1.0, ptr %i2703, 1\n  ret { i1, ptr } %ret1.1\n\nbb2706.exitStub:                                  ; preds = %bb2698\n  %ret2.0 = insertvalue { i1, ptr } poison, i1 false, 0\n  %ret2.1 = insertvalue { i1, ptr } %ret2.0, ptr %i2703, 1\n  ret { i1, ptr } %ret2.1\n}\n\n\n\n",
+ "src_sha256": "93346b734400fc000c64acd3280dd0f791a559893d974567ed33aef198c3bc18",
+ "baseline": {
+  "ir_insts": 14,
+  "asm_insts": 9,
+  "mca_cycles": 3.1,
+  "asm": "sqlite3VdbeExec.bb2698:                 # @sqlite3VdbeExec.bb2698\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tmovl\t%edx, %eax\n\tmovl\t(%rsi), %edx\n\taddq\t88(%rdi), %rdx\n\tcmpl\t$11, %eax\n\tja\t.LBB0_2\n# %bb.1:                                # %bb2705.exitStub\n\tmovb\t$1, %al\n\tretq\n.LBB0_2:                                # %bb2706.exitStub\n\txorl\t%eax, %eax\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      900\nTotal Cycles:      310\nTotal uOps:        1400\n\nDispatch Width:    6\nuOps Per Cycle:    4.52\nIPC:               2.90\nBlock RThroughput: 2.3\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        movl\t%edx, %eax\n 1      5     0.50    *                   movl\t(%rsi), %edx\n 2      6     0.50    *                   addq\t88(%rdi), %rdx\n 1      1     0.25                        cmpl\t$11, %eax\n 1      1     0.50                        ja\t.LBB0_2\n 1      1     0.25                        movb\t$1, %al\n 3      7     1.00                  U     retq\n 1      0     0.17                        xorl\t%eax, %eax\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     2.49   1.52   2.00   2.00    -     2.49   2.50    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -      -     0.99    -      -      -      -     0.01    -     movl\t%edx, %eax\n -      -      -      -     0.48   0.52    -      -      -      -     movl\t(%rsi), %edx\n -      -     0.49    -     1.00    -      -     0.51    -      -     addq\t88(%rdi), %rdx\n -      -      -     0.03    -      -      -     0.48   0.49    -     cmpl\t$11, %eax\n -      -     1.00    -      -      -      -      -      -      -     ja\t.LBB0_2\n -      -     0.50   0.49    -      -      -     0.01    -      -     movb\t$1, %al\n -      -     0.50    -      -     1.00    -     0.50   1.00    -     retq\n -      -      -      -      -      -      -      -      -      -     xorl\t%eax, %eax\n -      -      -     0.01   0.52   0.48    -     0.99   1.00    -     retq\n"
+ },
+ "attempts": [
+  {
+   "n": 1,
+   "model": "muse-spark-1.3",
+   "response": "```llvm\nnewFuncRoot:\n  %t1 = icmp ult i32 %i2679, 12\n  %t2 = getelementptr inbounds nuw i8, ptr %i2311, i64 88\n  %t3 = load ptr, ptr %t2, align 8\n  %t4 = load i32, ptr %i2694, align 4\n  %t5 = zext i32 %t4 to i64\n  %t6 = getelementptr inbounds nuw i8, ptr %t3, i64 %t5\n  %t7 = insertvalue { i1, ptr } poison, i1 %t1, 0\n  %t8 = insertvalue { i1, ptr } %t7, ptr %t6, 1\n  ret { i1, ptr } %t8\n```",
+   "finish_reason": "stop",
+   "tokens_in": 826,
+   "tokens_out": 5723,
+   "tokens_reasoning": 5523,
+   "cost_usd": 0.02535525,
+   "seconds": 70.87711479199788,
+   "cached": false,
+   "body": "newFuncRoot:\n  %t1 = icmp ult i32 %i2679, 12\n  %t2 = getelementptr inbounds nuw i8, ptr %i2311, i64 88\n  %t3 = load ptr, ptr %t2, align 8\n  %t4 = load i32, ptr %i2694, align 4\n  %t5 = zext i32 %t4 to i64\n  %t6 = getelementptr inbounds nuw i8, ptr %t3, i64 %t5\n  %t7 = insertvalue { i1, ptr } poison, i1 %t1, 0\n  %t8 = insertvalue { i1, ptr } %t7, ptr %t6, 1\n  ret { i1, ptr } %t8",
+   "tgt_ll": "; ModuleID = '/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.named.ll'\nsource_filename = \"/home/insights/delivery/qed-superopt/real-projects/sqlite/work/sqlite3.c\"\ntarget datalayout = \"e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128\"\ntarget triple = \"x86_64-unknown-linux-gnu\"\n\ndefine { i1, ptr } @sqlite3VdbeExec.bb2698(ptr %i2311, ptr %i2694, i32 %i2679) {\nnewFuncRoot:\n  %t1 = icmp ult i32 %i2679, 12\n  %t2 = getelementptr inbounds nuw i8, ptr %i2311, i64 88\n  %t3 = load ptr, ptr %t2, align 8\n  %t4 = load i32, ptr %i2694, align 4\n  %t5 = zext i32 %t4 to i64\n  %t6 = getelementptr inbounds nuw i8, ptr %t3, i64 %t5\n  %t7 = insertvalue { i1, ptr } poison, i1 %t1, 0\n  %t8 = insertvalue { i1, ptr } %t7, ptr %t6, 1\n  ret { i1, ptr } %t8\n}\n\n\n\n",
+   "tgt_sha256": "73aa9f8b38089f9cca5b8b5ae38d3bc4cd518db84447a942a6b0bf6a316332a5",
+   "check": "proven",
+   "alive2_output": "\n----------------------------------------\ndefine {i1, i56, ptr} @sqlite3VdbeExec.bb2698(ptr %i2311, ptr %i2694, i32 %i2679) {\nnewFuncRoot:\n  br label %bb2698\n\nbb2698:\n  %i2699 = gep inbounds nuw ptr %i2311, 1 x i64 88\n  %i2700 = load ptr, ptr %i2699, align 8\n  %i2701 = load i32, ptr %i2694, align 4\n  %i2702 = zext i32 %i2701 to i64\n  %i2703 = gep inbounds nuw ptr %i2700, 1 x i64 %i2702\n  %i2704 = icmp ult i32 %i2679, 12\n  br i1 %i2704, label %bb2705.exitStub, label %bb2706.exitStub\n\nbb2705.exitStub:\n  %ret1.0 = insertvalue {i1, i56, ptr} poison, i1 1, 0\n  %ret1.1 = insertvalue {i1, i56, ptr} %ret1.0, ptr %i2703, 2\n  ret {i1, i56, ptr} %ret1.1\n\nbb2706.exitStub:\n  %ret2.0 = insertvalue {i1, i56, ptr} poison, i1 0, 0\n  %ret2.1 = insertvalue {i1, i56, ptr} %ret2.0, ptr %i2703, 2\n  ret {i1, i56, ptr} %ret2.1\n}\n=>\ndefine {i1, i56, ptr} @sqlite3VdbeExec.bb2698(ptr %i2311, ptr %i2694, i32 %i2679) {\nnewFuncRoot:\n  %t1 = icmp ult i32 %i2679, 12\n  %t2 = gep inbounds nuw ptr %i2311, 1 x i64 88\n  %t3 = load ptr, ptr %t2, align 8\n  %t4 = load i32, ptr %i2694, align 4\n  %t5 = zext i32 %t4 to i64\n  %t6 = gep inbounds nuw ptr %t3, 1 x i64 %t5\n  %t7 = insertvalue {i1, i56, ptr} poison, i1 %t1, 0\n  %t8 = insertvalue {i1, i56, ptr} %t7, ptr %t6, 2\n  ret {i1, i56, ptr} %t8\n}\nTransformation seems to be correct!\n\nSummary:\n  1 correct transformations\n  0 incorrect transformations\n  0 failed-to-prove transformations\n  0 Alive2 errors\n",
+   "alive2_seconds": 0.1582436249955208,
+   "cost": {
+    "ir_insts": 9,
+    "asm_insts": 5,
+    "mca_cycles": 1.61,
+    "asm": "sqlite3VdbeExec.bb2698:                 # @sqlite3VdbeExec.bb2698\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tcmpl\t$12, %edx\n\tsetb\t%al\n\tmovl\t(%rsi), %edx\n\taddq\t88(%rdi), %rdx\n\tretq\n.Lfunc_end0:",
+    "mca_output": "Iterations:        100\nInstructions:      500\nTotal Cycles:      161\nTotal uOps:        800\n\nDispatch Width:    6\nuOps Per Cycle:    4.97\nIPC:               3.11\nBlock RThroughput: 1.5\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        cmpl\t$12, %edx\n 1      1     0.50                        setb\t%al\n 1      5     0.50    *                   movl\t(%rsi), %edx\n 2      6     0.50    *                   addq\t88(%rdi), %rdx\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     1.25   1.23   1.50   1.50    -     1.25   1.27    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -      -     0.26    -      -      -     0.72   0.02    -     cmpl\t$12, %edx\n -      -     0.76    -      -      -      -      -     0.24    -     setb\t%al\n -      -      -      -     0.49   0.51    -      -      -      -     movl\t(%rsi), %edx\n -      -     0.04   0.68   0.28   0.72    -     0.27   0.01    -     addq\t88(%rdi), %rdx\n -      -     0.45   0.29   0.73   0.27    -     0.26   1.00    -     retq\n"
+   },
+   "faster": true,
+   "feedback": "Proven correct. Cost: 1.61 cycles per call, clang: 3.10.\nCan you make it even faster? If you believe this version is optimal, answer NO_IMPROVEMENT and one sentence why."
+  },
+  {
+   "n": 2,
+   "model": "muse-spark-1.3",
+   "response": "NO_IMPROVEMENT\nThe branchless form already lowers to the minimal 2 loads plus lea/cmp/setcc with optimal register allocation, so no uops can be removed.\n",
+   "finish_reason": "stop",
+   "tokens_in": 1074,
+   "tokens_out": 8291,
+   "tokens_reasoning": 8245,
+   "cost_usd": 0.03657925,
+   "seconds": 114.80806116700114,
+   "cached": false,
+   "check": "no_improvement"
+  }
+ ],
+ "best": {
+  "n": 1,
+  "ir_insts": 9,
+  "asm_insts": 5,
+  "mca_cycles": 1.61,
+  "asm": "sqlite3VdbeExec.bb2698:                 # @sqlite3VdbeExec.bb2698\n\t.cfi_startproc\n# %bb.0:                                # %newFuncRoot\n\tcmpl\t$12, %edx\n\tsetb\t%al\n\tmovl\t(%rsi), %edx\n\taddq\t88(%rdi), %rdx\n\tretq\n.Lfunc_end0:",
+  "mca_output": "Iterations:        100\nInstructions:      500\nTotal Cycles:      161\nTotal uOps:        800\n\nDispatch Width:    6\nuOps Per Cycle:    4.97\nIPC:               3.11\nBlock RThroughput: 1.5\n\n\nInstruction Info:\n[1]: #uOps\n[2]: Latency\n[3]: RThroughput\n[4]: MayLoad\n[5]: MayStore\n[6]: HasSideEffects (U)\n\n[1]    [2]    [3]    [4]    [5]    [6]    Instructions:\n 1      1     0.25                        cmpl\t$12, %edx\n 1      1     0.50                        setb\t%al\n 1      5     0.50    *                   movl\t(%rsi), %edx\n 2      6     0.50    *                   addq\t88(%rdi), %rdx\n 3      7     1.00                  U     retq\n\n\nResources:\n[0]   - SKLDivider\n[1]   - SKLFPDivider\n[2]   - SKLPort0\n[3]   - SKLPort1\n[4]   - SKLPort2\n[5]   - SKLPort3\n[6]   - SKLPort4\n[7]   - SKLPort5\n[8]   - SKLPort6\n[9]   - SKLPort7\n\n\nResource pressure per iteration:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    \n -      -     1.25   1.23   1.50   1.50    -     1.25   1.27    -     \n\nResource pressure by instruction:\n[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    Instructions:\n -      -      -     0.26    -      -      -     0.72   0.02    -     cmpl\t$12, %edx\n -      -     0.76    -      -      -      -      -     0.24    -     setb\t%al\n -      -      -      -     0.49   0.51    -      -      -      -     movl\t(%rsi), %edx\n -      -     0.04   0.68   0.28   0.72    -     0.27   0.01    -     addq\t88(%rdi), %rdx\n -      -     0.45   0.29   0.73   0.27    -     0.26   1.00    -     retq\n",
+  "speedup": 1.9254658385093166
+ },
+ "stop": "no_improvement",
+ "cost_usd": 0.0619345,
+ "large": true,
+ "budget_usd": 3.0,
+ "verified_by": "alive-tv, reference toolchain"
+}
