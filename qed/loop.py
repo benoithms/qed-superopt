@@ -393,7 +393,7 @@ def main(argv=None):
     ap.add_argument(
         "--fresh",
         action="store_true",
-        help="call the model even when the answer is cached (the new answer is cached too)",
+        help="call the model even when the answer is cached (the cache keeps the old answer)",
     )
     args = ap.parse_args(argv)
     # one local llama-server; --live shows one function at a time

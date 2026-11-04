@@ -386,5 +386,8 @@ def test_fresh_ignores_the_cache(tmp_path, monkeypatch):
     llm.generate(ir, [])
     llm.generate(ir, [])
     assert len(calls) == 1
+    (cached,) = tmp_path.glob("*.json")
+    before = cached.read_text()
     llm.generate(ir, [], settings=Settings(fresh=True))
     assert len(calls) == 2
+    assert cached.read_text() == before  # the earlier answer stays the one cached

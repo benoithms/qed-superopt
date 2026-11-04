@@ -60,7 +60,8 @@ class Settings:
     # A truncated answer loses all its reasoning, so a retry restarts the same search from
     # scratch: with a high cap, a truncation means the model is going in circles. Stop.
     stop_on_truncation: bool = True
-    fresh: bool = False  # call the model even when the answer is cached (filmed demo)
+    # call the model even when the answer is cached; the cache keeps the old answer
+    fresh: bool = False
 
 
 DEFAULT = Settings()
@@ -217,8 +218,9 @@ def generate(ir: str, history: list, *, c_source=None, baseline=None, settings=D
             "seconds": time.monotonic() - start,
             "cached": False,
         }
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(record, indent=1))
+        if not path.exists():  # a fresh call never replaces the answer a run was made from
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(record, indent=1))
 
     last_call.clear()
     last_call.update(record, messages=msgs)
