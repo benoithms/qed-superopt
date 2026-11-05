@@ -68,15 +68,20 @@ Reached on Oct 28: on `llvm-issue-215060`, Muse Spark's first attempt is proven 
 - [x] Results and visuals in the README (together); `scripts/charts.py` for the paper, `scripts/visuals.py` for everyone. The live demo page is cut: the video replays recorded traces, with Alive2 really running again
 - [x] `scripts/verify_all.py`: re-checks the corpus and re-runs Alive2 on every recorded proof, with hash checks (Benoit; Oct 29: 103 entries and 142 proofs, 0 problems)
 - [x] The same check reproduced on a second machine: WSL2 Ubuntu 24.04 built with GCC, 103 entries and 142 proofs, then 134 entries with real-code, 0 problems (Jules, Oct 29)
-- [ ] Demo video (together)
-- [ ] Submission (Benoit)
+- [x] Muse Spark Open, the open-weight model, on corpus-v1 through a Modal Shared Endpoint, same loop and prompts (Jules, Nov 4, `results/spark-open-full-v1`): 127 proven, 98 faster by llvm-mca, 73 kept, $9.72. Timed on the i7-12700H only (Benoit, Nov 4, `results/bench-12700h/spark-open-full-v1.json`, core clock 2.16-2.18 GHz; a first launch with turbo on is kept in the history): 54 confirmed, 9 depend on the context, 7 no gain, 3 slower; noisier than the October measures (median spread 1.8%, over 2% on 142 of 292). No "confirmed on both CPUs" number. Control `umin-umax-clamp`: 1.13x as a call, on this CPU only
+- [x] `verify.py` rejects any IR with a loop (`opt -passes=print<cycles>`): Alive2 checks loops only for a bounded number of iterations and still prints its success message, so a wrong loop was proven in a test (Benoit, found during the SQLite test)
+- [x] Whole-program tests, protocols committed before any model call or timing on x86 (Benoit): stb_image (`real-projects/stb-image`), a proven Paeth rewrite put back into PNG decoding, no reliable speedup (0.984x and 1.024x); SQLite 3.50.4 (`real-projects/sqlite`), 20 hot zones holding 21.8% of the executed instructions, gains estimated alone that vanish next to their callers, stopped at step 3, no win
+- [x] Live display for the demo: `python -m qed.loop --live` shows each step, `--fresh` calls the model again without replacing the cached answer (Benoit)
+- [x] `scripts/verify_all.py` on the final state: 134 entries and 1,252 recorded proofs, 0 problems (Nov 4, release v0.3.0)
+- [x] Demo video (together)
+- [x] Submission (Benoit, Nov 4)
 
 ## Ideas
 
 Bonuses once the MVP works. Tasks marked *(can start now)* do not depend on the loop.
 
 **To win**
-- [ ] Report proven wins upstream as LLVM issues, after a trunk and duplicate check. `scripts/issue_draft.py` writes the drafts; nothing is filed yet.
+- [x] Report proven wins upstream as LLVM issues, after a trunk and duplicate check: first findings filed as #237771 and #237772 (Benoit). `scripts/issue_draft.py` writes the drafts.
 - [x] Charts: funnel, confirmed wins, attempts, llvm-mca vs. CPU, CPU vs. CPU (`scripts/charts.py`).
 
 **Usefulness: prove it, don't just claim it**
@@ -124,6 +129,6 @@ Evaluation rules that go with them:
 - **One toolchain, one target.** Every step, from `clang -O3` to `llvm-mca`, uses the pinned reference build and `--target=x86_64-unknown-linux-gnu -march=skylake`. The target changes the IR produced by `-O3`, so mixing targets would create fake missed optimizations.
 - **The model writes bodies, never headers.** The tool places the body under the source's exact header, so the signature and function attributes cannot change.
 - **Refinement, not equivalence.** Alive2 proves that the rewrite refines the original, the criterion LLVM uses for its own optimizations.
-- **Only Meta models generate candidates**: Muse Spark (API) and LLM Compiler (local).
+- **Only Meta models generate candidates**: Muse Spark (API), Muse Spark Open (open weights, Modal Shared Endpoint) and LLM Compiler (local).
 - **One high token cap, no blind retries.** The API returns no reasoning, so a truncated answer is lost and a retry starts over: Muse Spark gets 64k tokens per call and a function stops at its first truncation.
 - **Hard spending cap.** Every paid run has a cap checked before each call; only free credits are spent.
